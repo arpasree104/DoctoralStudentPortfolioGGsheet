@@ -34,22 +34,25 @@ export default function AppsScriptHelp() {
         <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs space-y-3">
           <h3 className="font-bold text-gray-900 text-sm flex items-center gap-1.5">
             <span className="w-5 h-5 bg-tu-red text-white rounded-full flex items-center justify-center text-[10px] font-bold">1</span>
-            การติดตั้งฝั่ง Google Sheets & Apps Script
+            การติดตั้งฝั่ง Google Sheets & Apps Script (แบบอัตโนมัติ)
           </h3>
           <ol className="list-decimal list-inside space-y-2 text-gray-600 pl-1 leading-normal">
             <li>สร้างไฟล์ <strong>Google Sheets</strong> เปล่าขึ้นมาในบัญชีของท่าน</li>
-            <li>สร้างแผ่นชีทแยกตามชื่อเหล่านี้เป๊ะๆ:
-              <ul className="list-disc list-inside pl-4 font-mono text-[10px] text-tu-red">
+            <li>ไปที่เมนู <strong>Extensions &gt; Apps Script</strong></li>
+            <li>ลบโค้ดเดิมทิ้งทั้งหมด แล้ววางโค้ดจากกล่องด้านล่างนี้ลงไป</li>
+            <li><strong>วิเศษสุดๆ!</strong> ด้านบนให้เลือกฟังก์ชัน <code className="bg-red-50 text-tu-red px-1 rounded font-bold">setupDatabase</code> แล้วกดปุ่ม <strong>Run</strong></li>
+            <li>ระบบจะทำการสร้างแผ่นงาน (Sheets) ทั้งหมดด้านล่างนี้ พร้อมหัวตาราง และข้อมูลจำลองแผ่นงานละ 5-6 แถวให้ท่านทันทีโดยอัตโนมัติ!
+              <ul className="list-disc list-inside pl-4 font-mono text-[10px] text-tu-red grid grid-cols-2 mt-1">
                 <li>Users</li>
                 <li>Certificates</li>
                 <li>Activities</li>
                 <li>ConfigOptions</li>
                 <li>ActivityLogs</li>
                 <li>Portfolios</li>
+                <li>Chats (ใหม่)</li>
+                <li>Notifications (ใหม่)</li>
               </ul>
             </li>
-            <li>ไปที่เมนู <strong>Extensions &gt; Apps Script</strong></li>
-            <li>ลบโค้ดเดิมทิ้งทั้งหมด แล้ววางโค้ดจากกล่องด้านล่างนี้ลงไป</li>
             <li>กดปุ่ม <strong>Deploy &gt; New Deployment</strong> ด้านบนขวา</li>
             <li>เลือกประเภทเป็น <strong>Web App</strong> ตั้งค่าดังนี้:
               <ul className="list-disc list-inside pl-4 text-gray-500">

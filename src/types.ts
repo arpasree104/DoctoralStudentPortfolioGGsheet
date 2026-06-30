@@ -96,3 +96,24 @@ export interface StudentPortfolioData {
   advisorComments: string;
   endorsements: { role: string; name: string; signatureDate: string }[];
 }
+
+export interface ChatMessage {
+  MessageID: string;
+  SenderID: string;
+  SenderName: string;
+  ReceiverID: string; // Target StudentID or Advisor UserID
+  MessageText: string;
+  Timestamp: string;
+}
+
+export interface Notification {
+  NotificationID: string;
+  SenderID: string;
+  SenderName: string;
+  ReceiverID: string; // Target StudentID or Advisor UserID
+  Title: string;
+  MessageText: string;
+  Timestamp: string;
+  IsRead: boolean;
+}
+

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { User, Certificate, Activity, ConfigOption, ActivityLog, StudentPortfolioData } from '../types';
+import { User, Certificate, Activity, ConfigOption, ActivityLog, StudentPortfolioData, ChatMessage, Notification } from '../types';
 
 // Default initial config options
 const DEFAULT_CONFIGS: ConfigOption[] = [
@@ -269,6 +269,56 @@ const DEFAULT_LOGS: ActivityLog[] = [
   { LogID: 'LOG-002', Timestamp: '2026-06-30T07:51:15-07:00', Action: 'PORTFOLIO_UPDATE', UserID: 'STUDENT-1', Details: 'Saved Dissertation Information' }
 ];
 
+const DEFAULT_CHAT_MESSAGES: ChatMessage[] = [
+  {
+    MessageID: 'MSG-001',
+    SenderID: 'ADVISOR-1',
+    SenderName: 'รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)',
+    ReceiverID: '6601010024',
+    MessageText: 'สวัสดีค่ะอรพรรณ บทความวิจัยสำหรับวารสารพยาบาลศาสตร์พัฒนาคืบหน้าอย่างไรบ้างคะ?',
+    Timestamp: '2026-06-29T10:00:00.000Z'
+  },
+  {
+    MessageID: 'MSG-002',
+    SenderID: '6601010024',
+    SenderName: 'นางสาวอรพรรณ แก้วดี (Orapan Kaewdee)',
+    ReceiverID: 'ADVISOR-1',
+    MessageText: 'กราบเรียนอาจารย์ค่ะ กำลังปรับแก้ส่วนระเบียบวิธีวิจัยตามคำแนะนำของอาจารย์อยู่ค่ะ คาดว่าจะส่งร่างแรกให้พิจารณาภายในสุดสัปดาห์นี้ค่ะ',
+    Timestamp: '2026-06-29T14:30:00.000Z'
+  },
+  {
+    MessageID: 'MSG-003',
+    SenderID: 'CO_ADVISOR-1',
+    SenderName: 'ผศ.ดร. พิชญ์ อรุณแสง (Asst. Prof. Dr. Peach Arunsang)',
+    ReceiverID: '6601010024',
+    MessageText: 'อย่าลืมเช็คเกณฑ์ชั่วโมงวิจัยด้วยนะ ต้องสะสมให้ครบ 180 ชั่วโมง ค่อยยื่นจบ',
+    Timestamp: '2026-06-30T09:00:00.000Z'
+  }
+];
+
+const DEFAULT_NOTIFICATIONS: Notification[] = [
+  {
+    NotificationID: 'NOT-001',
+    SenderID: 'ADVISOR-1',
+    SenderName: 'รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)',
+    ReceiverID: '6601010024',
+    Title: 'แจ้งเตือนเรื่องการยื่นจริยธรรมการวิจัย',
+    MessageText: 'กรุณาดำเนินการเตรียมยื่นขออนุมัติคณะกรรมการจริยธรรมการวิจัยในมนุษย์ (IRB) ภายในสิ้นเดือนหน้าเพื่อรักษากรอบระยะเวลาของทุนวิจัย',
+    Timestamp: '2026-06-29T08:00:00.000Z',
+    IsRead: false
+  },
+  {
+    NotificationID: 'NOT-002',
+    SenderID: 'CO_ADVISOR-1',
+    SenderName: 'ผศ.ดร. พิชญ์ อรุณแสง (Asst. Prof. Dr. Peach Arunsang)',
+    ReceiverID: '6601010024',
+    Title: 'แจ้งเตือนการส่งรายงานความก้าวหน้า',
+    MessageText: 'กรุณาส่งรายงานความก้าวหน้าโครงการวิทยานิพนธ์ประจำปี ในพอร์ตโฟลิโอ และอัพเดทตาราง Milestones ด้วยค่ะ',
+    Timestamp: '2026-06-30T11:15:00.000Z',
+    IsRead: false
+  }
+];
+
 // LocalStorage Persistence Keys
 const KEYS = {
   USERS: 'TU_PHD_USERS',
@@ -277,6 +327,8 @@ const KEYS = {
   CONFIGS: 'TU_PHD_CONFIGS',
   LOGS: 'TU_PHD_LOGS',
   PORTFOLIO: 'TU_PHD_STUDENT_PORTFOLIO_6601010024', // keyed by studentId for simulation
+  CHATS: 'TU_PHD_CHATS',
+  NOTIFICATIONS: 'TU_PHD_NOTIFS',
   API_URL: 'TU_PHD_API_URL'
 };
 
@@ -300,7 +352,113 @@ export function initializeDatabase() {
   if (!localStorage.getItem(KEYS.PORTFOLIO)) {
     localStorage.setItem(KEYS.PORTFOLIO, JSON.stringify(DEFAULT_STUDENT_PORTFOLIO));
   }
+  if (!localStorage.getItem(KEYS.CHATS)) {
+    localStorage.setItem(KEYS.CHATS, JSON.stringify(DEFAULT_CHAT_MESSAGES));
+  }
+  if (!localStorage.getItem(KEYS.NOTIFICATIONS)) {
+    localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify(DEFAULT_NOTIFICATIONS));
+  }
 }
+
+export async function getChats(studentId?: string): Promise<ChatMessage[]> {
+  initializeDatabase();
+  const scriptUrl = getAppsScriptUrl();
+  if (scriptUrl) {
+    try {
+      const res = await fetch(`${scriptUrl}?type=chats`);
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem(KEYS.CHATS, JSON.stringify(data));
+        if (studentId) {
+          return data.filter((m: ChatMessage) => m.ReceiverID === studentId || m.SenderID === studentId || (studentId === '6601010024' && (m.ReceiverID === '6601010024' || m.SenderID === '6601010024')));
+        }
+        return data;
+      }
+    } catch (e) {
+      console.warn('Sync chats failed, falling back to LocalStorage:', e);
+    }
+  }
+  const all: ChatMessage[] = JSON.parse(localStorage.getItem(KEYS.CHATS) || '[]');
+  if (studentId) {
+    return all.filter(m => m.ReceiverID === studentId || m.SenderID === studentId);
+  }
+  return all;
+}
+
+export async function saveChat(msg: ChatMessage): Promise<void> {
+  initializeDatabase();
+  const all: ChatMessage[] = JSON.parse(localStorage.getItem(KEYS.CHATS) || '[]');
+  all.push(msg);
+  localStorage.setItem(KEYS.CHATS, JSON.stringify(all));
+  logActivity(msg.SenderID, 'CHAT_SEND', `Sent message from ${msg.SenderName} to ${msg.ReceiverID}`);
+
+  const scriptUrl = getAppsScriptUrl();
+  if (scriptUrl) {
+    try {
+      await fetch(scriptUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'saveChat', message: msg })
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+}
+
+export async function getNotifications(studentId?: string): Promise<Notification[]> {
+  initializeDatabase();
+  const scriptUrl = getAppsScriptUrl();
+  if (scriptUrl) {
+    try {
+      const res = await fetch(`${scriptUrl}?type=notifications`);
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify(data));
+        if (studentId) {
+          return data.filter((n: Notification) => n.ReceiverID === studentId);
+        }
+        return data;
+      }
+    } catch (e) {
+      console.warn('Sync notifications failed, falling back to LocalStorage:', e);
+    }
+  }
+  const all: Notification[] = JSON.parse(localStorage.getItem(KEYS.NOTIFICATIONS) || '[]');
+  if (studentId) {
+    return all.filter(n => n.ReceiverID === studentId);
+  }
+  return all;
+}
+
+export async function saveNotification(notif: Notification): Promise<void> {
+  initializeDatabase();
+  const all: Notification[] = JSON.parse(localStorage.getItem(KEYS.NOTIFICATIONS) || '[]');
+  const index = all.findIndex(n => n.NotificationID === notif.NotificationID);
+  if (index !== -1) {
+    all[index] = notif;
+  } else {
+    all.push(notif);
+  }
+  localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify(all));
+  logActivity(notif.SenderID, 'SEND_NOTIFICATION', `Sent notification to ${notif.ReceiverID}: ${notif.Title}`);
+
+  const scriptUrl = getAppsScriptUrl();
+  if (scriptUrl) {
+    try {
+      await fetch(scriptUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'saveNotification', notification: notif })
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+}
+
 
 // Google Apps Script Connection Config
 export function getAppsScriptUrl(): string {
@@ -623,13 +781,13 @@ export const GOOGLE_APPS_SCRIPT_CODE = `/**
  * Google Apps Script Web App for Thammasat University Nursing PhD Portfolio
  *
  * INSTRUCTIONS:
- * 1. Open Google Sheet (https://sheets.google.com) and create an empty spreadsheet.
- * 2. Create sheets with these exact names: "Users", "Certificates", "Activities", "ConfigOptions", "ActivityLogs", "Portfolios".
- * 3. Add headers in Row 1 for each sheet matching the column descriptions.
- * 4. Open Extensions > Apps Script, replace with this code, and deploy as a Web App:
+ * 1. Open Extensions > Apps Script in your Google Sheet.
+ * 2. Replace all code in Code.gs with this script.
+ * 3. Run the "setupDatabase" function once inside the Apps Script editor to create all sheets with columns and 5-6 sample rows!
+ * 4. Deploy as a Web App:
  *    - Execute as: "Me" (your email)
  *    - Who has access: "Anyone"
- * 5. Copy the generated Web App URL and paste it into the Web API Endpoint configuration inside the System Settings panel.
+ * 5. Copy the generated Web App URL and paste it into System Settings panel.
  */
 
 function doGet(e) {
@@ -663,6 +821,16 @@ function doGet(e) {
     } else if (type === 'configOptions') {
       sheet = ss.getSheetByName('ConfigOptions');
       data = getSheetDataAsJson(sheet);
+    } else if (type === 'chats') {
+      sheet = ss.getSheetByName('Chats');
+      data = getSheetDataAsJson(sheet);
+    } else if (type === 'notifications') {
+      sheet = ss.getSheetByName('Notifications');
+      var raw = getSheetDataAsJson(sheet);
+      data = raw.map(function(item) {
+        item.IsRead = item.IsRead === 'true' || item.IsRead === true;
+        return item;
+      });
     } else if (type === 'portfolio') {
       var studentId = e.parameter.studentId;
       sheet = ss.getSheetByName('Portfolios');
@@ -731,6 +899,16 @@ function doPost(e) {
       };
       upsertRow(sheet, 'StudentID', rowObj);
       response.success = true;
+    } else if (action === 'saveChat') {
+      var sheet = ss.getSheetByName('Chats');
+      upsertRow(sheet, 'MessageID', postData.message);
+      response.success = true;
+    } else if (action === 'saveNotification') {
+      var sheet = ss.getSheetByName('Notifications');
+      var notif = postData.notification;
+      notif.IsRead = String(notif.IsRead);
+      upsertRow(sheet, 'NotificationID', notif);
+      response.success = true;
     } else if (action === 'logActivity') {
       var sheet = ss.getSheetByName('ActivityLogs');
       sheet.appendRow([
@@ -749,6 +927,170 @@ function doPost(e) {
   
   return ContentService.createTextOutput(JSON.stringify(response))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+// SETUP DATABASE AND SEED EXAMPLE DATA FOR THE USER
+function setupDatabase() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // Sheet schemas with their column headers
+  var schemas = {
+    "Users": ["UserID", "Email", "FullName", "Role", "StudentID", "Major", "Advisor", "CoAdvisor", "ThesisTitle", "LineID", "ORCID", "ResearchInterests", "ExpectedGraduationYear", "PhotoURL"],
+    "Certificates": ["CertID", "StudentID", "Name", "Date", "Category", "ImageURL", "Status", "ApprovedBy", "Feedback"],
+    "Activities": ["ActivityID", "StudentID", "Title", "Date", "Description", "ImagesURL", "Status", "ApprovedBy", "Feedback"],
+    "ConfigOptions": ["id", "OptionType", "OptionValue"],
+    "ActivityLogs": ["LogID", "Timestamp", "Action", "UserID", "Details"],
+    "Portfolios": ["StudentID", "DataJSON", "LastUpdated"],
+    "Chats": ["MessageID", "SenderID", "SenderName", "ReceiverID", "MessageText", "Timestamp"],
+    "Notifications": ["NotificationID", "SenderID", "SenderName", "ReceiverID", "Title", "MessageText", "Timestamp", "IsRead"]
+  };
+  
+  for (var sheetName in schemas) {
+    var sheet = ss.getSheetByName(sheetName);
+    if (!sheet) {
+      sheet = ss.insertSheet(sheetName);
+    }
+    // Set headers
+    sheet.getRange(1, 1, 1, schemas[sheetName].length).setValues([schemas[sheetName]]);
+    sheet.getRange(1, 1, 1, schemas[sheetName].length).setFontWeight("bold").setBackground("#e0f2fe");
+    sheet.setFrozenRows(1);
+  }
+  
+  // Insert sample rows
+  insertExampleData();
+  
+  return "SUCCESS: Database schema created and example data inserted successfully!";
+}
+
+function insertExampleData() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var headersMap = {
+    "Users": ["UserID", "Email", "FullName", "Role", "StudentID", "Major", "Advisor", "CoAdvisor", "ThesisTitle", "LineID", "ORCID", "ResearchInterests", "ExpectedGraduationYear", "PhotoURL"],
+    "Certificates": ["CertID", "StudentID", "Name", "Date", "Category", "ImageURL", "Status", "ApprovedBy", "Feedback"],
+    "Activities": ["ActivityID", "StudentID", "Title", "Date", "Description", "ImagesURL", "Status", "ApprovedBy", "Feedback"],
+    "ConfigOptions": ["id", "OptionType", "OptionValue"],
+    "ActivityLogs": ["LogID", "Timestamp", "Action", "UserID", "Details"],
+    "Chats": ["MessageID", "SenderID", "SenderName", "ReceiverID", "MessageText", "Timestamp"],
+    "Notifications": ["NotificationID", "SenderID", "SenderName", "ReceiverID", "Title", "MessageText", "Timestamp", "IsRead"]
+  };
+  
+  // 1. Seed Users (5-6 rows)
+  var usersSheet = ss.getSheetByName("Users");
+  if (usersSheet.getLastRow() <= 1) {
+    var sampleUsers = [
+      {"UserID": "STUDENT-1", "Email": "student@tu.ac.th", "FullName": "นางสาวอรพรรณ แก้วดี (Miss Orapan Kaewdee)", "Role": "STUDENT", "StudentID": "6601010024", "Major": "Doctor of Philosophy Program in Nursing Science (International Program)", "Advisor": "รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)", "CoAdvisor": "รศ.ดร. วิภา ชัยชาญ (Assoc. Prof. Dr. Wipa Chaichan)", "ThesisTitle": "Efficacy of Mindfulness-Based Tele-Nursing Intervention on Quality of Life and Coping Strategies in Thai Post-Stroke Caregivers: A Randomized Controlled Trial", "LineID": "orapan.k", "ORCID": "https://orcid.org/0000-0002-1234-5678", "ResearchInterests": "Gerontological Nursing, Mindfulness-Based Therapy, Tele-rehabilitation", "ExpectedGraduationYear": "2027", "PhotoURL": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80"},
+      {"UserID": "STUDENT-2", "Email": "ananya.s@tu.ac.th", "FullName": "นางสาวอนัญญา สมใจ (Miss Ananya Somjai)", "Role": "STUDENT", "StudentID": "6601010032", "Major": "หลักสูตรปรัชญาดุษฎีบัณฑิต สาขาวิชาพยาบาลศาสตร์ (PhD in Nursing Science - Thai Program)", "Advisor": "รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)", "CoAdvisor": "ดร. กิตติศักดิ์ รัตนวิทย์ (Dr. Kittisak Rattanawit)", "ThesisTitle": "ปัจจัยที่มีอิทธิพลต่อความพร้อมในการดูแลตนเองของผู้ป่วยภาวะหัวใจล้มเหลวเฉียบพลันในชุมชน", "LineID": "ananya.sj", "ORCID": "https://orcid.org/0000-0001-5555-9999", "ResearchInterests": "Cardiology Nursing, Self-Care, Chronic Care", "ExpectedGraduationYear": "2027", "PhotoURL": "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=300&q=80"},
+      {"UserID": "STUDENT-3", "Email": "natthapon.p@tu.ac.th", "FullName": "นายณัฐพล พูนทรัพย์ (Mr. Natthapon Poonsap)", "Role": "STUDENT", "StudentID": "6501010011", "Major": "Doctor of Philosophy Program in Nursing Science (International Program)", "Advisor": "ศ.ดร. สร้อยอนุสาสน์ สุขดี (Prof. Dr. Soianusat Sukdee)", "CoAdvisor": "ผศ.ดร. รพีพรรณ เลิศสมบูรณ์ (Asst. Prof. Dr. Rapeepan Lertsomboon)", "ThesisTitle": "Interactive Mobile-Health Guided Pulmonary Rehabilitation for Elderly COPD Patients", "LineID": "natthapon.p", "ORCID": "https://orcid.org/0000-0003-8888-1111", "ResearchInterests": "COPD Care, Mobile Health, Respiratory Care", "ExpectedGraduationYear": "2026", "PhotoURL": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=300&q=80"},
+      {"UserID": "ADVISOR-1", "Email": "advisor@tu.ac.th", "FullName": "รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)", "Role": "ADVISOR", "StudentID": "", "Major": "", "Advisor": "", "CoAdvisor": "", "ThesisTitle": "", "LineID": "", "ORCID": "", "ResearchInterests": "", "ExpectedGraduationYear": "", "PhotoURL": "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=300&q=80"},
+      {"UserID": "CO_ADVISOR-1", "Email": "peach@tu.ac.th", "FullName": "ผศ.ดร. พิชญ์ อรุณแสง (Asst. Prof. Dr. Peach Arunsang)", "Role": "ADVISOR", "StudentID": "", "Major": "", "Advisor": "", "CoAdvisor": "", "ThesisTitle": "", "LineID": "", "ORCID": "", "ResearchInterests": "", "ExpectedGraduationYear": "", "PhotoURL": "https://images.unsplash.com/photo-1594744803329-e58b31de215f?auto=format&fit=crop&w=300&q=80"},
+      {"UserID": "ADMIN-1", "Email": "admin@tu.ac.th", "FullName": "ผศ.ดร. สุขุม พิพัฒน์โชติ (Asst. Prof. Dr. Sukhum Pipatchot) - แอดมินระบบ", "Role": "ADMIN", "StudentID": "", "Major": "", "Advisor": "", "CoAdvisor": "", "ThesisTitle": "", "LineID": "", "ORCID": "", "ResearchInterests": "", "ExpectedGraduationYear": "", "PhotoURL": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=300&q=80"}
+    ];
+    for (var i = 0; i < sampleUsers.length; i++) {
+      appendObjectAsRow(usersSheet, headersMap["Users"], sampleUsers[i]);
+    }
+  }
+
+  // 2. Seed Certificates (5-6 rows)
+  var certSheet = ss.getSheetByName("Certificates");
+  if (certSheet.getLastRow() <= 1) {
+    var sampleCerts = [
+      {"CertID": "CERT-001", "StudentID": "6601010024", "Name": "ใบประกาศนียบัตรผ่านการอบรมจริยธรรมการวิจัยในมนุษย์ (CITI Programme Course)", "Date": "2024-02-10", "Category": "อบรมจริยธรรมการวิจัยในมนุษย์ (Human Research Ethics Training)", "ImageURL": "https://images.unsplash.com/photo-1589330694653-ded6df03f754?auto=format&fit=crop&w=800&q=80", "Status": "APPROVED", "ApprovedBy": "รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)", "Feedback": "เอกสารหลักฐานครบถ้วนและสมบูรณ์ ดีมาก"},
+      {"CertID": "CERT-002", "StudentID": "6601010024", "Name": "เกียรติบัตรการนำเสนองานวิจัยดีเด่น Oral Presentation Award 2024 - Chiang Mai Nursing Forum", "Date": "2024-11-21", "Category": "รางวัลระดับชาติ/นานาชาติ (National/International Award)", "ImageURL": "https://images.unsplash.com/photo-1571171637578-41bc2dd4dcd2?auto=format&fit=crop&w=800&q=80", "Status": "APPROVED", "ApprovedBy": "รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)", "Feedback": "ยินดีด้วยกับการนำเสนอที่ดีเยี่ยม"},
+      {"CertID": "CERT-003", "StudentID": "6601010024", "Name": "ใบประกาศร่วมอบรม Clinical Trial Management in Remote Nursing Sites", "Date": "2025-03-05", "Category": "อบรมวิชาการเฉพาะทาง (Specialized Training)", "ImageURL": "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=800&q=80", "Status": "PENDING", "ApprovedBy": "", "Feedback": ""},
+      {"CertID": "CERT-004", "StudentID": "6601010032", "Name": "ใบประกาศผ่านหลักสูตรช่วยฟื้นคืนชีพขั้นสูง (Advanced Life Support)", "Date": "2024-05-12", "Category": "อบรมวิชาการเฉพาะทาง (Specialized Training)", "ImageURL": "https://images.unsplash.com/photo-1589330694653-ded6df03f754?auto=format&fit=crop&w=800&q=80", "Status": "APPROVED", "ApprovedBy": "รศ.ดร. นงลักษณ์ วิเศษศิลป์", "Feedback": "หลักฐานถูกต้องครบถ้วน"},
+      {"CertID": "CERT-005", "StudentID": "6501010011", "Name": "รางวัลชมเชยนวัตกรรมการพยาบาลจากสภาการพยาบาลแห่งชาติ", "Date": "2024-12-01", "Category": "รางวัลระดับชาติ/นานาชาติ (National/International Award)", "ImageURL": "https://images.unsplash.com/photo-1571171637578-41bc2dd4dcd2?auto=format&fit=crop&w=800&q=80", "Status": "APPROVED", "ApprovedBy": "ศ.ดร. สร้อยอนุสาสน์ สุขดี", "Feedback": "สร้างชื่อเสียงให้คณะและสถาบันดีมาก"},
+      {"CertID": "CERT-006", "StudentID": "6601010024", "Name": "ใบสำคัญการแต่งตั้งคณะกรรมการจริยธรรมในมนุษย์ (IRB Approval Number 112/2568)", "Date": "2025-06-15", "Category": "อบรมจริยธรรมการวิจัยในมนุษย์ (Human Research Ethics Training)", "ImageURL": "https://images.unsplash.com/photo-1589330694653-ded6df03f754?auto=format&fit=crop&w=800&q=80", "Status": "APPROVED", "ApprovedBy": "รศ.ดร. นงลักษณ์ วิเศษศิลป์", "Feedback": "เรียบร้อยดี สามารถลุยทำวิทยานิพนธ์ต่อได้เลย"}
+    ];
+    for (var i = 0; i < sampleCerts.length; i++) {
+      appendObjectAsRow(certSheet, headersMap["Certificates"], sampleCerts[i]);
+    }
+  }
+
+  // 3. Seed Activities (5-6 rows)
+  var actSheet = ss.getSheetByName("Activities");
+  if (actSheet.getLastRow() <= 1) {
+    var sampleActs = [
+      {"ActivityID": "ACT-001", "StudentID": "6601010024", "Title": "พรีเซนต์ความคืบหน้าหัวข้อวิทยานิพนธ์ประจำไตรมาสกับคณะที่ปรึกษา", "Date": "2025-04-10", "Description": "รายงานแผนการรับสมัครกลุ่มตัวอย่างผู้ดูแลผู้ป่วยโรคหลอดเลือดสมอง และการติดตั้งระบบระบบพยาบาลทางไกล (Tele-Nursing App)", "ImagesURL": '["https://images.unsplash.com/photo-1531538606174-0f90ff5dce83?auto=format&fit=crop&w=600&q=80"]', "Status": "APPROVED", "ApprovedBy": "รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)", "Feedback": "แนวทางการทำงานชัดเจน ติดตามกลุ่มผู้ดูแลอย่างใกล้ชิด"},
+      {"ActivityID": "ACT-002", "StudentID": "6601010024", "Title": "จัดกิจกรรมกลุ่มแนะแนวพยาบาลวิชาชีพเพื่อเตรียมความพร้อมวิจัยในชุมชน", "Date": "2025-05-15", "Description": "ลงพื้นที่จัดอบรมทักษะสติ (Mindfulness) ร่วมกับบุคลากรทางการแพทย์ ณ รพ.สต. ปทุมธานี", "ImagesURL": '["https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=600&q=80"]', "Status": "PENDING", "ApprovedBy": "", "Feedback": ""},
+      {"ActivityID": "ACT-003", "StudentID": "6601010032", "Title": "ลงพื้นที่เก็บข้อมูลหัวใจล้มเหลวเฉียบพลัน ณ รพ.ปทุมธานี", "Date": "2025-02-18", "Description": "เก็บรวบรวมแบบประเมินผู้ป่วยที่จำหน่ายกลับบ้านจำนวน 15 คน", "ImagesURL": '["https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=600&q=80"]', "Status": "APPROVED", "ApprovedBy": "รศ.ดร. นงลักษณ์ วิเศษศิลป์", "Feedback": "เก็บข้อมูลเรียบร้อยดีเยี่ยม"},
+      {"ActivityID": "ACT-004", "StudentID": "6501010011", "Title": "ทดสอบระบบ Pulmonary Rehab App ร่วมกับทีมแพทย์โรงพยาบาลธรรมศาสตร์เฉลิมพระเกียรติ", "Date": "2025-01-20", "Description": "ทดสอบฟังก์ชันตรวจวัดปริมาตรปอดอัตโนมัติ", "ImagesURL": '["https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=600&q=80"]', "Status": "APPROVED", "ApprovedBy": "ศ.ดร. สร้อยอนุสาสน์ สุขดี", "Feedback": "แอปพลิเคชันทำงานได้สมบูรณ์แบบมาก คอยตรวจสอบบั๊กต่อเนื่องด้วย"},
+      {"ActivityID": "ACT-005", "StudentID": "6601010024", "Title": "เข้าร่วมสัมมนาระเบียบวิธีวิจัยขั้นสูงสำหรับพยาบาลดุษฎีบัณฑิต", "Date": "2025-06-02", "Description": "เรียนรู้เทคนิค Structural Equation Modeling และการใช้โปรแกรม AMOS เบื้องต้น", "ImagesURL": '["https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=600&q=80"]', "Status": "APPROVED", "ApprovedBy": "รศ.ดร. นงลักษณ์ วิเศษศิลป์", "Feedback": "ดีมากที่ใฝ่รู้ศึกษาเทคนิคขั้นสูงต่อยอดวิทยานิพนธ์"},
+      {"ActivityID": "ACT-006", "StudentID": "6601010024", "Title": "ประชุมกลุ่มย่อยร่วมกับผู้ร่วมวิจัยจาก Faculty of Nursing, University of Michigan", "Date": "2025-06-20", "Description": "หารือความเป็นไปได้ในการจัดทำ International Student Exchange program สำหรับการแลกเปลี่ยนวิชาการ", "ImagesURL": '["https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=600&q=80"]', "Status": "APPROVED", "ApprovedBy": "รศ.ดร. นงลักษณ์ วิเศษศิลป์", "Feedback": "เป็นโอกาสที่ยอดเยี่ยมมาก ขอให้เตรียมความพร้อมด้านภาษาอังกฤษด้วย"}
+    ];
+    for (var i = 0; i < sampleActs.length; i++) {
+      appendObjectAsRow(actSheet, headersMap["Activities"], sampleActs[i]);
+    }
+  }
+
+  // 4. Seed ConfigOptions (5-6 rows)
+  var confSheet = ss.getSheetByName("ConfigOptions");
+  if (confSheet.getLastRow() <= 1) {
+    var sampleConfigs = [
+      {"id": "cfg-1", "OptionType": "ADVISOR", "OptionValue": "รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)"},
+      {"id": "cfg-2", "OptionType": "ADVISOR", "OptionValue": "ศ.ดร. สร้อยอนุสาสน์ สุขดี (Prof. Dr. Soianusat Sukdee)"},
+      {"id": "cfg-3", "OptionType": "ADVISOR", "OptionValue": "ผศ.ดร. สมศรี เกียรติพงษ์ (Asst. Prof. Dr. Somsri Kiatiphong)"},
+      {"id": "cfg-4", "OptionType": "CO_ADVISOR", "OptionValue": "รศ.ดร. วิภา ชัยชาญ (Assoc. Prof. Dr. Wipa Chaichan)"},
+      {"id": "cfg-5", "OptionType": "CO_ADVISOR", "OptionValue": "ดร. กิตติศักดิ์ รัตนวิทย์ (Dr. Kittisak Rattanawit)"},
+      {"id": "cfg-6", "OptionType": "CO_ADVISOR", "OptionValue": "ผศ.ดร. รพีพรรณ เลิศสมบูรณ์ (Asst. Prof. Dr. Rapeepan Lertsomboon)"}
+    ];
+    for (var i = 0; i < sampleConfigs.length; i++) {
+      appendObjectAsRow(confSheet, headersMap["ConfigOptions"], sampleConfigs[i]);
+    }
+  }
+
+  // 5. Seed ActivityLogs (5-6 rows)
+  var logSheet = ss.getSheetByName("ActivityLogs");
+  if (logSheet.getLastRow() <= 1) {
+    var sampleLogs = [
+      {"LogID": "LOG-001", "Timestamp": new Date().toISOString(), "Action": "LOGIN", "UserID": "STUDENT-1", "Details": "Student Orapan Kaewdee logged into the system"},
+      {"LogID": "LOG-002", "Timestamp": new Date().toISOString(), "Action": "PORTFOLIO_UPDATE", "UserID": "STUDENT-1", "Details": "Saved Dissertation Information in Doctoral Portfolio"},
+      {"LogID": "LOG-003", "Timestamp": new Date().toISOString(), "Action": "LOGIN", "UserID": "ADVISOR-1", "Details": "Advisor Assoc. Prof. Dr. Nonglak Wisetsilp logged in"},
+      {"LogID": "LOG-004", "Timestamp": new Date().toISOString(), "Action": "CERTIFICATE_APPROVE", "UserID": "ADVISOR-1", "Details": "Approved CERT-001 for Orapan Kaewdee"},
+      {"LogID": "LOG-005", "Timestamp": new Date().toISOString(), "Action": "NOTIFICATION_SEND", "UserID": "ADVISOR-1", "Details": "Sent alert notification to Orapan Kaewdee regarding IRB submission"},
+      {"LogID": "LOG-006", "Timestamp": new Date().toISOString(), "Action": "CHAT_SEND", "UserID": "STUDENT-1", "Details": "Sent response message to Advisor Nonglak"}
+    ];
+    for (var i = 0; i < sampleLogs.length; i++) {
+      appendObjectAsRow(logSheet, headersMap["ActivityLogs"], sampleLogs[i]);
+    }
+  }
+
+  // 6. Seed Chats (5-6 rows)
+  var chatSheet = ss.getSheetByName("Chats");
+  if (chatSheet.getLastRow() <= 1) {
+    var sampleChats = [
+      {"MessageID": "MSG-001", "SenderID": "ADVISOR-1", "SenderName": "รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)", "ReceiverID": "6601010024", "MessageText": "สวัสดีค่ะอรพรรณ บทความวิจัยสำหรับวารสารพยาบาลศาสตร์พัฒนาคืบหน้าอย่างไรบ้างคะ?", "Timestamp": new Date(Date.now() - 3600000 * 24).toISOString()},
+      {"MessageID": "MSG-002", "SenderID": "6601010024", "SenderName": "นางสาวอรพรรณ แก้วดี (Orapan Kaewdee)", "ReceiverID": "ADVISOR-1", "MessageText": "กราบเรียนอาจารย์ค่ะ กำลังปรับแก้ส่วนระเบียบวิธีวิจัยตามคำแนะนำของอาจารย์อยู่ค่ะ คาดว่าจะส่งร่างแรกให้พิจารณาภายในสุดสัปดาห์นี้ค่ะ", "Timestamp": new Date(Date.now() - 3600000 * 20).toISOString()},
+      {"MessageID": "MSG-003", "SenderID": "CO_ADVISOR-1", "SenderName": "ผศ.ดร. พิชญ์ อรุณแสง (Asst. Prof. Dr. Peach Arunsang)", "ReceiverID": "6601010024", "MessageText": "อย่าลืมเช็คเกณฑ์ชั่วโมงวิจัยด้วยนะ ต้องสะสมให้ครบ 180 ชั่วโมง ค่อยยื่นจบ", "Timestamp": new Date(Date.now() - 3600000 * 10).toISOString()},
+      {"MessageID": "MSG-004", "SenderID": "6601010024", "SenderName": "นางสาวอรพรรณ แก้วดี (Orapan Kaewdee)", "ReceiverID": "CO_ADVISOR-1", "MessageText": "ขอบคุณค่ะอาจารย์ หนูเก็บชม.วิจัยได้ 185 ชม. เรียบร้อยแล้วค่ะ แนบหลักฐานไว้ในส่วน Research Experience แล้วค่ะ", "Timestamp": new Date(Date.now() - 3600000 * 9).toISOString()},
+      {"MessageID": "MSG-005", "SenderID": "ADVISOR-1", "SenderName": "รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)", "ReceiverID": "6601010032", "MessageText": "อนัญญา อย่าลืมเตรียมส่งแบบร่าง IRB นะคะ", "Timestamp": new Date(Date.now() - 3600000 * 5).toISOString()},
+      {"MessageID": "MSG-006", "SenderID": "6601010032", "SenderName": "นางสาวอนัญญา สมใจ (Orapan Kaewdee)", "ReceiverID": "ADVISOR-1", "MessageText": "กราบเรียนอาจารย์ค่ะ กำลังตรวจทานใบคำร้องขั้นสุดท้ายค่ะ จะส่งยื่นเข้าระบบสัปดาห์หน้าแน่นอนค่ะ", "Timestamp": new Date(Date.now() - 3600000 * 4).toISOString()}
+    ];
+    for (var i = 0; i < sampleChats.length; i++) {
+      appendObjectAsRow(chatSheet, headersMap["Chats"], sampleChats[i]);
+    }
+  }
+
+  // 7. Seed Notifications (5-6 rows)
+  var notifSheet = ss.getSheetByName("Notifications");
+  if (notifSheet.getLastRow() <= 1) {
+    var sampleNotifs = [
+      {"NotificationID": "NOT-001", "SenderID": "ADVISOR-1", "SenderName": "รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)", "ReceiverID": "6601010024", "Title": "แจ้งเตือนเรื่องการยื่นจริยธรรมการวิจัย", "MessageText": "กรุณาดำเนินการเตรียมยื่นขออนุมัติคณะกรรมการจริยธรรมการวิจัยในมนุษย์ (IRB) ภายในสิ้นเดือนหน้าเพื่อรักษากรอบระยะเวลาของทุนวิจัย", "Timestamp": new Date(Date.now() - 3600000 * 25).toISOString(), "IsRead": "false"},
+      {"NotificationID": "NOT-002", "SenderID": "CO_ADVISOR-1", "SenderName": "ผศ.ดร. พิชญ์ อรุณแสง (Asst. Prof. Dr. Peach Arunsang)", "ReceiverID": "6601010024", "Title": "แจ้งเตือนการส่งรายงานความก้าวหน้า", "MessageText": "กรุณาส่งรายงานความก้าวหน้าโครงการวิทยานิพนธ์ประจำปี ในพอร์ตโฟลิโอ และอัพเดทตาราง Milestones ด้วยค่ะ", "Timestamp": new Date(Date.now() - 3600000 * 12).toISOString(), "IsRead": "false"},
+      {"NotificationID": "NOT-003", "SenderID": "ADVISOR-1", "SenderName": "รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)", "ReceiverID": "6601010032", "Title": "เตือนเรื่องอัพเดท Milestone การสอบเค้าโครง", "MessageText": "ใกล้ถึงกำหนดส่งวันที่วางแผนไว้ รบกวนรีบส่งเค้าโครงและอัพเดทในระบบด้วยค่ะ", "Timestamp": new Date(Date.now() - 3600000 * 2).toISOString(), "IsRead": "false"},
+      {"NotificationID": "NOT-004", "SenderID": "ADVISOR-1", "SenderName": "รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)", "ReceiverID": "6601010024", "Title": "การขอเอกสารสอบจบการศึกษา", "MessageText": "ส่งคำร้องขอสอบจบวิทยานิพนธ์ได้เลยนะ คะแนน IELTS ผ่านเกณฑ์แล้วเรียบร้อย", "Timestamp": new Date().toISOString(), "IsRead": "false"},
+      {"NotificationID": "NOT-005", "SenderID": "CO_ADVISOR-1", "SenderName": "ผศ.ดร. พิชญ์ อรุณแสง (Asst. Prof. Dr. Peach Arunsang)", "ReceiverID": "6601010032", "Title": "แจ้งเตือนการเข้าร่วมสัมมนาวิชาการ", "MessageText": "รบกวนเข้าร่วมและลงทะเบียนสัมมนาวิทยานิพนธ์เพื่อสะสมสิทธิสอบวิทยานิพนธ์ด้วย", "Timestamp": new Date().toISOString(), "IsRead": "false"}
+    ];
+    for (var i = 0; i < sampleNotifs.length; i++) {
+      appendObjectAsRow(notifSheet, headersMap["Notifications"], sampleNotifs[i]);
+    }
+  }
+}
+
+function appendObjectAsRow(sheet, headers, obj) {
+  var rowValues = headers.map(function(h) {
+    return obj[h] !== undefined ? obj[h] : "";
+  });
+  sheet.appendRow(rowValues);
 }
 
 // HELPERS

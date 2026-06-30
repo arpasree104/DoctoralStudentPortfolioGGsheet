@@ -7,7 +7,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Award, BookOpen, Clock, FileText, Settings, Users, LogOut, KeyRound,
-  HelpCircle, RefreshCw, Layers, CheckCircle2, AlertCircle, Sparkles, GraduationCap
+  HelpCircle, RefreshCw, Layers, CheckCircle2, AlertCircle, Sparkles, GraduationCap,
+  MessageSquare, Bell
 } from 'lucide-react';
 
 // Import Types
@@ -29,6 +30,7 @@ import AdminPanel from './components/AdminPanel';
 import AdvisorPanel from './components/AdvisorPanel';
 import PrintReport from './components/PrintReport';
 import AppsScriptHelp from './components/AppsScriptHelp';
+import AdvisoryChat from './components/AdvisoryChat';
 
 export default function App() {
   const [isInitialized, setIsInitialized] = useState(false);
@@ -559,6 +561,18 @@ export default function App() {
           )}
 
           <button
+            onClick={() => setActiveTab('chat')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+              activeTab === 'chat'
+                ? 'bg-tu-red text-white shadow-sm'
+                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-100'
+            }`}
+          >
+            <MessageSquare size={13} />
+            แชทและแจ้งเตือน (Chat & Reminders)
+          </button>
+
+          <button
             onClick={() => setActiveTab('help')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
               activeTab === 'help'
@@ -674,6 +688,22 @@ export default function App() {
                   onDeleteUser={handleDeleteUserAccount}
                   onAddConfigOption={handleSaveConfig}
                   onDeleteConfigOption={handleDeleteConfig}
+                />
+              </motion.div>
+            )}
+
+            {activeTab === 'chat' && (
+              <motion.div
+                key="chat"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.2 }}
+              >
+                <AdvisoryChat
+                  currentUser={currentUser}
+                  allUsers={users}
+                  onRefreshDB={loadDatabase}
                 />
               </motion.div>
             )}

@@ -1,0 +1,6 @@
+{
+  "name": "Thammasat University Nursing PhD Portfolio",
+  "description": "ระบบแฟ้มสะสมงานดุษฎีบัณฑิต คณะพยาบาลศาสตร์ มหาวิทยาลัยธรรมศาสตร์",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

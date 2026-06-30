@@ -462,7 +462,9 @@ export async function saveNotification(notif: Notification): Promise<void> {
 
 // Google Apps Script Connection Config
 export function getAppsScriptUrl(): string {
-  return localStorage.getItem(KEYS.API_URL) || (import.meta as any).env?.VITE_APPS_SCRIPT_URL || '';
+  return localStorage.getItem(KEYS.API_URL) || 
+         (import.meta as any).env?.VITE_APPS_SCRIPT_URL || 
+         'https://script.google.com/macros/s/AKfycbxgMueGg9oBkMhe0_fXVSYjgyx0XIAT1S1o8MJVx0EvSFZeI0LCF4z-DaiBodJDNwDY/exec';
 }
 
 export function setAppsScriptUrl(url: string) {

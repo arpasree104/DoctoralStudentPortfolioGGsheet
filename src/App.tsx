@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 // Import Types
-import { User, Certificate, Activity, ConfigOption, StudentPortfolioData } from './types';
+import { User, UserRole, Certificate, Activity, ConfigOption, StudentPortfolioData } from './types';
 
 // Import Database Helper Services
 import {
@@ -61,6 +61,7 @@ export default function App() {
   const [regFullName, setRegFullName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regStudentID, setRegStudentID] = useState('');
+  const [regRole, setRegRole] = useState<UserRole>('STUDENT');
   const [regMajor, setRegMajor] = useState('Doctor of Philosophy Program in Nursing Science (International Program)');
   const [regAdvisor, setRegAdvisor] = useState('');
   const [regCoAdvisor, setRegCoAdvisor] = useState('');
@@ -155,7 +156,7 @@ export default function App() {
       return;
     }
 
-    const match = users.find(u => u.Email.toLowerCase().trim() === loginEmail.toLowerCase().trim());
+    const match = users.find(u => u.Email && typeof u.Email === 'string' && u.Email.toLowerCase().trim() === loginEmail.toLowerCase().trim());
     if (match) {
       const userPassword = (match.Password || '1234').toLowerCase().trim();
       const inputPassword = loginPassword.toLowerCase().trim();
@@ -174,28 +175,35 @@ export default function App() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!regFullName.trim() || !regEmail.trim() || !regStudentID.trim() || !regPassword.trim()) {
-      setLoginError('Please fill in all required fields including password.');
+    const isStudent = regRole === 'STUDENT';
+    if (!regFullName.trim() || !regEmail.trim() || !regPassword.trim() || (isStudent && !regStudentID.trim())) {
+      setLoginError('Please fill in all required fields including password' + (isStudent ? ' and Student ID.' : '.'));
       return;
     }
 
-    const match = users.find(u => u.Email.toLowerCase().trim() === regEmail.toLowerCase().trim() || (u.StudentID && u.StudentID.trim() === regStudentID.trim()));
+    const match = users.find(u => {
+      const emailMatch = u.Email && typeof u.Email === 'string' && u.Email.toLowerCase().trim() === regEmail.toLowerCase().trim();
+      const studentIDMatch = isStudent && u.StudentID && regStudentID.trim() && String(u.StudentID).trim() === regStudentID.trim();
+      return emailMatch || studentIDMatch;
+    });
     if (match) {
       setLoginError('An account with this email or Student ID already exists.');
       return;
     }
 
     const newUser: User = {
-      UserID: `STUDENT-${Date.now()}`,
+      UserID: `${regRole}-${Date.now()}`,
       Email: regEmail.toLowerCase().trim(),
       FullName: regFullName.trim(),
-      StudentID: regStudentID.trim(),
-      Role: 'STUDENT',
-      Major: regMajor,
-      Advisor: regAdvisor || undefined,
-      CoAdvisor: regCoAdvisor || undefined,
-      ThesisTitle: regThesisTitle.trim() || undefined,
-      PhotoURL: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80',
+      StudentID: isStudent ? regStudentID.trim() : '',
+      Role: regRole,
+      Major: isStudent ? regMajor : undefined,
+      Advisor: isStudent ? (regAdvisor || undefined) : undefined,
+      CoAdvisor: isStudent ? (regCoAdvisor || undefined) : undefined,
+      ThesisTitle: isStudent ? (regThesisTitle.trim() || undefined) : undefined,
+      PhotoURL: isStudent 
+        ? 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80'
+        : 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=300&q=80',
       Password: regPassword.trim()
     };
 
@@ -203,7 +211,7 @@ export default function App() {
       await saveUser(newUser);
       await loadDatabase();
       setCurrentUser(newUser);
-      logActivity(newUser.UserID, 'REGISTER', `New student ${newUser.FullName} registered`);
+      logActivity(newUser.UserID, 'REGISTER', `New ${regRole.toLowerCase()} ${newUser.FullName} registered`);
       setLoginError('');
       setIsRegistering(false);
       setActiveTab('dashboard');
@@ -478,7 +486,23 @@ export default function App() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-700 mb-1">
+                    System Role (บทบาทในระบบ) <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={regRole}
+                    onChange={e => setRegRole(e.target.value as UserRole)}
+                    className="w-full px-3 py-2.5 bg-[#F4F6F9] border-0 rounded-xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-xs font-semibold text-gray-800"
+                  >
+                    <option value="STUDENT">Student (นักศึกษาดุษฎีบัณฑิต)</option>
+                    <option value="ADVISOR">Advisor (อาจารย์ที่ปรึกษาหลัก)</option>
+                    <option value="CO_ADVISOR">Co-Advisor (อาจารย์ที่ปรึกษาร่วม)</option>
+                    <option value="SUPER_ADVISOR">SuperAdvisor (อาจารย์ผู้ดูแลหลักหลักสูตร)</option>
+                  </select>
+                </div>
+
+                <div className={regRole === 'STUDENT' ? 'grid grid-cols-2 gap-3' : 'w-full'}>
                   <div>
                     <label className="block text-[10px] font-bold text-gray-700 mb-1">
                       Email Address <span className="text-red-500">*</span>
@@ -493,83 +517,89 @@ export default function App() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-700 mb-1">
-                      Student ID <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g., 6601010024"
-                      value={regStudentID}
-                      onChange={e => setRegStudentID(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-[#F4F6F9] border-0 rounded-xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-xs font-mono"
-                    />
-                  </div>
+                  {regRole === 'STUDENT' && (
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-700 mb-1">
+                        Student ID <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g., 6601010024"
+                        value={regStudentID}
+                        onChange={e => setRegStudentID(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-[#F4F6F9] border-0 rounded-xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-xs font-mono"
+                      />
+                    </div>
+                  )}
                 </div>
 
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-700 mb-1">
-                    Major Program
-                  </label>
-                  <select
-                    value={regMajor}
-                    onChange={e => setRegMajor(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-[#F4F6F9] border-0 rounded-xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-xs"
-                  >
-                    <option value="Doctor of Philosophy Program in Nursing Science (International Program)">
-                      PhD in Nursing Science (International Program)
-                    </option>
-                    <option value="Doctor of Philosophy Program in Nursing Science (Thai Program)">
-                      PhD in Nursing Science (Thai Program)
-                    </option>
-                  </select>
-                </div>
+                {regRole === 'STUDENT' && (
+                  <>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-700 mb-1">
+                        Major Program
+                      </label>
+                      <select
+                        value={regMajor}
+                        onChange={e => setRegMajor(e.target.value)}
+                        className="w-full px-3 py-2.5 bg-[#F4F6F9] border-0 rounded-xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-xs"
+                      >
+                        <option value="Doctor of Philosophy Program in Nursing Science (International Program)">
+                          PhD in Nursing Science (International Program)
+                        </option>
+                        <option value="Doctor of Philosophy Program in Nursing Science (Thai Program)">
+                          PhD in Nursing Science (Thai Program)
+                        </option>
+                      </select>
+                    </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-700 mb-1">
-                      Advisor
-                    </label>
-                    <select
-                      value={regAdvisor}
-                      onChange={e => setRegAdvisor(e.target.value)}
-                      className="w-full px-3 py-2.5 bg-[#F4F6F9] border-0 rounded-xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-xs"
-                    >
-                      <option value="">Select Advisor...</option>
-                      {users.filter(u => u.Role === 'ADVISOR').map(u => (
-                        <option key={u.UserID} value={u.FullName}>{u.FullName}</option>
-                      ))}
-                      <option value="Assoc. Prof. Dr. Nonglak Wisetsilp">Assoc. Prof. Dr. Nonglak Wisetsilp</option>
-                    </select>
-                  </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-bold text-gray-700 mb-1">
+                          Advisor
+                        </label>
+                        <select
+                          value={regAdvisor}
+                          onChange={e => setRegAdvisor(e.target.value)}
+                          className="w-full px-3 py-2.5 bg-[#F4F6F9] border-0 rounded-xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-xs"
+                        >
+                          <option value="">Select Advisor...</option>
+                          {users.filter(u => u.Role === 'ADVISOR' || u.Role === 'CO_ADVISOR' || u.Role === 'SUPER_ADVISOR').map(u => (
+                            <option key={u.UserID} value={u.FullName}>{u.FullName}</option>
+                          ))}
+                          <option value="Assoc. Prof. Dr. Nonglak Wisetsilp">Assoc. Prof. Dr. Nonglak Wisetsilp</option>
+                        </select>
+                      </div>
 
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-700 mb-1">
-                      Co-Advisor
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g., Assoc. Prof. Dr. Wipa Chaichan"
-                      value={regCoAdvisor}
-                      onChange={e => setRegCoAdvisor(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-[#F4F6F9] border-0 rounded-xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-xs"
-                    />
-                  </div>
-                </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-gray-700 mb-1">
+                          Co-Advisor
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g., Assoc. Prof. Dr. Wipa Chaichan"
+                          value={regCoAdvisor}
+                          onChange={e => setRegCoAdvisor(e.target.value)}
+                          className="w-full px-3.5 py-2.5 bg-[#F4F6F9] border-0 rounded-xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-xs"
+                        />
+                      </div>
+                    </div>
 
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-700 mb-1">
-                    Thesis Title (Draft)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Efficacy of Mindfulness-Based Tele-Nursing Intervention..."
-                    value={regThesisTitle}
-                    onChange={e => setRegThesisTitle(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-[#F4F6F9] border-0 rounded-xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-xs"
-                  />
-                </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-700 mb-1">
+                        Thesis Title (Draft)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g., Efficacy of Mindfulness-Based Tele-Nursing Intervention..."
+                        value={regThesisTitle}
+                        onChange={e => setRegThesisTitle(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-[#F4F6F9] border-0 rounded-xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-xs"
+                      />
+                    </div>
+                  </>
+                )}
 
                 <div>
                   <label className="block text-[10px] font-bold text-gray-700 mb-1">
@@ -877,7 +907,7 @@ export default function App() {
             </>
           )}
 
-          {currentUser.Role === 'ADVISOR' && (
+          {['ADVISOR', 'CO_ADVISOR', 'SUPER_ADVISOR'].includes(currentUser.Role) && (
             <button
               onClick={() => setActiveTab('advisor')}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
@@ -1012,7 +1042,7 @@ export default function App() {
               </motion.div>
             )}
 
-            {activeTab === 'advisor' && currentUser.Role === 'ADVISOR' && (
+            {activeTab === 'advisor' && ['ADVISOR', 'CO_ADVISOR', 'SUPER_ADVISOR'].includes(currentUser.Role) && (
               <motion.div
                 key="advisor"
                 initial={{ opacity: 0, y: 15 }}

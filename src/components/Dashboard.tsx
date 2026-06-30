@@ -140,7 +140,7 @@ export default function Dashboard({
     );
   }
 
-  if (currentUser.Role === 'ADVISOR') {
+  if (['ADVISOR', 'CO_ADVISOR', 'SUPER_ADVISOR'].includes(currentUser.Role)) {
     return (
       <div className="space-y-6">
         <div className="bg-gradient-to-r from-tu-red to-red-900 text-white rounded-2xl p-6 shadow-md">

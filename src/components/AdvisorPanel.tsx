@@ -33,9 +33,18 @@ export default function AdvisorPanel({
   const [actingId, setActingId] = useState<string | null>(null);
 
   // Filter students under this Advisor's supervision
-  const myStudents = students.filter(
-    s => s.Advisor === currentUser.FullName || s.CoAdvisor === currentUser.FullName || s.Role === 'STUDENT'
-  );
+  const myStudents = students.filter(s => {
+    if (s.Role !== 'STUDENT') return false;
+    if (currentUser.Role === 'SUPER_ADVISOR' || currentUser.Role === 'ADMIN') return true;
+    
+    const isMainAdvisor = s.Advisor && typeof s.Advisor === 'string' && 
+      s.Advisor.toLowerCase().trim() === currentUser.FullName.toLowerCase().trim();
+      
+    const isCoAdvisor = s.CoAdvisor && typeof s.CoAdvisor === 'string' && 
+      s.CoAdvisor.toLowerCase().trim() === currentUser.FullName.toLowerCase().trim();
+      
+    return isMainAdvisor || isCoAdvisor;
+  });
 
   // Default to selecting the first student for convenient overview if none is selected
   const activeStudent = selectedStudent || myStudents[0];

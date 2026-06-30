@@ -72,7 +72,7 @@ export default function AdvisoryChat({
 
     // Main Advisor
     const mainAdvisorUser = allUsers.find(
-      u => u.Role === 'ADVISOR' && mainAdvisorName.includes(u.FullName)
+      u => ['ADVISOR', 'CO_ADVISOR', 'SUPER_ADVISOR'].includes(u.Role) && mainAdvisorName.includes(u.FullName)
     );
     if (mainAdvisorUser) {
       myContacts.push({
@@ -90,7 +90,7 @@ export default function AdvisoryChat({
 
     // Co-Advisor
     const coAdvisorUser = allUsers.find(
-      u => u.Role === 'ADVISOR' && coAdvisorName.includes(u.FullName)
+      u => ['ADVISOR', 'CO_ADVISOR', 'SUPER_ADVISOR'].includes(u.Role) && coAdvisorName.includes(u.FullName)
     );
     if (coAdvisorUser) {
       myContacts.push({
@@ -105,13 +105,13 @@ export default function AdvisoryChat({
         Role: 'ADVISOR'
       });
     }
-  } else if (currentUser.Role === 'ADVISOR' || currentUser.Role === 'ADMIN') {
+  } else if (['ADVISOR', 'CO_ADVISOR', 'SUPER_ADVISOR', 'ADMIN'].includes(currentUser.Role)) {
     const students = allUsers.filter(u => u.Role === 'STUDENT');
     students.forEach(s => {
       const isMain = s.Advisor && s.Advisor.includes(currentUser.FullName);
       const isCo = s.CoAdvisor && s.CoAdvisor.includes(currentUser.FullName);
       
-      if (isMain || isCo || currentUser.Role === 'ADMIN') {
+      if (isMain || isCo || currentUser.Role === 'ADMIN' || currentUser.Role === 'SUPER_ADVISOR') {
         let rolePrefix = '';
         if (isMain) rolePrefix = '🎓 [Major Advisor] ';
         else if (isCo) rolePrefix = '🤝 [Co-Advisor] ';
@@ -141,10 +141,12 @@ export default function AdvisoryChat({
     const isSentByMe = msg.SenderID === currentUser.UserID && msg.ReceiverID === activeContact.UserID;
     const isSentByContact = msg.SenderID === activeContact.UserID && msg.ReceiverID === currentUser.UserID;
 
-    const isStudentStudent = (currentUser.Role === 'STUDENT' && activeContact.Role === 'ADVISOR') || (currentUser.Role === 'ADVISOR' && activeContact.Role === 'STUDENT');
-    if (isStudentStudent) {
+    const currentUserIsAdvisor = ['ADVISOR', 'CO_ADVISOR', 'SUPER_ADVISOR'].includes(currentUser.Role);
+    const contactIsAdvisor = ['ADVISOR', 'CO_ADVISOR', 'SUPER_ADVISOR'].includes(activeContact.Role);
+    const isStudentAdvisor = (currentUser.Role === 'STUDENT' && contactIsAdvisor) || (currentUserIsAdvisor && activeContact.Role === 'STUDENT');
+    if (isStudentAdvisor) {
       const studentId = currentUser.Role === 'STUDENT' ? currentUser.StudentID : activeContact.StudentID;
-      const advisorUserId = currentUser.Role === 'ADVISOR' ? currentUser.UserID : activeContact.UserID;
+      const advisorUserId = currentUserIsAdvisor ? currentUser.UserID : activeContact.UserID;
       
       const isStudentToAdvisor = msg.SenderID === studentId && msg.ReceiverID === advisorUserId;
       const isAdvisorToStudent = msg.SenderID === advisorUserId && msg.ReceiverID === studentId;

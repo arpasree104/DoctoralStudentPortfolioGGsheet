@@ -35,30 +35,30 @@ export default function PrintReport({
   const approvedActs = activities.filter(a => a.StudentID === currentUser.StudentID && a.Status === 'APPROVED');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-xs text-gray-700">
       
-      {/* Print Controls Ribbon - Hiden during physical printing via no-print class */}
+      {/* Print Controls Ribbon - Hidden during physical printing via no-print class */}
       <div className="no-print bg-white p-4 rounded-2xl border border-gray-100 shadow-xs flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="p-2 bg-gray-50 hover:bg-gray-100 rounded-xl transition text-gray-600"
-            title="ย้อนกลับหน้าบอร์ด"
+            className="p-2 bg-gray-50 hover:bg-gray-100 rounded-xl transition text-gray-600 cursor-pointer"
+            title="Back to Dashboard"
           >
             <ChevronLeft size={16} />
           </button>
           <div>
-            <h3 className="text-sm font-bold text-gray-800">โหมดพรีวิวก่อนพิมพ์และบันทึก PDF (Print Portfolio Preview)</h3>
-            <p className="text-xs text-gray-400">เลย์เอาต์หน้าปก สารบัญ และตารางข้อมูลได้รับการจัดวางแบบเป็นทางการ</p>
+            <h3 className="text-sm font-bold text-gray-800">Print Preview & Save PDF</h3>
+            <p className="text-xs text-gray-400 font-normal">Professional layout of cover page, table of contents, and sections ready for academic submission</p>
           </div>
         </div>
         
         <button
           onClick={handlePrint}
-          className="px-5 py-2.5 bg-tu-red hover:bg-tu-red-hover text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm"
+          className="px-5 py-2.5 bg-tu-red hover:bg-tu-red-hover text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm cursor-pointer"
         >
           <Printer size={15} />
-          สั่งพิมพ์รายงาน / บันทึก PDF (Print A4)
+          Print Portfolio Report / Save PDF (A4)
         </button>
       </div>
 
@@ -85,7 +85,7 @@ export default function PrintReport({
           {/* Cover Center Title */}
           <div className="text-center my-10 space-y-4">
             <div className="w-16 h-16 bg-red-50 text-tu-red rounded-full flex items-center justify-center mx-auto mb-2 border border-red-100">
-              <span className="font-bold text-2xl">มธ</span>
+              <span className="font-bold text-xl text-tu-red">TU</span>
             </div>
             <h2 className="text-3xl font-extrabold text-tu-red tracking-tight leading-normal">
               Doctoral Student Portfolio
@@ -119,11 +119,11 @@ export default function PrintReport({
                 </tr>
                 <tr>
                   <td className="py-2.5 font-bold text-gray-500">Major Advisor</td>
-                  <td className="py-2.5 font-semibold text-gray-800">{currentUser.Advisor || 'รศ.ดร. นงลักษณ์ วิเศษศิลป์'}</td>
+                  <td className="py-2.5 font-semibold text-gray-800">{currentUser.Advisor || 'Assoc. Prof. Dr. Sarah Johnson'}</td>
                 </tr>
                 <tr>
                   <td className="py-2.5 font-bold text-gray-500">Date of Submission</td>
-                  <td className="py-2.5 text-gray-800">{new Date().toLocaleDateString('th-TH')}</td>
+                  <td className="py-2.5 text-gray-800">{new Date().toLocaleDateString('en-US')}</td>
                 </tr>
               </tbody>
             </table>
@@ -191,11 +191,11 @@ export default function PrintReport({
             <h3 className="text-sm font-bold text-tu-red">1.1 Personal Information</h3>
             <div className="grid grid-cols-2 gap-4 text-xs">
               <div>
-                <span className="text-gray-400 block font-medium">FullName</span>
+                <span className="text-gray-400 block font-medium">Full Name</span>
                 <span className="font-semibold text-gray-800">{currentUser.FullName}</span>
               </div>
               <div>
-                <span className="text-gray-400 block font-medium">StudentID</span>
+                <span className="text-gray-400 block font-medium">Student ID</span>
                 <span className="font-semibold font-mono text-gray-800">{currentUser.StudentID}</span>
               </div>
               <div>
@@ -392,7 +392,7 @@ export default function PrintReport({
                   <img src={cert.ImageURL} className="w-12 h-12 object-cover rounded" alt="Evidence" />
                   <div>
                     <h4 className="font-semibold text-gray-800 line-clamp-1">{cert.Name}</h4>
-                    <p className="text-[10px] text-gray-400 mt-0.5">อนุมัติเมื่อ: {cert.Date}</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">Approved on: {cert.Date}</p>
                     <span className="text-[9px] font-mono font-bold text-emerald-600">VERIFIED / APPROVED</span>
                   </div>
                 </div>
@@ -448,8 +448,8 @@ export default function PrintReport({
           <h2 className="text-xl font-bold text-gray-900 border-b border-gray-100 pb-2">Research Experience Requirement</h2>
 
           <div className="bg-emerald-50/50 border border-emerald-100 p-4 rounded-xl flex justify-between items-center mb-4 text-xs text-emerald-800">
-            <span><strong>เกณฑ์ชั่วโมงวิจัยดุษฎีบัณฑิต:</strong> สะสมงานวิจัยภายใต้ที่ปรึกษาขั้นต่ำ 180 ชั่วโมง</span>
-            <span className="text-lg font-bold font-mono text-emerald-700">{completedHours} / 180 ชม. (ผ่าน)</span>
+            <span><strong>Research Requirement:</strong> Accumulate a minimum of 180 research assistance hours supervised by advisors.</span>
+            <span className="text-lg font-bold font-mono text-emerald-700">{completedHours} / 180 Hours (PASSED)</span>
           </div>
 
           <div className="space-y-4">
@@ -517,7 +517,7 @@ export default function PrintReport({
 
           {/* Activity collages display on print output */}
           <div className="space-y-4 pt-6">
-            <h3 className="text-sm font-bold text-tu-red">ความก้าวหน้าทำกิจกรรมและโครงสร้างแผงคอลลาจภาพ</h3>
+            <h3 className="text-sm font-bold text-tu-red">Doctoral Activities Log & Photographic Evidence Collage</h3>
             <div className="grid grid-cols-2 gap-4">
               {approvedActs.map((act) => (
                 <div key={act.ActivityID} className="p-4 border border-gray-100 rounded-xl bg-gray-50 text-xs space-y-3">
@@ -580,7 +580,7 @@ export default function PrintReport({
           <div className="space-y-3">
             <h3 className="text-sm font-bold text-tu-red">15. Major Advisor’s Detailed Comments</h3>
             <div className="p-6 border border-amber-100 bg-amber-50/20 rounded-2xl text-xs leading-relaxed italic text-gray-800">
-              "{portfolioData.advisorComments || 'อรพรรณเป็นดุษฎีบัณฑิตที่มีศักยภาพสูงมาก รักษาเกณฑ์และระเบียบการเรียนอย่างสม่ำเสมอ แผนวิจัยมีความเฉียบคมในการช่วยเหลือผู้สูงวัยและผู้ป่วยในสังคมไทย มีความก้าวหน้ารวดเร็วกว่าเกณฑ์มาตรฐาน ดับเบิ้ลบลายด์ทดลองเป็นไปตามแผนการ'}"
+              "{portfolioData.advisorComments || 'The candidate exhibits outstanding doctoral potential, consistently fulfilling standard program milestones. The dissertation outline is methodologically rigorous and shows promising relevance to nursing practice in elderly healthcare. High-quality study progress is fully approved.'}"
             </div>
           </div>
 
@@ -590,7 +590,7 @@ export default function PrintReport({
             
             <div className="grid grid-cols-2 gap-10 text-xs pt-6">
               {portfolioData.endorsements.map((end, i) => (
-                <div key={i} className="text-center space-y-2 border-t border-gray-100 pt-6">
+                <div key={i} className="text-center space-y-2 border-t border-gray-100 pt-6 font-normal">
                   <div className="h-10 flex items-center justify-center">
                     <span className="font-mono text-gray-300 italic">Signed Electronically</span>
                   </div>

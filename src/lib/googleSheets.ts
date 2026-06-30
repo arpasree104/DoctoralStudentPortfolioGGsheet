@@ -7,18 +7,18 @@ import { User, Certificate, Activity, ConfigOption, ActivityLog, StudentPortfoli
 
 // Default initial config options
 const DEFAULT_CONFIGS: ConfigOption[] = [
-  { id: 'cfg-1', OptionType: 'ADVISOR', OptionValue: 'รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)' },
-  { id: 'cfg-2', OptionType: 'ADVISOR', OptionValue: 'ศ.ดร. สร้อยอนุสาสน์ สุขดี (Prof. Dr. Soianusat Sukdee)' },
-  { id: 'cfg-3', OptionType: 'ADVISOR', OptionValue: 'ผศ.ดร. สมศรี เกียรติพงษ์ (Asst. Prof. Dr. Somsri Kiatiphong)' },
-  { id: 'cfg-4', OptionType: 'CO_ADVISOR', OptionValue: 'รศ.ดร. วิภา ชัยชาญ (Assoc. Prof. Dr. Wipa Chaichan)' },
-  { id: 'cfg-5', OptionType: 'CO_ADVISOR', OptionValue: 'ดร. กิตติศักดิ์ รัตนวิทย์ (Dr. Kittisak Rattanawit)' },
-  { id: 'cfg-6', OptionType: 'CO_ADVISOR', OptionValue: 'ผศ.ดร. รพีพรรณ เลิศสมบูรณ์ (Asst. Prof. Dr. Rapeepan Lertsomboon)' },
-  { id: 'cfg-7', OptionType: 'CERT_CATEGORY', OptionValue: 'นำเสนองานวิชาการระดับชาติ/นานาชาติ (Academic Presentation)' },
-  { id: 'cfg-8', OptionType: 'CERT_CATEGORY', OptionValue: 'อบรมจริยธรรมการวิจัยในมนุษย์ (Human Research Ethics Training)' },
-  { id: 'cfg-9', OptionType: 'CERT_CATEGORY', OptionValue: 'รางวัลระดับชาติ/นานาชาติ (National/International Award)' },
-  { id: 'cfg-10', OptionType: 'CERT_CATEGORY', OptionValue: 'การตีพิมพ์วารสารวิชาการ (Academic Publication)' },
-  { id: 'cfg-11', OptionType: 'CERT_CATEGORY', OptionValue: 'อบรมวิชาการเฉพาะทาง (Specialized Training)' },
-  { id: 'cfg-12', OptionType: 'DEGREE', OptionValue: 'หลักสูตรปรัชญาดุษฎีบัณฑิต สาขาวิชาพยาบาลศาสตร์ (PhD in Nursing Science - Thai Program)' },
+  { id: 'cfg-1', OptionType: 'ADVISOR', OptionValue: 'Assoc. Prof. Dr. Nonglak Wisetsilp' },
+  { id: 'cfg-2', OptionType: 'ADVISOR', OptionValue: 'Prof. Dr. Soianusat Sukdee' },
+  { id: 'cfg-3', OptionType: 'ADVISOR', OptionValue: 'Asst. Prof. Dr. Somsri Kiatiphong' },
+  { id: 'cfg-4', OptionType: 'CO_ADVISOR', OptionValue: 'Assoc. Prof. Dr. Wipa Chaichan' },
+  { id: 'cfg-5', OptionType: 'CO_ADVISOR', OptionValue: 'Dr. Kittisak Rattanawit' },
+  { id: 'cfg-6', OptionType: 'CO_ADVISOR', OptionValue: 'Asst. Prof. Dr. Rapeepan Lertsomboon' },
+  { id: 'cfg-7', OptionType: 'CERT_CATEGORY', OptionValue: 'National / International Academic Presentation' },
+  { id: 'cfg-8', OptionType: 'CERT_CATEGORY', OptionValue: 'Human Research Ethics Training' },
+  { id: 'cfg-9', OptionType: 'CERT_CATEGORY', OptionValue: 'National / International Award' },
+  { id: 'cfg-10', OptionType: 'CERT_CATEGORY', OptionValue: 'Academic Publication' },
+  { id: 'cfg-11', OptionType: 'CERT_CATEGORY', OptionValue: 'Specialized Training' },
+  { id: 'cfg-12', OptionType: 'DEGREE', OptionValue: 'PhD in Nursing Science (Thai Program)' },
   { id: 'cfg-13', OptionType: 'DEGREE', OptionValue: 'Doctor of Philosophy Program in Nursing Science (International Program)' }
 ];
 

@@ -41,7 +41,7 @@ export default function Dashboard({
   // Count completed milestones
   const totalMilestones = portfolioData.milestones.length;
   const completedMilestones = portfolioData.milestones.filter(m => m.status === 'Completed').length;
-  const milestonesPercent = Math.round((completedMilestones / totalMilestones) * 100);
+  const milestonesPercent = totalMilestones > 0 ? Math.round((completedMilestones / totalMilestones) * 100) : 0;
 
   if (currentUser.Role === 'ADMIN') {
     return (
@@ -52,9 +52,9 @@ export default function Dashboard({
           </div>
           <div className="relative z-10 max-w-xl">
             <span className="bg-tu-gold text-white text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider">System Administration</span>
-            <h1 className="text-2xl font-bold mt-2">ยินดีต้อนรับสู่แดชบอร์ดผู้ดูแลระบบ</h1>
+            <h1 className="text-2xl font-bold mt-2">Welcome to System Admin Dashboard</h1>
             <p className="text-red-100 mt-1 text-sm leading-relaxed">
-              คณะพยาบาลศาสตร์ มหาวิทยาลัยธรรมศาสตร์. จัดการข้อมูลนักศึกษาดุษฎีบัณฑิต, อาจารย์ที่ปรึกษา, ตั้งค่าตัวเลือกในแบบฟอร์ม และตรวจสอบประวัติการทำกิจกรรมของระบบ
+              Faculty of Nursing, Thammasat University. Manage doctoral student portfolios, academic advisors, configure form options, and monitor system activity logs.
             </p>
           </div>
         </div>
@@ -66,8 +66,8 @@ export default function Dashboard({
               <Users size={24} />
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">นักศึกษาทั้งหมด</p>
-              <h3 className="text-2xl font-bold text-gray-900">{allStudents.filter(s => s.Role === 'STUDENT').length} คน</h3>
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Students</p>
+              <h3 className="text-2xl font-bold text-gray-900">{allStudents.filter(s => s.Role === 'STUDENT').length} Students</h3>
             </div>
           </div>
 
@@ -76,8 +76,8 @@ export default function Dashboard({
               <Award size={24} />
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">อาจารย์ที่ปรึกษา</p>
-              <h3 className="text-2xl font-bold text-gray-900">{allStudents.filter(s => s.Role === 'ADVISOR').length} ท่าน</h3>
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Advisors</p>
+              <h3 className="text-2xl font-bold text-gray-900">{allStudents.filter(s => s.Role === 'ADVISOR').length} Advisors</h3>
             </div>
           </div>
 
@@ -86,8 +86,8 @@ export default function Dashboard({
               <CheckCircle2 size={24} />
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">ใบประกาศรออนุมัติ</p>
-              <h3 className="text-2xl font-bold text-gray-900">{certificates.filter(c => c.Status === 'PENDING').length} รายการ</h3>
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Pending Certs</p>
+              <h3 className="text-2xl font-bold text-gray-900">{certificates.filter(c => c.Status === 'PENDING').length} Items</h3>
             </div>
           </div>
 
@@ -96,23 +96,23 @@ export default function Dashboard({
               <Clock size={24} />
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">กิจกรรมรออนุมัติ</p>
-              <h3 className="text-2xl font-bold text-gray-900">{activities.filter(a => a.Status === 'PENDING').length} รายการ</h3>
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Pending Activities</p>
+              <h3 className="text-2xl font-bold text-gray-900">{activities.filter(a => a.Status === 'PENDING').length} Items</h3>
             </div>
           </div>
         </div>
 
         {/* Admin Quick Links */}
         <div className="bg-white p-6 rounded-2xl shadow-xs border border-gray-100">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">ทางลัดการจัดการระบบ (Quick Administration Actions)</h3>
+          <h3 className="text-base font-semibold text-gray-900 mb-4">Quick Administration Actions</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <button
               onClick={() => onNavigate('admin')}
               className="flex items-center justify-between p-4 bg-gray-50 hover:bg-red-50 hover:text-tu-red rounded-xl transition duration-200 group text-left"
             >
               <div>
-                <h4 className="font-semibold text-sm">จัดการผู้ใช้งาน</h4>
-                <p className="text-xs text-gray-500">เพิ่ม ลบ หรือแก้ไขข้อมูลนักศึกษาและอาจารย์</p>
+                <h4 className="font-semibold text-sm">User Account Management</h4>
+                <p className="text-xs text-gray-500">Add, remove, or modify student and advisor accounts</p>
               </div>
               <Users size={18} className="text-gray-400 group-hover:text-tu-red transition-colors" />
             </button>
@@ -122,16 +122,16 @@ export default function Dashboard({
               className="flex items-center justify-between p-4 bg-gray-50 hover:bg-amber-50 hover:text-tu-gold rounded-xl transition duration-200 group text-left"
             >
               <div>
-                <h4 className="font-semibold text-sm">ตั้งค่าระบบ (ConfigOptions)</h4>
-                <p className="text-xs text-gray-500">จัดการข้อมูลอาจารย์ที่ปรึกษา และสาขาวิชา</p>
+                <h4 className="font-semibold text-sm">System Option Parameters</h4>
+                <p className="text-xs text-gray-500">Manage drop-down lists for advisors and academic majors</p>
               </div>
               <Settings size={18} className="text-gray-400 group-hover:text-tu-gold transition-colors" />
             </button>
 
             <div className="p-4 bg-gray-50 rounded-xl">
-              <h4 className="font-semibold text-sm text-gray-800">ระบบสำรองข้อมูล Google Sheets</h4>
+              <h4 className="font-semibold text-sm text-gray-800">Google Sheets Storage Link</h4>
               <p className="text-xs text-gray-500 mt-1">
-                ระบบเปิดใช้งาน Google Apps Script Web App ตลอดเวลา เพื่อเชื่อมต่อข้อมูลเรียลไทม์
+                A secure Google Apps Script connection is automatically listening to keep records in sync.
               </p>
             </div>
           </div>
@@ -146,9 +146,9 @@ export default function Dashboard({
         <div className="bg-gradient-to-r from-tu-red to-red-900 text-white rounded-2xl p-6 shadow-md">
           <div className="max-w-2xl">
             <span className="bg-tu-gold text-white text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider">Faculty Major Advisor</span>
-            <h1 className="text-2xl font-bold mt-2">ยินดีต้อนรับ คณาจารย์ที่ปรึกษา</h1>
+            <h1 className="text-2xl font-bold mt-2">Welcome, Academic Advisor</h1>
             <p className="text-red-100 mt-1 text-sm leading-relaxed">
-              ท่านคือ {currentUser.FullName} ขณะนี้มีนักศึกษาดุษฎีบัณฑิตในความดูแลที่ส่งเอกสารความก้าวหน้าและการทำกิจกรรมเพื่อขอรับการอนุมัติใบประกาศนียบัตรสะสมงาน
+              You are logged in as {currentUser.FullName}. Review dissertation progress, academic milestones, and approve student activity portfolios.
             </p>
           </div>
         </div>
@@ -160,9 +160,9 @@ export default function Dashboard({
               <Users size={24} />
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">นักศึกษาในการดูแล</p>
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Supervised Students</p>
               <h3 className="text-2xl font-bold text-gray-900">
-                {allStudents.filter(s => s.Advisor === currentUser.FullName || s.CoAdvisor === currentUser.FullName).length || 1} คน
+                {allStudents.filter(s => s.Advisor === currentUser.FullName || s.CoAdvisor === currentUser.FullName).length || 1} Students
               </h3>
             </div>
           </div>
@@ -172,9 +172,9 @@ export default function Dashboard({
               <Clock size={24} />
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">ใบประกาศรอตรวจสอบ</p>
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Certificates to Review</p>
               <h3 className="text-2xl font-bold text-gray-900">
-                {certificates.filter(c => c.Status === 'PENDING').length} รายการ
+                {certificates.filter(c => c.Status === 'PENDING').length} Items
               </h3>
             </div>
           </div>
@@ -184,9 +184,9 @@ export default function Dashboard({
               <CheckCircle2 size={24} />
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">กิจกรรมรออนุมัติ</p>
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Pending Activities</p>
               <h3 className="text-2xl font-bold text-gray-900">
-                {activities.filter(a => a.Status === 'PENDING').length} รายการ
+                {activities.filter(a => a.Status === 'PENDING').length} Items
               </h3>
             </div>
           </div>
@@ -195,14 +195,14 @@ export default function Dashboard({
         {/* Quick Advisor Panel Redirection */}
         <div className="bg-white p-6 rounded-2xl shadow-xs border border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h3 className="text-base font-semibold text-gray-900">เข้าสู่หน้ารายการอนุมัติและให้คำปรึกษา</h3>
-            <p className="text-sm text-gray-500 mt-1">ตรวจสอบความก้าวหน้าในการสะสมชั่วโมงงานวิจัย (180 ชั่วโมง) และให้ข้อเสนอแนะต่อนักศึกษา</p>
+            <h3 className="text-base font-semibold text-gray-900">Go to Advising & Approvals Panel</h3>
+            <p className="text-sm text-gray-500 mt-1">Verify research experience hours (minimum 180 hours) and provide qualitative comments.</p>
           </div>
           <button
             onClick={() => onNavigate('advisor')}
-            className="px-5 py-2.5 bg-tu-red hover:bg-tu-red-hover text-white rounded-xl text-sm font-semibold transition"
+            className="px-5 py-2.5 bg-tu-red hover:bg-tu-red-hover text-white rounded-xl text-sm font-semibold transition cursor-pointer"
           >
-            เปิดหน้าจัดการนักศึกษาในความดูแล
+            Open Advisor Portal
           </button>
         </div>
       </div>
@@ -220,27 +220,27 @@ export default function Dashboard({
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="space-y-2">
             <span className="bg-tu-gold text-white text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider">Doctor of Philosophy (PhD)</span>
-            <h1 className="text-2xl font-bold">แฟ้มสะสมงานดุษฎีบัณฑิต</h1>
+            <h1 className="text-2xl font-bold">PhD Candidate Portfolio</h1>
             <p className="text-red-100 text-sm max-w-xl">
-              {currentUser.FullName} | รหัสนักศึกษา: <span className="font-mono bg-red-900/40 px-1.5 py-0.5 rounded">{currentUser.StudentID || 'N/A'}</span>
+              {currentUser.FullName} | Student ID: <span className="font-mono bg-red-900/40 px-1.5 py-0.5 rounded">{currentUser.StudentID || 'N/A'}</span>
             </p>
             <p className="text-red-100 text-xs italic max-w-xl line-clamp-1">
-              หัวข้อวิทยานิพนธ์: "{currentUser.ThesisTitle || 'กรุณากำหนดหัวข้อวิทยานิพนธ์'}"
+              Dissertation Title: "{currentUser.ThesisTitle || 'Please define your thesis title in your profile settings'}"
             </p>
           </div>
           <div className="flex gap-3">
             <button
               onClick={() => onNavigate('edit')}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl text-xs font-semibold transition"
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl text-xs font-semibold transition cursor-pointer"
             >
-              แก้ไขเล่มแฟ้มงาน (16 ส่วน)
+              Edit 16-Section Portfolio
             </button>
             <button
               onClick={() => onNavigate('print')}
-              className="px-4 py-2 bg-tu-gold hover:bg-amber-600 text-white rounded-xl text-xs font-semibold transition flex items-center gap-1.5"
+              className="px-4 py-2 bg-tu-gold hover:bg-amber-600 text-white rounded-xl text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
             >
               <FileText size={14} />
-              พิมพ์รายงาน PDF
+              Print Preview Report
             </button>
           </div>
         </div>
@@ -252,7 +252,7 @@ export default function Dashboard({
         <div className="bg-white p-6 rounded-2xl shadow-xs border border-gray-100 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-gray-700">ชั่วโมงสะสมประสบการณ์วิจัย (6.1)</h3>
+              <h3 className="text-sm font-semibold text-gray-700">Research Hours accumulated (Sec 6.1)</h3>
               <span className="p-2 bg-red-50 text-tu-red rounded-lg">
                 <Clock size={18} />
               </span>
@@ -260,13 +260,13 @@ export default function Dashboard({
             
             <div className="flex items-baseline space-x-2">
               <span className="text-4xl font-extrabold text-gray-900 font-mono">{completedHours}</span>
-              <span className="text-sm text-gray-500">/ {targetHours} ชั่วโมงกำหนด</span>
+              <span className="text-sm text-gray-500">/ {targetHours} Hours Required</span>
             </div>
 
             {/* Circular representation or bar */}
             <div className="mt-4">
               <div className="flex justify-between text-xs text-gray-500 mb-1">
-                <span>ความสำเร็จ</span>
+                <span>Progress</span>
                 <span className="font-semibold">{hoursPercent}%</span>
               </div>
               <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
@@ -279,9 +279,9 @@ export default function Dashboard({
           </div>
           
           <div className="mt-4 pt-3 border-t border-gray-50 flex justify-between items-center text-xs text-gray-500">
-            <span>บันทึกประสบการณ์วิจัยแล้ว: {portfolioData.researchExperience.length} ครั้ง</span>
-            <button onClick={() => onNavigate('edit')} className="text-tu-red font-semibold hover:underline">
-              ดูรายละเอียด
+            <span>Logged Research Entries: {portfolioData.researchExperience.length}</span>
+            <button onClick={() => onNavigate('edit')} className="text-tu-red font-semibold hover:underline cursor-pointer">
+              View Details
             </button>
           </div>
         </div>
@@ -290,7 +290,7 @@ export default function Dashboard({
         <div className="bg-white p-6 rounded-2xl shadow-xs border border-gray-100 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-gray-700">ความสำเร็จของเป้าหมายดุษฎีบัณฑิต (2.2)</h3>
+              <h3 className="text-sm font-semibold text-gray-700">Milestone Progression (Sec 2.2)</h3>
               <span className="p-2 bg-amber-50 text-tu-gold rounded-lg">
                 <GraduationCap size={18} />
               </span>
@@ -298,12 +298,12 @@ export default function Dashboard({
 
             <div className="flex items-baseline space-x-2">
               <span className="text-4xl font-extrabold text-gray-900 font-mono">{completedMilestones}</span>
-              <span className="text-sm text-gray-500">/ {totalMilestones} ขั้นตอนสำคัญ</span>
+              <span className="text-sm text-gray-500">/ {totalMilestones} Steps</span>
             </div>
 
             <div className="mt-4">
               <div className="flex justify-between text-xs text-gray-500 mb-1">
-                <span>ความคืบหน้า</span>
+                <span>Progress</span>
                 <span className="font-semibold">{milestonesPercent}%</span>
               </div>
               <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
@@ -316,9 +316,9 @@ export default function Dashboard({
           </div>
 
           <div className="mt-4 pt-3 border-t border-gray-50 flex justify-between items-center text-xs text-gray-500">
-            <span>ขั้นตอนที่ยังไม่เริ่ม: {portfolioData.milestones.filter(m => m.status === 'Not Started').length}</span>
-            <button onClick={() => onNavigate('edit')} className="text-tu-gold font-semibold hover:underline">
-              แผนผังขั้นตอนทั้งหมด
+            <span>Not Started Milestones: {portfolioData.milestones.filter(m => m.status === 'Not Started').length}</span>
+            <button onClick={() => onNavigate('edit')} className="text-tu-gold font-semibold hover:underline cursor-pointer">
+              Milestone Map
             </button>
           </div>
         </div>
@@ -327,7 +327,7 @@ export default function Dashboard({
         <div className="bg-white p-6 rounded-2xl shadow-xs border border-gray-100 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-gray-700">ใบประกาศเกียรติคุณ & ใบอบรม (4.4)</h3>
+              <h3 className="text-sm font-semibold text-gray-700">Certificates & Credentials (Sec 4.4)</h3>
               <span className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
                 <Award size={18} />
               </span>
@@ -336,23 +336,23 @@ export default function Dashboard({
             <div className="grid grid-cols-3 gap-2 text-center mt-2">
               <div className="bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-100">
                 <span className="text-xl font-bold text-emerald-700 font-mono">{approvedCerts.length}</span>
-                <p className="text-[10px] text-emerald-600 font-medium mt-0.5">ผ่านการรับรอง</p>
+                <p className="text-[10px] text-emerald-600 font-medium mt-0.5">Approved</p>
               </div>
               <div className="bg-amber-50/50 p-2.5 rounded-xl border border-amber-100">
                 <span className="text-xl font-bold text-amber-700 font-mono">{pendingCerts.length}</span>
-                <p className="text-[10px] text-amber-600 font-medium mt-0.5">รออนุมัติ</p>
+                <p className="text-[10px] text-amber-600 font-medium mt-0.5">Pending</p>
               </div>
               <div className="bg-red-50/50 p-2.5 rounded-xl border border-red-100">
                 <span className="text-xl font-bold text-red-700 font-mono">{totalCerts.filter(c => c.Status === 'REJECTED').length}</span>
-                <p className="text-[10px] text-red-600 font-medium mt-0.5">ต้องแก้ไข</p>
+                <p className="text-[10px] text-red-600 font-medium mt-0.5">Revision</p>
               </div>
             </div>
           </div>
 
           <div className="mt-4 pt-3 border-t border-gray-50 flex justify-between items-center text-xs text-gray-500">
-            <span>ทั้งหมด: {totalCerts.length} ใบในระบบ</span>
-            <button onClick={() => onNavigate('info')} className="text-tu-red font-semibold hover:underline">
-              ดูใบประกาศทั้งหมด
+            <span>Total Uploaded: {totalCerts.length} items</span>
+            <button onClick={() => onNavigate('info')} className="text-tu-red font-semibold hover:underline cursor-pointer">
+              View Certificates
             </button>
           </div>
         </div>
@@ -364,11 +364,11 @@ export default function Dashboard({
         <div className="bg-white p-6 rounded-2xl shadow-xs border border-gray-100 lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between border-b border-gray-50 pb-3">
             <div>
-              <h3 className="text-base font-semibold text-gray-900">เป้าหมายที่กำลังดำเนินการอยู่ (Active Milestones)</h3>
-              <p className="text-xs text-gray-500">ขั้นตอนสำคัญถัดไปเพื่อสำเร็จการศึกษา</p>
+              <h3 className="text-base font-semibold text-gray-900">Active Milestones</h3>
+              <p className="text-xs text-gray-500">Your key next tasks towards graduation progress</p>
             </div>
             <span className="text-xs font-mono font-medium text-tu-red bg-red-50 px-2 py-1 rounded">
-              ดุษฎีบัณฑิตพยาบาลศาสตร์
+              PhD Nursing Program
             </span>
           </div>
 
@@ -388,15 +388,15 @@ export default function Dashboard({
                       </span>
                     </div>
                     <div className="flex justify-between text-xs text-gray-500 mt-1">
-                      <span>แผนงาน: {milestone.plannedDate || 'ไม่ได้กำหนด'}</span>
-                      <span className="italic">{milestone.remarks || 'ไม่มีหมายเหตุ'}</span>
+                      <span>Planned Date: {milestone.plannedDate || 'TBD'}</span>
+                      <span className="italic">{milestone.remarks || 'No remarks'}</span>
                     </div>
                   </div>
                 </div>
               ))}
 
             {portfolioData.milestones.filter(m => m.status === 'In Progress').length === 0 && (
-              <p className="text-sm text-gray-500 text-center py-6">ไม่มีงานที่กำลังดำเนินการอยู่ คุณสามารถแก้ไขความคืบหน้าได้ในส่วนที่ 2</p>
+              <p className="text-sm text-gray-500 text-center py-6">No current active milestones in progress. You can update milestone stages in Section 2.</p>
             )}
           </div>
         </div>
@@ -405,36 +405,36 @@ export default function Dashboard({
         <div className="bg-white p-6 rounded-2xl shadow-xs border border-gray-100 space-y-4 flex flex-col justify-between">
           <div className="space-y-3">
             <div className="flex items-center justify-between border-b border-gray-50 pb-3">
-              <h3 className="text-sm font-semibold text-gray-900">เกณฑ์ความรู้ภาษาอังกฤษ (3.1)</h3>
+              <h3 className="text-sm font-semibold text-gray-900">English Proficiency Requirement (Sec 3.1)</h3>
               <span className="text-xs font-medium bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
-                ผ่านเกณฑ์แล้ว
+                Requirement Met
               </span>
             </div>
 
             <div className="space-y-2.5">
               <div className="flex justify-between text-xs">
-                <span className="text-gray-500">แบบทดสอบหลัก:</span>
+                <span className="text-gray-500">Test Standard:</span>
                 <span className="font-semibold text-gray-800 font-mono">{portfolioData.englishTest.testName}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-gray-500">คะแนนสะสม:</span>
+                <span className="text-gray-500">Your Score:</span>
                 <span className="font-bold text-emerald-600 font-mono text-sm">{portfolioData.englishTest.scoreAchieved}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-gray-500">คะแนนเกณฑ์ขั้นต่ำ:</span>
+                <span className="text-gray-500">Required Minimum:</span>
                 <span className="font-semibold text-gray-600 font-mono">{portfolioData.englishTest.requiredScore}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-gray-500">วันที่ผ่านเกณฑ์:</span>
+                <span className="text-gray-500">Date Met:</span>
                 <span className="font-semibold text-gray-700">{portfolioData.englishTest.dateTaken}</span>
               </div>
             </div>
           </div>
 
           <div className="pt-3 border-t border-gray-50 text-xs text-gray-500">
-            <span className="font-medium block mb-1">ความก้าวหน้าการเรียนภาษาอังกฤษ:</span>
+            <span className="font-medium block mb-1">English Learning Journey Reflection:</span>
             <p className="line-clamp-2 text-[11px] leading-normal italic text-gray-600">
-              "{portfolioData.englishReflection || 'ยังไม่ได้ระบุความก้าวหน้าการเรียนรู้'}"
+              "{portfolioData.englishReflection || 'No reflection logged yet.'}"
             </p>
           </div>
         </div>

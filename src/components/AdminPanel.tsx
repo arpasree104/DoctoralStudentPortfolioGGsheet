@@ -105,30 +105,30 @@ export default function AdminPanel({
       <div className="flex border-b border-gray-200">
         <button
           onClick={() => setAdminTab('users')}
-          className={`flex items-center gap-2 px-6 py-3 border-b-2 font-medium text-sm transition-all duration-200 ${
+          className={`flex items-center gap-2 px-6 py-3 border-b-2 font-medium text-sm transition-all duration-200 cursor-pointer ${
             adminTab === 'users' ? 'border-tu-red text-tu-red font-bold' : 'border-transparent text-gray-500 hover:text-gray-800'
           }`}
         >
           <Users size={16} />
-          จัดการบัญชีผู้ใช้ (Users Accounts)
+          User Account Management
         </button>
         <button
           onClick={() => setAdminTab('configs')}
-          className={`flex items-center gap-2 px-6 py-3 border-b-2 font-medium text-sm transition-all duration-200 ${
+          className={`flex items-center gap-2 px-6 py-3 border-b-2 font-medium text-sm transition-all duration-200 cursor-pointer ${
             adminTab === 'configs' ? 'border-tu-red text-tu-red font-bold' : 'border-transparent text-gray-500 hover:text-gray-800'
           }`}
         >
           <Settings size={16} />
-          ตั้งค่าตัวเลือกDropdownของระบบ (ConfigOptions)
+          Dropdown Option Parameters
         </button>
         <button
           onClick={() => setAdminTab('logs')}
-          className={`flex items-center gap-2 px-6 py-3 border-b-2 font-medium text-sm transition-all duration-200 ${
+          className={`flex items-center gap-2 px-6 py-3 border-b-2 font-medium text-sm transition-all duration-200 cursor-pointer ${
             adminTab === 'logs' ? 'border-tu-red text-tu-red font-bold' : 'border-transparent text-gray-500 hover:text-gray-800'
           }`}
         >
           <ShieldAlert size={16} />
-          ประวัติกิจกรรมและการใช้งาน (Activity Logs)
+          System Audit & Activity Logs
         </button>
       </div>
 
@@ -145,15 +145,15 @@ export default function AdminPanel({
           >
             <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-xs">
               <div>
-                <h3 className="text-sm font-bold text-gray-800">รายชื่อนักศึกษาและที่ปรึกษาในระบบ (PhD Student & Advisor List)</h3>
-                <p className="text-xs text-gray-400">คุณสามารถเพิ่มหรือลบบัญชีผู้ใช้ เพื่อจำลองการเข้าระบบได้ทันที</p>
+                <h3 className="text-sm font-bold text-gray-800">PhD Students & Advisors List</h3>
+                <p className="text-xs text-gray-400">Add, modify, or remove user accounts to simulate logins in real-time.</p>
               </div>
               <button
                 onClick={() => setShowAddUserModal(true)}
-                className="flex items-center gap-1.5 px-4 py-2 bg-tu-red hover:bg-tu-red-hover text-white rounded-xl text-xs font-semibold transition"
+                className="flex items-center gap-1.5 px-4 py-2 bg-tu-red hover:bg-tu-red-hover text-white rounded-xl text-xs font-semibold transition cursor-pointer"
               >
                 <PlusCircle size={14} />
-                เพิ่มผู้ใช้ใหม่
+                Add New User
               </button>
             </div>
 
@@ -163,12 +163,12 @@ export default function AdminPanel({
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
                     <tr className="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold border-b border-gray-100">
-                      <th className="p-4">รูปภาพ</th>
-                      <th className="p-4">ชื่อ-นามสกุล</th>
-                      <th className="p-4">อีเมลหลัก</th>
-                      <th className="p-4">บทบาท (Role)</th>
-                      <th className="p-4">รหัสนักศึกษา/อาจารย์</th>
-                      <th className="p-4 text-center">จัดการ</th>
+                      <th className="p-4">Photo</th>
+                      <th className="p-4">Full Name</th>
+                      <th className="p-4">Registered Email</th>
+                      <th className="p-4">Role</th>
+                      <th className="p-4">Student/Advisor ID</th>
+                      <th className="p-4 text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 text-gray-700">
@@ -184,11 +184,11 @@ export default function AdminPanel({
                         <td className="p-4">
                           <span className="font-semibold block text-gray-900">{user.FullName}</span>
                           {user.Role === 'STUDENT' && (
-                            <span className="text-[10px] text-gray-400 font-mono">ที่ปรึกษา: {user.Advisor || 'ไม่มี'}</span>
+                            <span className="text-[10px] text-gray-400 font-mono">Advisor: {user.Advisor || 'None'}</span>
                           )}
                         </td>
                         <td className="p-4 font-mono">{user.Email}</td>
-                        <td className="p-4">
+                        <td className="p-4 font-mono">
                           <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                             user.Role === 'STUDENT'
                               ? 'bg-blue-50 text-blue-700'
@@ -203,8 +203,8 @@ export default function AdminPanel({
                         <td className="p-4 text-center">
                           <button
                             onClick={() => onDeleteUser(user.UserID)}
-                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
-                            title="ลบบัญชีผู้ใช้"
+                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                            title="Delete User Account"
                           >
                             <Trash2 size={14} />
                           </button>
@@ -221,14 +221,14 @@ export default function AdminPanel({
               <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
                 <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-gray-100 space-y-4">
                   <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-                    <h3 className="font-bold text-gray-900 text-sm">เพิ่มบัญชีผู้ใช้งานใหม่ของระบบดุษฎีบัณฑิต</h3>
-                    <button onClick={() => setShowAddUserModal(false)} className="text-gray-400 hover:text-gray-600 font-bold">×</button>
+                    <h3 className="font-bold text-gray-900 text-sm">Add New Student or Faculty Account</h3>
+                    <button onClick={() => setShowAddUserModal(false)} className="text-gray-400 hover:text-gray-600 font-bold cursor-pointer">×</button>
                   </div>
 
                   <form onSubmit={handleAddUserSubmit} className="space-y-4 text-xs">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="font-semibold text-gray-500 block mb-1">บทบาท (Role)</label>
+                        <label className="font-semibold text-gray-500 block mb-1">Role</label>
                         <select
                           value={newUserForm.Role}
                           onChange={e => setNewUserForm({ ...newUserForm, Role: e.target.value as any })}
@@ -241,32 +241,32 @@ export default function AdminPanel({
                       </div>
 
                       <div>
-                        <label className="font-semibold text-gray-500 block mb-1">รหัสนักศึกษา/บุคลากร (ID)</label>
+                        <label className="font-semibold text-gray-500 block mb-1">ID Number (Student/Staff)</label>
                         <input
                           type="text"
                           required
                           value={newUserForm.StudentID}
                           onChange={e => setNewUserForm({ ...newUserForm, StudentID: e.target.value })}
-                          placeholder="เช่น 6601010024"
-                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
+                          placeholder="e.g., 6601010024"
+                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl font-mono"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="font-semibold text-gray-500 block mb-1">ชื่อ-นามสกุล (Full Name)</label>
+                      <label className="font-semibold text-gray-500 block mb-1">Full Name (including titles)</label>
                       <input
                         type="text"
                         required
                         value={newUserForm.FullName}
                         onChange={e => setNewUserForm({ ...newUserForm, FullName: e.target.value })}
-                        placeholder="เช่น ดร. อรพรรณ แก้วดี"
+                        placeholder="e.g., Assoc. Prof. Dr. Sarah Smith"
                         className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
                       />
                     </div>
 
                     <div>
-                      <label className="font-semibold text-gray-500 block mb-1">อีเมลผู้ใช้ (Email)</label>
+                      <label className="font-semibold text-gray-500 block mb-1">User Email Address</label>
                       <input
                         type="email"
                         required
@@ -280,26 +280,26 @@ export default function AdminPanel({
                     {newUserForm.Role === 'STUDENT' && (
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="font-semibold text-gray-500 block mb-1">อาจารย์ที่ปรึกษาหลัก</label>
+                          <label className="font-semibold text-gray-500 block mb-1">Major Advisor</label>
                           <select
                             value={newUserForm.Advisor}
                             onChange={e => setNewUserForm({ ...newUserForm, Advisor: e.target.value })}
                             className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
                           >
-                            <option value="">เลือกอาจารย์...</option>
+                            <option value="">Select Advisor...</option>
                             {configOptions.filter(c => c.OptionType === 'ADVISOR').map(c => (
                               <option key={c.id} value={c.OptionValue}>{c.OptionValue}</option>
                             ))}
                           </select>
                         </div>
                         <div>
-                          <label className="font-semibold text-gray-500 block mb-1">อาจารย์ที่ปรึกษาร่วม</label>
+                          <label className="font-semibold text-gray-500 block mb-1">Co-Advisor</label>
                           <select
                             value={newUserForm.CoAdvisor}
                             onChange={e => setNewUserForm({ ...newUserForm, CoAdvisor: e.target.value })}
                             className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
                           >
-                            <option value="">เลือกอาจารย์ร่วม...</option>
+                            <option value="">Select Co-Advisor...</option>
                             {configOptions.filter(c => c.OptionType === 'CO_ADVISOR').map(c => (
                               <option key={c.id} value={c.OptionValue}>{c.OptionValue}</option>
                             ))}
@@ -312,15 +312,15 @@ export default function AdminPanel({
                       <button
                         type="button"
                         onClick={() => setShowAddUserModal(false)}
-                        className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold"
+                        className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold cursor-pointer"
                       >
-                        ยกเลิก
+                        Cancel
                       </button>
                       <button
                         type="submit"
-                        className="px-4 py-2 bg-tu-red hover:bg-tu-red-hover text-white rounded-xl font-semibold"
+                        className="px-4 py-2 bg-tu-red hover:bg-tu-red-hover text-white rounded-xl font-semibold cursor-pointer"
                       >
-                        เพิ่มบัญชีผู้ใช้งาน
+                        Register Account
                       </button>
                     </div>
                   </form>
@@ -344,30 +344,30 @@ export default function AdminPanel({
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs space-y-4">
               <h3 className="text-sm font-bold text-gray-800 flex items-center gap-1.5 border-b border-gray-100 pb-2">
                 <PlusCircle size={16} className="text-tu-red" />
-                เพิ่มตัวเลือก Dynamic Dropdown
+                Add New Dropdown Option
               </h3>
 
               <form onSubmit={handleAddConfigSubmit} className="space-y-4 text-xs">
                 <div>
-                  <label className="font-semibold text-gray-500 block mb-1">เลือกคีย์ข้อมูล (Option Type)</label>
+                  <label className="font-semibold text-gray-500 block mb-1">Option Parameter Type</label>
                   <select
                     value={newConfigType}
                     onChange={e => setNewConfigType(e.target.value as OptionType)}
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
                   >
-                    <option value="ADVISOR">อาจารย์ที่ปรึกษาหลัก (ADVISOR)</option>
-                    <option value="CO_ADVISOR">อาจารย์ที่ปรึกษาร่วม (CO_ADVISOR)</option>
-                    <option value="CERT_CATEGORY">หมวดหมู่ใบประกาศ (CERT_CATEGORY)</option>
-                    <option value="DEGREE">รายการหลักสูตรวิชาการ (DEGREE)</option>
+                    <option value="ADVISOR">Major Advisor (ADVISOR)</option>
+                    <option value="CO_ADVISOR">Co-Advisor (CO_ADVISOR)</option>
+                    <option value="CERT_CATEGORY">Certificate Category (CERT_CATEGORY)</option>
+                    <option value="DEGREE">Degree Major Program (DEGREE)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="font-semibold text-gray-500 block mb-1">ชื่อค่าตัวเลือก (Option Value)</label>
+                  <label className="font-semibold text-gray-500 block mb-1">Option Value Name</label>
                   <input
                     type="text"
                     required
-                    placeholder="เช่น ดร. นรินทร์ สมบูรณ์"
+                    placeholder="e.g., Assoc. Prof. Dr. Helen Carter"
                     value={newConfigValue}
                     onChange={e => setNewConfigValue(e.target.value)}
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
@@ -376,16 +376,16 @@ export default function AdminPanel({
 
                 <button
                   type="submit"
-                  className="w-full py-2 bg-tu-red hover:bg-tu-red-hover text-white rounded-xl font-bold transition"
+                  className="w-full py-2 bg-tu-red hover:bg-tu-red-hover text-white rounded-xl font-bold transition cursor-pointer"
                 >
-                  บันทึกตัวเลือก (บันทึกลง Google Sheets)
+                  Add Option (Sync to Google Sheets)
                 </button>
               </form>
             </div>
 
             {/* List current Configs by type */}
             <div className="md:col-span-2 space-y-4 bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-              <h3 className="text-sm font-bold text-gray-800">รายการตัวเลือกดร็อปดาวน์ระบบปัจจุบัน</h3>
+              <h3 className="text-sm font-bold text-gray-800">Current System Dropdown Parameters</h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {['ADVISOR', 'CO_ADVISOR', 'CERT_CATEGORY', 'DEGREE'].map((type) => (
@@ -401,7 +401,7 @@ export default function AdminPanel({
                             <span className="truncate">{opt.OptionValue}</span>
                             <button
                               onClick={() => onDeleteConfigOption(opt.id)}
-                              className="text-gray-300 hover:text-red-500 transition ml-2"
+                              className="text-gray-300 hover:text-red-500 transition ml-2 cursor-pointer"
                             >
                               <Trash2 size={12} />
                             </button>
@@ -427,15 +427,15 @@ export default function AdminPanel({
           >
             <div className="flex justify-between items-center border-b border-gray-100 pb-3">
               <div>
-                <h3 className="text-sm font-bold text-gray-800">ประวัติกิจกรรมความมั่นคงความปลอดภัยของระบบ (System Security Audit Log)</h3>
-                <p className="text-xs text-gray-400">บันทึกเรียลไทม์กิจกรรมการบันทึก การอัปโหลด และการซิงค์ตาราง Google Sheets</p>
+                <h3 className="text-sm font-bold text-gray-800">System Security Audit Log</h3>
+                <p className="text-xs text-gray-400">Real-time automated logging of authentication sessions and Google Sheets synchronization updates.</p>
               </div>
               <button
                 onClick={() => setLogs(getLogs())}
-                className="flex items-center gap-1 text-xs text-tu-red hover:underline font-semibold"
+                className="flex items-center gap-1 text-xs text-tu-red hover:underline font-semibold cursor-pointer"
               >
                 <RefreshCw size={12} />
-                รีเฟรชบันทึก
+                Refresh Logs
               </button>
             </div>
 
@@ -453,7 +453,7 @@ export default function AdminPanel({
                       <span className="text-[10px] text-gray-400 font-mono">{log.Timestamp}</span>
                     </div>
                     <p className="text-gray-600 mt-1">{log.Details}</p>
-                    <span className="text-[9px] font-mono text-gray-400">ผู้ทำรายการ: {log.UserID}</span>
+                    <span className="text-[9px] font-mono text-gray-400">Executed by: {log.UserID}</span>
                   </div>
                 </div>
               ))}

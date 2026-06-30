@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Award, BookOpen, Clock, FileText, Settings, Users, LogOut, KeyRound,
   HelpCircle, RefreshCw, Layers, CheckCircle2, AlertCircle, Sparkles, GraduationCap,
-  MessageSquare, Bell
+  MessageSquare, Bell, UserPlus
 } from 'lucide-react';
 
 // Import Types
@@ -50,6 +50,20 @@ export default function App() {
   const [loginPassword, setLoginPassword] = useState(''); // dummy for login simulation
   const [loginError, setLoginError] = useState('');
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'failed'>('idle');
+
+  // Hidden mockup and registration states
+  const [logoClicks, setLogoClicks] = useState(0);
+  const [showMockup, setShowMockup] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  // Student registration states
+  const [regFullName, setRegFullName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regStudentID, setRegStudentID] = useState('');
+  const [regMajor, setRegMajor] = useState('Doctor of Philosophy Program in Nursing Science (International Program)');
+  const [regAdvisor, setRegAdvisor] = useState('');
+  const [regCoAdvisor, setRegCoAdvisor] = useState('');
+  const [regThesisTitle, setRegThesisTitle] = useState('');
 
   // Load Database and Initialize
   const loadDatabase = async () => {
@@ -109,7 +123,7 @@ export default function App() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginEmail.trim()) {
-      setLoginError('กรุณากรอกอีเมลผู้ใช้งาน');
+      setLoginError('Please enter your registered email.');
       return;
     }
 
@@ -120,7 +134,47 @@ export default function App() {
       setLoginError('');
       setActiveTab('dashboard');
     } else {
-      setLoginError('ไม่พบข้อมูลผู้ใช้งาน หรือรหัสผ่านไม่ถูกต้อง (กรุณาทดลอง Quick Login เพื่อความสะดวก)');
+      setLoginError('User account not found. Please double check your email or Sign Up for an account below.');
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!regFullName.trim() || !regEmail.trim() || !regStudentID.trim()) {
+      setLoginError('Please fill in all required fields.');
+      return;
+    }
+
+    const match = users.find(u => u.Email.toLowerCase().trim() === regEmail.toLowerCase().trim() || (u.StudentID && u.StudentID.trim() === regStudentID.trim()));
+    if (match) {
+      setLoginError('An account with this email or Student ID already exists.');
+      return;
+    }
+
+    const newUser: User = {
+      UserID: `STUDENT-${Date.now()}`,
+      Email: regEmail.toLowerCase().trim(),
+      FullName: regFullName.trim(),
+      StudentID: regStudentID.trim(),
+      Role: 'STUDENT',
+      Major: regMajor,
+      Advisor: regAdvisor || undefined,
+      CoAdvisor: regCoAdvisor || undefined,
+      ThesisTitle: regThesisTitle.trim() || undefined,
+      PhotoURL: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80'
+    };
+
+    try {
+      await saveUser(newUser);
+      await loadDatabase();
+      setCurrentUser(newUser);
+      logActivity(newUser.UserID, 'REGISTER', `New student ${newUser.FullName} registered`);
+      setLoginError('');
+      setIsRegistering(false);
+      setActiveTab('dashboard');
+    } catch (err) {
+      console.error(err);
+      setLoginError('Registration failed. Please try again.');
     }
   };
 
@@ -234,118 +288,294 @@ export default function App() {
   // Render Loading
   if (!isInitialized) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center space-y-4">
+      <div className="min-h-screen bg-[#FAF6EC] flex flex-col items-center justify-center space-y-4">
         <div className="w-12 h-12 border-4 border-tu-red border-t-transparent rounded-full animate-spin" />
-        <h2 className="text-sm font-bold text-gray-700">กำลังดาวน์โหลดข้อมูลแฟ้มสะสมงาน มธ...</h2>
-        <p className="text-xs text-gray-400">Thammasat University Nursing PhD Portfolio</p>
+        <h2 className="text-sm font-bold text-gray-700">Loading Doctoral Portfolio System...</h2>
+        <p className="text-xs text-gray-400">Faculty of Nursing • Thammasat University</p>
       </div>
     );
   }
 
   // -----------------------------------------------------------------
-  // LOGIN SCREEN (Theme matching TU Red and Amber/Gold)
+  // LOGIN SCREEN (Theme matching Image 2 and TU branding)
   // -----------------------------------------------------------------
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-3">
-          {/* Tu crest representation */}
-          <div className="w-16 h-16 bg-gradient-to-br from-tu-red to-red-800 text-white rounded-2xl flex items-center justify-center mx-auto shadow-md border-2 border-tu-gold">
-            <GraduationCap size={32} />
-          </div>
-          <div>
-            <h2 className="text-xl font-extrabold text-tu-red tracking-tight">
-              ระบบแฟ้มสะสมงานดุษฎีบัณฑิต
-            </h2>
-            <p className="text-xs text-gray-500 font-semibold uppercase mt-0.5 tracking-wider">
-              Faculty of Nursing, Thammasat University
-            </p>
+      <div className="min-h-screen bg-[#FAF6EC] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white py-10 px-8 shadow-2xl rounded-[2.5rem] border border-amber-100/50 space-y-6 flex flex-col items-center">
+            
+            {/* Red logo with 5-click trigger for Mockups */}
+            <button
+              onClick={() => {
+                setLogoClicks(prev => {
+                  const next = prev + 1;
+                  if (next >= 5) {
+                    setShowMockup(true);
+                  }
+                  return next;
+                });
+              }}
+              className="w-20 h-20 bg-gradient-to-br from-[#B31B1B] to-[#800000] text-white rounded-[1.8rem] flex items-center justify-center shadow-lg border-2 border-white/10 hover:scale-105 active:scale-95 transition duration-150 shrink-0"
+              title="Click 5 times to reveal quick evaluator login"
+            >
+              <GraduationCap size={44} className="text-white" />
+            </button>
+
+            {/* University & Department Titles */}
+            <div className="text-center space-y-1">
+              <span className="block text-[10px] font-extrabold text-[#B31B1B] uppercase tracking-[0.15em]">
+                FACULTY OF NURSING
+              </span>
+              <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+                Thammasat University
+              </h2>
+              <p className="text-[9px] font-extrabold text-[#B31B1B] uppercase tracking-[0.08em] mt-0.5">
+                DOCTORAL PORTFOLIO MANAGEMENT SYSTEM
+              </p>
+            </div>
+
+            {/* Form Toggle: Sign In vs Sign Up */}
+            {!isRegistering ? (
+              /* SIGN IN FORM */
+              <form onSubmit={handleLogin} className="w-full space-y-5 text-xs">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                    Tu Official Email
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="student@example.com"
+                    value={loginEmail}
+                    onChange={e => setLoginEmail(e.target.value)}
+                    className="w-full px-4 py-3 bg-[#F4F6F9] border-0 rounded-2xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-gray-800 text-sm placeholder:text-gray-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                    Personal Access Code / Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      placeholder="••••"
+                      value={loginPassword}
+                      onChange={e => setLoginPassword(e.target.value)}
+                      className="w-full px-4 py-3 bg-[#F4F6F9] border-0 rounded-2xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-gray-800 text-sm placeholder:text-gray-400 font-mono"
+                    />
+                    <div className="absolute inset-y-0 right-4 flex items-center text-gray-400">
+                      <KeyRound size={16} />
+                    </div>
+                  </div>
+                </div>
+
+                {loginError && (
+                  <div className="p-3 bg-red-50 text-red-700 rounded-2xl border border-red-100 flex items-start gap-2 leading-relaxed">
+                    <AlertCircle size={15} className="shrink-0 mt-0.5" />
+                    <span>{loginError}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="w-full py-3.5 bg-[#B31B1B] hover:bg-[#991818] active:bg-[#800000] text-white font-extrabold rounded-2xl shadow-md hover:shadow-lg transition duration-150 text-xs tracking-wider flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  Log In to Portfolio <span className="text-sm">→</span>
+                </button>
+              </form>
+            ) : (
+              /* SIGN UP / REGISTER FORM */
+              <form onSubmit={handleRegister} className="w-full space-y-4 text-xs">
+                <div className="text-center">
+                  <h3 className="font-extrabold text-sm text-gray-800">Create New Account</h3>
+                  <p className="text-[10px] text-gray-500 mt-0.5">Please fill in your doctoral student details below</p>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-700 mb-1">
+                    Full Name (with title) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g., Miss Jane Doe (นางสาวเจน โด)"
+                    value={regFullName}
+                    onChange={e => setRegFullName(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-[#F4F6F9] border-0 rounded-xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-xs"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-700 mb-1">
+                      Email Address <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="name@tu.ac.th"
+                      value={regEmail}
+                      onChange={e => setRegEmail(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-[#F4F6F9] border-0 rounded-xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-700 mb-1">
+                      Student ID <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g., 6601010024"
+                      value={regStudentID}
+                      onChange={e => setRegStudentID(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-[#F4F6F9] border-0 rounded-xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-xs font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-700 mb-1">
+                    Major Program
+                  </label>
+                  <select
+                    value={regMajor}
+                    onChange={e => setRegMajor(e.target.value)}
+                    className="w-full px-3 py-2.5 bg-[#F4F6F9] border-0 rounded-xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-xs"
+                  >
+                    <option value="Doctor of Philosophy Program in Nursing Science (International Program)">
+                      PhD in Nursing Science (International Program)
+                    </option>
+                    <option value="Doctor of Philosophy Program in Nursing Science (Thai Program)">
+                      PhD in Nursing Science (Thai Program)
+                    </option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-700 mb-1">
+                      Advisor
+                    </label>
+                    <select
+                      value={regAdvisor}
+                      onChange={e => setRegAdvisor(e.target.value)}
+                      className="w-full px-3 py-2.5 bg-[#F4F6F9] border-0 rounded-xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-xs"
+                    >
+                      <option value="">Select Advisor...</option>
+                      {users.filter(u => u.Role === 'ADVISOR').map(u => (
+                        <option key={u.UserID} value={u.FullName}>{u.FullName}</option>
+                      ))}
+                      <option value="Assoc. Prof. Dr. Nonglak Wisetsilp">Assoc. Prof. Dr. Nonglak Wisetsilp</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-700 mb-1">
+                      Co-Advisor
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Assoc. Prof. Dr. Wipa Chaichan"
+                      value={regCoAdvisor}
+                      onChange={e => setRegCoAdvisor(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-[#F4F6F9] border-0 rounded-xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-700 mb-1">
+                    Thesis Title (Draft)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Efficacy of Mindfulness-Based Tele-Nursing Intervention..."
+                    value={regThesisTitle}
+                    onChange={e => setRegThesisTitle(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-[#F4F6F9] border-0 rounded-xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-xs"
+                  />
+                </div>
+
+                {loginError && (
+                  <div className="p-2.5 bg-red-50 text-red-700 rounded-xl border border-red-100 flex items-start gap-1.5 leading-normal text-[11px]">
+                    <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                    <span>{loginError}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="w-full py-3 bg-[#B31B1B] hover:bg-[#991818] active:bg-[#800000] text-white font-extrabold rounded-xl shadow-md transition duration-150 text-xs tracking-wider flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <UserPlus size={14} /> Register & Log In
+                </button>
+              </form>
+            )}
+
+            {/* Toggle Sign Up / Sign In Switch Button */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRegistering(!isRegistering);
+                  setLoginError('');
+                }}
+                className="text-xs font-bold text-[#B31B1B] hover:text-[#991818] transition flex items-center gap-2 focus:outline-0"
+              >
+                <UserPlus size={16} />
+                <span>
+                  {isRegistering
+                    ? 'Already have an account? Log In'
+                    : "Don't have an account? Sign Up / Register"}
+                </span>
+              </button>
+            </div>
+
+            {/* Quick login bypass section - HIDDEN BY DEFAULT, SHOWN ON 5 CLICKS */}
+            {showMockup && (
+              <div className="w-full relative border-t border-gray-100 pt-5 mt-2 animate-fade-in">
+                <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-white px-3 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                  Quick Evaluation Login
+                </span>
+                
+                <div className="space-y-2 pt-2">
+                  <button
+                    onClick={() => handleQuickLogin('STUDENT')}
+                    className="w-full py-2 bg-blue-50/50 hover:bg-blue-100/50 text-blue-800 font-semibold rounded-xl transition border border-blue-100 flex items-center justify-between px-4 text-xs"
+                  >
+                    <span>Orapan (STUDENT)</span>
+                    <span className="font-mono text-[9px] bg-blue-100 px-1.5 py-0.5 rounded">student@tu.ac.th</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleQuickLogin('ADVISOR')}
+                    className="w-full py-2 bg-amber-50/50 hover:bg-amber-100/50 text-amber-800 font-semibold rounded-xl transition border border-amber-100 flex items-center justify-between px-4 text-xs"
+                  >
+                    <span>Nonglak (ADVISOR)</span>
+                    <span className="font-mono text-[9px] bg-amber-100 px-1.5 py-0.5 rounded">advisor@tu.ac.th</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleQuickLogin('ADMIN')}
+                    className="w-full py-2 bg-red-50/50 hover:bg-red-100/50 text-red-800 font-semibold rounded-xl transition border border-red-100 flex items-center justify-between px-4 text-xs"
+                  >
+                    <span>System Admin (ADMIN)</span>
+                    <span className="font-mono text-[9px] bg-red-100 px-1.5 py-0.5 rounded">admin@tu.ac.th</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
 
-        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-6 shadow-md rounded-2xl border border-gray-100 space-y-6">
-            <form onSubmit={handleLogin} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">
-                  อีเมลผู้ใช้ (Registered Email)
-                </label>
-                <input
-                  type="email"
-                  required
-                  placeholder="เช่น student@tu.ac.th"
-                  value={loginEmail}
-                  onChange={e => setLoginEmail(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-tu-red font-mono text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">
-                  รหัสผ่านเข้าใช้งาน (Password)
-                </label>
-                <div className="relative">
-                  <input
-                    type="password"
-                    placeholder="••••••••"
-                    value={loginPassword}
-                    onChange={e => setLoginPassword(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-tu-red text-sm"
-                  />
-                  <div className="absolute inset-y-0 right-3 flex items-center text-gray-400">
-                    <KeyRound size={14} />
-                  </div>
-                </div>
-              </div>
-
-              {loginError && (
-                <div className="p-3 bg-red-50 text-red-700 rounded-xl border border-red-100 flex items-start gap-1.5 leading-normal">
-                  <AlertCircle size={14} className="shrink-0 mt-0.5" />
-                  <span>{loginError}</span>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                className="w-full py-2.5 bg-tu-red hover:bg-tu-red-hover text-white font-bold rounded-xl shadow-xs transition duration-200 uppercase tracking-wider"
-              >
-                เข้าสู่ระบบ (Login)
-              </button>
-            </form>
-
-            {/* Quick login bypass section for evaluation */}
-            <div className="relative border-t border-gray-100 pt-5">
-              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-white px-3 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                Quick Evaluation Login
-              </span>
-              
-              <div className="space-y-2 pt-2">
-                <button
-                  onClick={() => handleQuickLogin('STUDENT')}
-                  className="w-full py-2 bg-blue-50/50 hover:bg-blue-100/50 text-blue-800 font-semibold rounded-xl transition border border-blue-100 flex items-center justify-between px-4 text-xs"
-                >
-                  <span>นางสาวอรพรรณ (STUDENT)</span>
-                  <span className="font-mono text-[9px] bg-blue-100 px-1.5 py-0.5 rounded">student@tu.ac.th</span>
-                </button>
-
-                <button
-                  onClick={() => handleQuickLogin('ADVISOR')}
-                  className="w-full py-2 bg-amber-50/50 hover:bg-amber-100/50 text-amber-800 font-semibold rounded-xl transition border border-amber-100 flex items-center justify-between px-4 text-xs"
-                >
-                  <span>รศ.ดร. นงลักษณ์ (ADVISOR)</span>
-                  <span className="font-mono text-[9px] bg-amber-100 px-1.5 py-0.5 rounded">advisor@tu.ac.th</span>
-                </button>
-
-                <button
-                  onClick={() => handleQuickLogin('ADMIN')}
-                  className="w-full py-2 bg-red-50/50 hover:bg-red-100/50 text-red-800 font-semibold rounded-xl transition border border-red-100 flex items-center justify-between px-4 text-xs"
-                >
-                  <span>แอดมินระบบ (ADMIN)</span>
-                  <span className="font-mono text-[9px] bg-red-100 px-1.5 py-0.5 rounded">admin@tu.ac.th</span>
-                </button>
-              </div>
-            </div>
-          </div>
+        {/* Footer exactly styled from Image 2 */}
+        <div className="mt-8 text-center text-[10px] text-gray-400/80 font-medium">
+          Doctoral Student Portfolio Management System • Faculty of Nursing • Thammasat University
         </div>
       </div>
     );
@@ -363,9 +593,22 @@ export default function App() {
           
           {/* Logo & Brand */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-tu-red rounded-xl flex items-center justify-center text-white border border-tu-gold shadow-sm font-bold text-sm shrink-0">
-              มธ
-            </div>
+            <button
+              onClick={() => {
+                setLogoClicks(prev => {
+                  const next = prev + 1;
+                  if (next >= 5) {
+                    setShowMockup(curr => !curr);
+                    return 0;
+                  }
+                  return next;
+                });
+              }}
+              className="w-10 h-10 bg-tu-red rounded-xl flex items-center justify-center text-white border border-tu-gold shadow-sm font-bold text-sm shrink-0 cursor-pointer hover:scale-105 transition"
+              title="Click 5 times to toggle mockup tools"
+            >
+              TU
+            </button>
             <div>
               <h1 className="text-xs sm:text-sm font-extrabold text-tu-red leading-tight">
                 Faculty of Nursing, Thammasat University
@@ -382,52 +625,54 @@ export default function App() {
             <button
               onClick={loadDatabase}
               disabled={syncStatus === 'syncing'}
-              className="p-2 text-gray-400 hover:text-tu-red hover:bg-red-50 rounded-xl transition flex items-center gap-1.5 text-xs"
-              title="รีเฟรช / ซิงค์ฐานข้อมูล Google Sheets"
+              className="p-2 text-gray-400 hover:text-tu-red hover:bg-red-50 rounded-xl transition flex items-center gap-1.5 text-xs cursor-pointer"
+              title="Refresh / Sync Google Sheets Database"
             >
               <RefreshCw size={14} className={syncStatus === 'syncing' ? 'animate-spin text-tu-red' : ''} />
               <span className="hidden sm:inline font-semibold">
-                {syncStatus === 'syncing' ? 'กำลังซิงค์...' : syncStatus === 'success' ? 'ซิงค์สำเร็จ!' : 'ซิงค์ Sheets'}
+                {syncStatus === 'syncing' ? 'Syncing...' : syncStatus === 'success' ? 'Sync Successful!' : 'Sync Sheets'}
               </span>
             </button>
 
-            {/* Quick switch roles dropdown for grading */}
-            <div className="hidden md:flex items-center gap-1 bg-gray-50 p-1 rounded-xl border border-gray-100">
-              <span className="text-[9px] font-bold text-gray-400 uppercase px-2">บทบาท:</span>
-              <button
-                onClick={() => {
-                  const match = users.find(u => u.Role === 'STUDENT');
-                  if (match) setCurrentUser(match);
-                }}
-                className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
-                  currentUser.Role === 'STUDENT' ? 'bg-tu-red text-white' : 'text-gray-500 hover:text-gray-800'
-                }`}
-              >
-                STUDENT
-              </button>
-              <button
-                onClick={() => {
-                  const match = users.find(u => u.Role === 'ADVISOR');
-                  if (match) setCurrentUser(match);
-                }}
-                className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
-                  currentUser.Role === 'ADVISOR' ? 'bg-tu-red text-white' : 'text-gray-500 hover:text-gray-800'
-                }`}
-              >
-                ADVISOR
-              </button>
-              <button
-                onClick={() => {
-                  const match = users.find(u => u.Role === 'ADMIN');
-                  if (match) setCurrentUser(match);
-                }}
-                className={`px-2 py-1 rounded-lg text-[10px] font-bold transition ${
-                  currentUser.Role === 'ADMIN' ? 'bg-tu-red text-white' : 'text-gray-500 hover:text-gray-800'
-                }`}
-              >
-                ADMIN
-              </button>
-            </div>
+            {/* Quick switch roles dropdown for grading - Only shown if showMockup is unlocked via logo clicks */}
+            {showMockup && (
+              <div className="hidden md:flex items-center gap-1 bg-gray-50 p-1 rounded-xl border border-gray-100 animate-fade-in">
+                <span className="text-[9px] font-bold text-gray-400 uppercase px-2">Mockup:</span>
+                <button
+                  onClick={() => {
+                    const match = users.find(u => u.Role === 'STUDENT');
+                    if (match) setCurrentUser(match);
+                  }}
+                  className={`px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                    currentUser.Role === 'STUDENT' ? 'bg-tu-red text-white' : 'text-gray-500 hover:text-gray-800'
+                  }`}
+                >
+                  STUDENT
+                </button>
+                <button
+                  onClick={() => {
+                    const match = users.find(u => u.Role === 'ADVISOR');
+                    if (match) setCurrentUser(match);
+                  }}
+                  className={`px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                    currentUser.Role === 'ADVISOR' ? 'bg-[#B31B1B] text-white' : 'text-gray-500 hover:text-gray-800'
+                  }`}
+                >
+                  ADVISOR
+                </button>
+                <button
+                  onClick={() => {
+                    const match = users.find(u => u.Role === 'ADMIN');
+                    if (match) setCurrentUser(match);
+                  }}
+                  className={`px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                    currentUser.Role === 'ADMIN' ? 'bg-tu-red text-white' : 'text-gray-500 hover:text-gray-800'
+                  }`}
+                >
+                  ADMIN
+                </button>
+              </div>
+            )}
 
             {/* Logged in User Card */}
             <div className="flex items-center gap-2.5 pl-3 border-l border-gray-100">
@@ -443,7 +688,7 @@ export default function App() {
               <button
                 onClick={handleLogout}
                 className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
-                title="ออกจากระบบ"
+                title="Log Out"
               >
                 <LogOut size={14} />
               </button>
@@ -457,12 +702,12 @@ export default function App() {
       <div className="no-print bg-amber-500 text-white px-4 py-2 text-[10px] font-mono flex flex-col sm:flex-row justify-between items-center gap-2">
         <div className="flex items-center gap-1.5">
           <Settings size={12} />
-          <span>เชื่อมต่อ Google Sheets API / Apps Script Web App Endpoint:</span>
+          <span>Google Sheets API Live Connection / Apps Script Web App Endpoint:</span>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
           <input
             type="text"
-            placeholder="วางลิงก์ Apps Script ของท่านที่นี่เพื่อเชื่อมโยงคีย์วิเศษ..."
+            placeholder="Paste your Apps Script Web App URL here to synchronize live Google Sheets data..."
             value={apiUrl}
             onChange={e => handleSaveApiUrl(e.target.value)}
             className="bg-white/10 text-white border border-white/20 px-2 py-0.5 rounded text-[10px] w-full sm:w-96 focus:outline-none focus:bg-white/20"
@@ -487,7 +732,7 @@ export default function App() {
             }`}
           >
             <Layers size={13} />
-            แดชบอร์ดภาพรวม (Dashboard)
+            Overview Dashboard
           </button>
 
           {currentUser.Role === 'STUDENT' && (
@@ -501,7 +746,7 @@ export default function App() {
                 }`}
               >
                 <Users size={13} />
-                ประวัติและใบประกาศ (My Information)
+                My Profile & Certificates
               </button>
 
               <button
@@ -513,7 +758,7 @@ export default function App() {
                 }`}
               >
                 <BookOpen size={13} />
-                บันทึกแฟ้มผลงาน 16 ส่วน (Edit Portfolio)
+                16-Section Portfolio Record
               </button>
             </>
           )}
@@ -528,7 +773,7 @@ export default function App() {
               }`}
             >
               <GraduationCap size={13} />
-              คัดกรองนักศึกษาและตรวจงาน (Advisor Panel)
+              Advisor Portal
             </button>
           )}
 
@@ -542,7 +787,7 @@ export default function App() {
               }`}
             >
               <Settings size={13} />
-              หลังบ้านแอดมินระบบ (Admin Panel)
+              Admin System Panel
             </button>
           )}
 
@@ -556,7 +801,7 @@ export default function App() {
               }`}
             >
               <FileText size={13} />
-              พรีวิวก่อนพิมพ์รูปเล่มพอร์ต (Print Report)
+              Print Preview & Report
             </button>
           )}
 
@@ -569,7 +814,7 @@ export default function App() {
             }`}
           >
             <MessageSquare size={13} />
-            แชทและแจ้งเตือน (Chat & Reminders)
+            Advisory Chat & Reminders
           </button>
 
           <button
@@ -581,7 +826,7 @@ export default function App() {
             }`}
           >
             <HelpCircle size={13} />
-            คู่มือติดตั้ง Google Sheets & Vercel
+            Google Sheets Setup Guide
           </button>
         </div>
 
@@ -739,7 +984,7 @@ export default function App() {
       <footer className="no-print bg-white border-t border-gray-100 py-6 text-center text-xs text-gray-400">
         <div className="max-w-7xl mx-auto px-4">
           <p>© 2026 Faculty of Nursing, Thammasat University. All Rights Reserved.</p>
-          <p className="mt-1 font-mono text-[10px]">ระบบได้รับการพัฒนาแบบครบวงจรและซิงค์ข้อมูลกับ Google Sheet Database 100%</p>
+          <p className="mt-1 font-mono text-[10px]">The system is fully responsive and synced with Google Sheets Database securely.</p>
         </div>
       </footer>
 

@@ -61,12 +61,11 @@ export default function StudentInformation({
     setIsUploading(false);
   };
 
-  // Simulate Google Drive upload in folder "Bird"
+  // Simulate Google Drive upload
   const simulateImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isMulti = false) => {
     if (!e.target.files || e.target.files.length === 0) return;
     setIsUploading(true);
 
-    // Google Drive sample simulation URLs
     const randomSamples = [
       'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=600&q=80',
       'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=600&q=80',
@@ -156,36 +155,36 @@ export default function StudentInformation({
       <div className="flex border-b border-gray-200">
         <button
           onClick={() => setActiveSubTab('demographics')}
-          className={`flex items-center gap-2 px-6 py-3 border-b-2 font-medium text-sm transition-all duration-200 ${
+          className={`flex items-center gap-2 px-6 py-3 border-b-2 font-medium text-sm transition-all duration-200 cursor-pointer ${
             activeSubTab === 'demographics'
               ? 'border-tu-red text-tu-red'
               : 'border-transparent text-gray-500 hover:text-gray-800'
           }`}
         >
           <UserIcon size={16} />
-          ประวัตินักศึกษา (Demographics)
+          Student Demographics
         </button>
         <button
           onClick={() => setActiveSubTab('certificates')}
-          className={`flex items-center gap-2 px-6 py-3 border-b-2 font-medium text-sm transition-all duration-200 ${
+          className={`flex items-center gap-2 px-6 py-3 border-b-2 font-medium text-sm transition-all duration-200 cursor-pointer ${
             activeSubTab === 'certificates'
               ? 'border-tu-red text-tu-red'
               : 'border-transparent text-gray-500 hover:text-gray-800'
           }`}
         >
           <Award size={16} />
-          แฟ้มใบประกาศนียบัตร (Certificates)
+          My Certificates Portfolio
         </button>
         <button
           onClick={() => setActiveSubTab('activities')}
-          className={`flex items-center gap-2 px-6 py-3 border-b-2 font-medium text-sm transition-all duration-200 ${
+          className={`flex items-center gap-2 px-6 py-3 border-b-2 font-medium text-sm transition-all duration-200 cursor-pointer ${
             activeSubTab === 'activities'
               ? 'border-tu-red text-tu-red'
               : 'border-transparent text-gray-500 hover:text-gray-800'
           }`}
         >
           <ImageIcon size={16} />
-          ภาพกิจกรรมความก้าวหน้า (Activities Progress)
+          Activities Progress (Collage)
         </button>
       </div>
 
@@ -211,8 +210,8 @@ export default function StudentInformation({
                 {isEditingProfile && (
                   <label className="absolute inset-0 bg-black/50 hover:bg-black/60 cursor-pointer rounded-2xl flex flex-col items-center justify-center text-white text-xs transition duration-200">
                     <ImageIcon size={20} className="mb-1" />
-                    <span>อัปโหลดรูป</span>
-                    <span className="text-[9px] opacity-75">โฟลเดอร์ "Bird" ใน Drive</span>
+                    <span>Upload Photo</span>
+                    <span className="text-[9px] opacity-75">Saves directly to Drive</span>
                     <input type="file" onChange={simulateImageUpload} className="hidden" accept="image/*" />
                   </label>
                 )}
@@ -220,25 +219,25 @@ export default function StudentInformation({
 
               <div>
                 <h3 className="font-bold text-lg text-gray-900">{currentUser.FullName}</h3>
-                <p className="text-sm text-gray-500 font-mono">ID: {currentUser.StudentID || 'ยังไม่กำหนด'}</p>
-                <p className="text-xs font-semibold text-tu-red bg-red-50 px-2 py-0.5 rounded-full mt-1.5 inline-block">
+                <p className="text-sm text-gray-500 font-mono">ID: {currentUser.StudentID || 'Not specified'}</p>
+                <p className="text-xs font-semibold text-tu-red bg-red-50 px-2.5 py-0.5 rounded-full mt-1.5 inline-block font-mono">
                   {currentUser.Role}
                 </p>
               </div>
 
               <div className="w-full border-t border-gray-100 pt-4 space-y-3 text-left">
                 <div className="text-xs">
-                  <span className="text-gray-400 font-medium block">อีเมลหลัก (Email)</span>
+                  <span className="text-gray-400 font-medium block">Registered Email</span>
                   <span className="text-gray-800 font-medium font-mono">{currentUser.Email}</span>
                 </div>
                 <div className="text-xs">
-                  <span className="text-gray-400 font-medium block">ORCID ID</span>
+                  <span className="text-gray-400 font-medium block">ORCID iD URL</span>
                   {currentUser.ORCID ? (
                     <a href={currentUser.ORCID} target="_blank" rel="noreferrer" className="text-tu-red font-semibold hover:underline flex items-center gap-1">
                       {currentUser.ORCID} <ExternalLink size={10} />
                     </a>
                   ) : (
-                    <span className="text-gray-400 italic">ไม่ได้ระบุ</span>
+                    <span className="text-gray-400 italic">Not specified</span>
                   )}
                 </div>
               </div>
@@ -247,14 +246,14 @@ export default function StudentInformation({
             {/* Right Side: Demographics Form / Detail view */}
             <div className="bg-white p-6 rounded-2xl shadow-xs border border-gray-100 lg:col-span-2">
               <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-5">
-                <h3 className="text-base font-bold text-gray-900">ประวัติและข้อมูลวิชาการของนักศึกษา</h3>
+                <h3 className="text-base font-bold text-gray-900">Academic Demographics & Records</h3>
                 {!isEditingProfile ? (
                   <button
                     onClick={() => setIsEditingProfile(true)}
-                    className="flex items-center gap-1 px-4 py-2 bg-tu-red hover:bg-tu-red-hover text-white rounded-xl text-xs font-semibold transition"
+                    className="flex items-center gap-1 px-4 py-2 bg-tu-red hover:bg-tu-red-hover text-white rounded-xl text-xs font-semibold transition cursor-pointer"
                   >
                     <Edit2 size={12} />
-                    แก้ไขข้อมูลประวัติ
+                    Edit Profile Details
                   </button>
                 ) : (
                   <div className="flex gap-2">
@@ -263,17 +262,17 @@ export default function StudentInformation({
                         setProfileForm({ ...currentUser });
                         setIsEditingProfile(false);
                       }}
-                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold transition"
+                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold transition cursor-pointer"
                     >
-                      ยกเลิก
+                      Cancel
                     </button>
                     <button
                       onClick={handleSaveProfile}
                       disabled={isUploading}
-                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold transition flex items-center gap-1.5"
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
                     >
                       {isUploading && <Loader2 size={12} className="animate-spin" />}
-                      บันทึกข้อมูล
+                      Save Changes
                     </button>
                   </div>
                 )}
@@ -282,7 +281,7 @@ export default function StudentInformation({
               <form onSubmit={handleSaveProfile} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">รหัสนักศึกษา (Student ID)</label>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">Student ID</label>
                     <input
                       type="text"
                       disabled={!isEditingProfile}
@@ -293,7 +292,7 @@ export default function StudentInformation({
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">ชื่อ-นามสกุล (Full Name)</label>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">Full Name (including title)</label>
                     <input
                       type="text"
                       disabled={!isEditingProfile}
@@ -304,73 +303,82 @@ export default function StudentInformation({
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">หลักสูตร / สาขาวิชา (Degree Major)</label>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">Academic Major Program</label>
                     {isEditingProfile ? (
                       <select
                         value={profileForm.Major || ''}
                         onChange={e => setProfileForm({ ...profileForm, Major: e.target.value })}
                         className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-tu-red"
                       >
-                        <option value="">เลือกหลักสูตร...</option>
-                        {degreeOptions.map(opt => (
+                        <option value="">Select Major Program...</option>
+                        {degreeOptions.length > 0 ? degreeOptions.map(opt => (
                           <option key={opt} value={opt}>{opt}</option>
-                        ))}
+                        )) : (
+                          <>
+                            <option value="Doctor of Philosophy Program in Nursing Science (International Program)">PhD in Nursing Science (International Program)</option>
+                            <option value="Doctor of Philosophy Program in Nursing Science (Thai Program)">PhD in Nursing Science (Thai Program)</option>
+                          </>
+                        )}
                       </select>
                     ) : (
                       <div className="px-3 py-2 bg-gray-50 border border-transparent rounded-xl text-sm font-medium text-gray-800">
-                        {profileForm.Major || 'ไม่ได้ระบุ'}
+                        {profileForm.Major || 'Not specified'}
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">ปีที่คาดว่าจะจบการศึกษา (Expected Graduation Year)</label>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">Expected Graduation Year</label>
                     <input
                       type="text"
                       disabled={!isEditingProfile}
                       value={profileForm.ExpectedGraduationYear || ''}
                       onChange={e => setProfileForm({ ...profileForm, ExpectedGraduationYear: e.target.value })}
-                      placeholder="เช่น 2027"
+                      placeholder="e.g., 2027"
                       className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm disabled:opacity-75 focus:outline-tu-red"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">อาจารย์ที่ปรึกษาหลัก (Major Advisor)</label>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">Major Advisor</label>
                     {isEditingProfile ? (
                       <select
                         value={profileForm.Advisor || ''}
                         onChange={e => setProfileForm({ ...profileForm, Advisor: e.target.value })}
                         className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-tu-red"
                       >
-                        <option value="">เลือกอาจารย์ที่ปรึกษา...</option>
-                        {advisorOptions.map(opt => (
+                        <option value="">Select Advisor...</option>
+                        {advisorOptions.length > 0 ? advisorOptions.map(opt => (
                           <option key={opt} value={opt}>{opt}</option>
-                        ))}
+                        )) : (
+                          <option value="Assoc. Prof. Dr. Nonglak Wisetsilp">Assoc. Prof. Dr. Nonglak Wisetsilp</option>
+                        )}
                       </select>
                     ) : (
                       <div className="px-3 py-2 bg-gray-50 border border-transparent rounded-xl text-sm font-medium text-gray-800">
-                        {profileForm.Advisor || 'ไม่ได้ระบุ'}
+                        {profileForm.Advisor || 'Not specified'}
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">อาจารย์ที่ปรึกษาร่วม (Co-Advisor)</label>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">Co-Advisor</label>
                     {isEditingProfile ? (
                       <select
                         value={profileForm.CoAdvisor || ''}
                         onChange={e => setProfileForm({ ...profileForm, CoAdvisor: e.target.value })}
                         className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-tu-red"
                       >
-                        <option value="">เลือกอาจารย์ที่ปรึกษาร่วม...</option>
-                        {coAdvisorOptions.map(opt => (
+                        <option value="">Select Co-Advisor...</option>
+                        {coAdvisorOptions.length > 0 ? coAdvisorOptions.map(opt => (
                           <option key={opt} value={opt}>{opt}</option>
-                        ))}
+                        )) : (
+                          <option value="Assoc. Prof. Dr. Wipa Chaichan">Assoc. Prof. Dr. Wipa Chaichan</option>
+                        )}
                       </select>
                     ) : (
                       <div className="px-3 py-2 bg-gray-50 border border-transparent rounded-xl text-sm font-medium text-gray-800">
-                        {profileForm.CoAdvisor || 'ไม่ได้ระบุ'}
+                        {profileForm.CoAdvisor || 'Not specified'}
                       </div>
                     )}
                   </div>
@@ -387,20 +395,20 @@ export default function StudentInformation({
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">ORCID ID URL</label>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">ORCID iD URL Link</label>
                     <input
                       type="text"
                       disabled={!isEditingProfile}
                       value={profileForm.ORCID || ''}
                       onChange={e => setProfileForm({ ...profileForm, ORCID: e.target.value })}
-                      placeholder="https://orcid.org/..."
+                      placeholder="https://orcid.org/0000-0002..."
                       className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm disabled:opacity-75 focus:outline-tu-red font-mono"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 block mb-1">หัวข้อวิทยานิพนธ์ (Thesis Title)</label>
+                  <label className="text-xs font-semibold text-gray-500 block mb-1">Thesis Title (Dissertation Draft)</label>
                   <textarea
                     disabled={!isEditingProfile}
                     rows={2}
@@ -411,7 +419,7 @@ export default function StudentInformation({
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 block mb-1">สาขาวิชาและประเด็นวิจัยที่สนใจ (Research Interests)</label>
+                  <label className="text-xs font-semibold text-gray-500 block mb-1">Research Interests & Areas</label>
                   <input
                     type="text"
                     disabled={!isEditingProfile}
@@ -439,18 +447,18 @@ export default function StudentInformation({
             <div className="bg-white p-6 rounded-2xl shadow-xs border border-gray-100">
               <h3 className="text-base font-bold text-gray-900 flex items-center gap-1.5 mb-4">
                 <PlusCircle size={18} className="text-tu-red" />
-                อัปโหลดเอกสารหลักฐานใบประกาศเกียรติคุณใหม่
+                Upload New Academic Certificate
               </h3>
 
               <form onSubmit={handleAddCert} className="grid grid-cols-1 md:grid-cols-3 gap-5 items-end">
                 <div className="md:col-span-2 space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs font-semibold text-gray-500 block mb-1">ชื่อใบประกาศ/การอบรม (Certificate Title)</label>
+                      <label className="text-xs font-semibold text-gray-500 block mb-1">Certificate Title / Course Name</label>
                       <input
                         type="text"
                         required
-                        placeholder="เช่น ใบผ่านการอบรมการประมวลสถิติระดับสูง"
+                        placeholder="e.g., Advanced Statistics in Nursing Research Training"
                         value={newCertForm.name}
                         onChange={e => setNewCertForm({ ...newCertForm, name: e.target.value })}
                         className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-tu-red"
@@ -458,24 +466,31 @@ export default function StudentInformation({
                     </div>
 
                     <div>
-                      <label className="text-xs font-semibold text-gray-500 block mb-1">หมวดหมู่ใบประกาศ (Category)</label>
+                      <label className="text-xs font-semibold text-gray-500 block mb-1">Certificate Category</label>
                       <select
                         required
                         value={newCertForm.category}
                         onChange={e => setNewCertForm({ ...newCertForm, category: e.target.value })}
                         className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-tu-red"
                       >
-                        <option value="">เลือกหมวดหมู่...</option>
-                        {certCategoryOptions.map(opt => (
+                        <option value="">Select Category...</option>
+                        {certCategoryOptions.length > 0 ? certCategoryOptions.map(opt => (
                           <option key={opt} value={opt}>{opt}</option>
-                        ))}
+                        )) : (
+                          <>
+                            <option value="English & Languages">English & Languages</option>
+                            <option value="Research & Publications">Research & Publications</option>
+                            <option value="Ethics & Governance">Ethics & Governance</option>
+                            <option value="Academic Workshops">Academic Workshops</option>
+                          </>
+                        )}
                       </select>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs font-semibold text-gray-500 block mb-1">วันที่ได้รับเอกสาร (Date Received)</label>
+                      <label className="text-xs font-semibold text-gray-500 block mb-1">Date Received</label>
                       <input
                         type="date"
                         required
@@ -486,18 +501,18 @@ export default function StudentInformation({
                     </div>
 
                     <div>
-                      <label className="text-xs font-semibold text-gray-500 block mb-1">แนบรูปถ่ายหลักฐานต้นฉบับไปยัง Google Drive</label>
+                      <label className="text-xs font-semibold text-gray-500 block mb-1">Attach Certificate (PNG/JPG)</label>
                       <div className="flex gap-2">
                         <label className="flex-1 flex items-center justify-center border border-dashed border-gray-300 hover:border-tu-red cursor-pointer bg-gray-50 py-2 rounded-xl text-xs font-medium text-gray-600 transition">
                           {isUploading ? (
                             <>
                               <Loader2 size={14} className="animate-spin text-tu-red mr-1.5" />
-                              <span>กำลังอัปโหลดไปยัง Drive โฟลเดอร์ "Bird"...</span>
+                              <span>Uploading original file to Drive...</span>
                             </>
                           ) : (
                             <>
                               <ImageIcon size={14} className="text-gray-400 mr-1.5" />
-                              <span>{newCertForm.imageUrl ? '✓ เลือกภาพเรียบร้อย' : 'เลือกภาพไฟล์ (PNG, JPG)'}</span>
+                              <span>{newCertForm.imageUrl ? '✓ Image Selected' : 'Choose image (PNG, JPG)'}</span>
                             </>
                           )}
                           <input type="file" onChange={simulateImageUpload} className="hidden" accept="image/*" />
@@ -510,10 +525,10 @@ export default function StudentInformation({
                 <div className="text-right">
                   <button
                     type="submit"
-                    className="w-full py-2.5 bg-tu-red hover:bg-tu-red-hover text-white rounded-xl text-sm font-semibold transition shadow-xs flex items-center justify-center gap-1.5"
+                    className="w-full py-2.5 bg-tu-red hover:bg-tu-red-hover text-white rounded-xl text-sm font-semibold transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Plus size={16} />
-                    บันทึกส่งขออนุมัติสะสมงาน
+                    Submit for Advisor Approval
                   </button>
                 </div>
               </form>
@@ -521,7 +536,7 @@ export default function StudentInformation({
 
             {/* List certificates */}
             <div className="space-y-4">
-              <h3 className="text-sm font-bold text-gray-700">รายการใบประกาศทั้งหมดในระบบ</h3>
+              <h3 className="text-sm font-bold text-gray-700">Uploaded Academic Certificates</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {certificates
@@ -531,15 +546,15 @@ export default function StudentInformation({
                       <div className="relative h-44 bg-gray-100">
                         <img src={cert.ImageURL} alt={cert.Name} className="w-full h-full object-cover" />
                         <div className="absolute top-3 right-3">
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide shadow-sm flex items-center gap-1 ${
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider shadow-sm flex items-center gap-1 ${
                             cert.Status === 'APPROVED'
                               ? 'bg-emerald-500 text-white'
                               : cert.Status === 'REJECTED'
                               ? 'bg-red-500 text-white'
                               : 'bg-amber-500 text-white'
                           }`}>
-                            {cert.Status === 'APPROVED' && <CheckCircle2 size={12} />}
-                            {cert.Status === 'REJECTED' && <AlertCircle size={12} />}
+                            {cert.Status === 'APPROVED' && <CheckCircle2 size={10} />}
+                            {cert.Status === 'REJECTED' && <AlertCircle size={10} />}
                             {cert.Status}
                           </span>
                         </div>
@@ -555,13 +570,13 @@ export default function StudentInformation({
                           </h4>
                           <div className="flex items-center gap-1.5 text-xs text-gray-400">
                             <Calendar size={12} />
-                            <span>ได้รับเมื่อ: {cert.Date}</span>
+                            <span>Received on: {cert.Date}</span>
                           </div>
                         </div>
 
                         {cert.Feedback && (
                           <div className="mt-3 p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-xs text-gray-600 space-y-1">
-                            <span className="font-semibold block text-gray-700">ฟีดแบคจากที่ปรึกษา ({cert.ApprovedBy || 'อาจารย์'}):</span>
+                            <span className="font-semibold block text-gray-700">Feedback from Advisor ({cert.ApprovedBy || 'Advisor'}):</span>
                             <p className="italic leading-normal text-[11px]">"{cert.Feedback}"</p>
                           </div>
                         )}
@@ -587,17 +602,17 @@ export default function StudentInformation({
             <div className="bg-white p-6 rounded-2xl shadow-xs border border-gray-100">
               <h3 className="text-base font-bold text-gray-900 flex items-center gap-1.5 mb-4">
                 <ImageIcon size={18} className="text-tu-red" />
-                เพิ่มกิจกรรมสะสมงานความก้าวหน้าและการทำกิจกรรมดุษฎีบัณฑิต
+                Record Doctoral Progress Activity
               </h3>
 
               <form onSubmit={handleAddActivity} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">หัวข้อกิจกรรม (Activity Title)</label>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">Activity Title / Description</label>
                     <input
                       type="text"
                       required
-                      placeholder="เช่น อบรมกลุ่มย่อยเรื่อง Tele-Nursing กับ อสม. ในชุมชน"
+                      placeholder="e.g., Seminar with Community Volunteers on Tele-Nursing Applications"
                       value={newActForm.title}
                       onChange={e => setNewActForm({ ...newActForm, title: e.target.value })}
                       className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-tu-red"
@@ -605,7 +620,7 @@ export default function StudentInformation({
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">วันที่ดำเนินกิจกรรม (Date)</label>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">Activity Date</label>
                     <input
                       type="date"
                       required
@@ -617,11 +632,11 @@ export default function StudentInformation({
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 block mb-1">รายละเอียดกิจกรรม (Description)</label>
+                  <label className="text-xs font-semibold text-gray-500 block mb-1">Detailed Description</label>
                   <textarea
                     rows={2}
                     required
-                    placeholder="สรุปรายละเอียดกิจกรรม ผลลัพธ์ และประเด็นเรียนรู้..."
+                    placeholder="Summarize key activity details, learning outcomes, and reflections..."
                     value={newActForm.description}
                     onChange={e => setNewActForm({ ...newActForm, description: e.target.value })}
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-tu-red"
@@ -629,11 +644,11 @@ export default function StudentInformation({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-gray-500 block">อัปโหลดภาพประกอบหลายรูปเพื่อทำ คอลลาจภาพ (Collage Photos)</label>
+                  <label className="text-xs font-semibold text-gray-500 block">Upload multiple images to form a Photo Collage</label>
                   <div className="flex flex-wrap gap-3 items-center">
                     <label className="flex items-center justify-center border border-dashed border-gray-300 hover:border-tu-red cursor-pointer bg-gray-50 px-4 py-2 rounded-xl text-xs font-medium text-gray-600 transition">
                       <ImageIcon size={14} className="text-gray-400 mr-1.5" />
-                      <span>อัปโหลดรูปเพิ่มเติม (สูงสุด 3 รูป)</span>
+                      <span>Choose additional images (Max 3)</span>
                       <input type="file" multiple onChange={e => simulateImageUpload(e, true)} className="hidden" accept="image/*" />
                     </label>
 
@@ -655,10 +670,10 @@ export default function StudentInformation({
                 <div className="text-right">
                   <button
                     type="submit"
-                    className="px-6 py-2.5 bg-tu-red hover:bg-tu-red-hover text-white rounded-xl text-sm font-semibold transition shadow-xs flex items-center gap-1.5 ml-auto"
+                    className="px-6 py-2.5 bg-tu-red hover:bg-tu-red-hover text-white rounded-xl text-sm font-semibold transition shadow-xs flex items-center gap-1.5 ml-auto cursor-pointer"
                   >
                     <Plus size={16} />
-                    บันทึกกิจกรรมสะสมงาน
+                    Submit Progress Record
                   </button>
                 </div>
               </form>
@@ -666,7 +681,7 @@ export default function StudentInformation({
 
             {/* List activities as collages */}
             <div className="space-y-5">
-              <h3 className="text-sm font-bold text-gray-700">ประวัติคอลลาจภาพความก้าวหน้าและการทำกิจกรรม</h3>
+              <h3 className="text-sm font-bold text-gray-700">Recorded Activities Collage History</h3>
 
               <div className="space-y-6">
                 {activities
@@ -716,7 +731,7 @@ export default function StudentInformation({
 
                           <div className="flex items-center gap-1 text-xs text-gray-400 font-medium">
                             <Calendar size={12} />
-                            <span>วันที่ทำกิจกรรม: {act.Date}</span>
+                            <span>Activity Date: {act.Date}</span>
                           </div>
 
                           <p className="text-sm text-gray-600 leading-relaxed pt-1">{act.Description}</p>
@@ -726,7 +741,7 @@ export default function StudentInformation({
                           <div className="p-3 bg-red-50/50 border border-red-100/50 rounded-xl text-xs text-gray-700 space-y-1">
                             <span className="font-semibold block text-tu-red flex items-center gap-1">
                               <HeartHandshake size={13} />
-                              ข้อเสนอแนะของอาจารย์ที่ปรึกษา ({act.ApprovedBy || 'อาจารย์'}):
+                              Advisor Recommendations ({act.ApprovedBy || 'Advisor'}):
                             </span>
                             <p className="italic leading-normal">"{act.Feedback}"</p>
                           </div>

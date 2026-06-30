@@ -60,7 +60,7 @@ export default function AdvisorPanel({
       {/* Student list sidebar */}
       <div className="lg:col-span-1 space-y-4">
         <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs space-y-3">
-          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider px-1">นักศึกษาในความดูแลของท่าน</h3>
+          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider px-1">Supervised Students</h3>
           
           <div className="space-y-1.5">
             {myStudents.map((stud) => (
@@ -70,7 +70,7 @@ export default function AdvisorPanel({
                   setSelectedStudent(stud);
                   setFeedbackText('');
                 }}
-                className={`w-full text-left p-3 rounded-xl transition duration-200 flex items-center gap-3 border ${
+                className={`w-full text-left p-3 rounded-xl transition duration-200 flex items-center gap-3 border cursor-pointer ${
                   activeStudent?.UserID === stud.UserID
                     ? 'bg-red-50/50 border-red-100 text-tu-red'
                     : 'border-transparent text-gray-700 hover:bg-gray-50'
@@ -81,15 +81,15 @@ export default function AdvisorPanel({
                   alt={stud.FullName}
                   className="w-8 h-8 rounded-full object-cover"
                 />
-                <div className="min-w-0">
-                  <h4 className="font-semibold text-xs truncate">{stud.FullName}</h4>
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-semibold text-xs truncate text-gray-800">{stud.FullName}</h4>
                   <p className="text-[10px] text-gray-400 font-mono truncate">ID: {stud.StudentID}</p>
                 </div>
               </button>
             ))}
 
             {myStudents.length === 0 && (
-              <p className="text-xs text-gray-400 text-center py-4">ไม่พบนักศึกษาที่ผูกมัดชื่อท่านในประวัติ</p>
+              <p className="text-xs text-gray-400 text-center py-4">No students found assigned to your name.</p>
             )}
           </div>
         </div>
@@ -110,11 +110,11 @@ export default function AdvisorPanel({
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <h3 className="font-bold text-base text-gray-900">{activeStudent.FullName}</h3>
                   <span className="text-[10px] font-mono font-semibold bg-red-50 text-tu-red px-2 py-0.5 rounded-full inline-block">
-                    รหัสนักศึกษา: {activeStudent.StudentID}
+                    Student ID: {activeStudent.StudentID}
                   </span>
                 </div>
                 <p className="text-xs text-gray-500 leading-normal line-clamp-1 italic">
-                  โครงสร้างวิทยานิพนธ์: "{activeStudent.ThesisTitle || 'ไม่ได้กำหนดหัวข้อวิทยานิพนธ์'}"
+                  Dissertation Title: "{activeStudent.ThesisTitle || 'No thesis title defined yet'}"
                 </p>
                 <div className="flex justify-center sm:justify-start gap-4 text-[11px] text-gray-400 font-medium">
                   <span>Line ID: {activeStudent.LineID || 'N/A'}</span>
@@ -127,25 +127,25 @@ export default function AdvisorPanel({
             <div className="flex border-b border-gray-200">
               <button
                 onClick={() => setActiveTab('certs')}
-                className={`flex items-center gap-2 px-6 py-2.5 border-b-2 font-medium text-xs transition-all duration-200 ${
+                className={`flex items-center gap-2 px-6 py-2.5 border-b-2 font-medium text-xs transition-all duration-200 cursor-pointer ${
                   activeTab === 'certs'
                     ? 'border-tu-red text-tu-red font-bold'
                     : 'border-transparent text-gray-500 hover:text-gray-800'
                 }`}
               >
                 <Award size={14} />
-                ตรวจสอบใบประกาศนียบัตร ({certificates.filter(c => c.StudentID === activeStudent.StudentID && c.Status === 'PENDING').length} รออนุมัติ)
+                Review Certificates ({certificates.filter(c => c.StudentID === activeStudent.StudentID && c.Status === 'PENDING').length} Pending)
               </button>
               <button
                 onClick={() => setActiveTab('activities')}
-                className={`flex items-center gap-2 px-6 py-2.5 border-b-2 font-medium text-xs transition-all duration-200 ${
+                className={`flex items-center gap-2 px-6 py-2.5 border-b-2 font-medium text-xs transition-all duration-200 cursor-pointer ${
                   activeTab === 'activities'
                     ? 'border-tu-red text-tu-red font-bold'
                     : 'border-transparent text-gray-500 hover:text-gray-800'
                 }`}
               >
                 <Clock size={14} />
-                ตรวจสอบประวัติทำกิจกรรม ({activities.filter(a => a.StudentID === activeStudent.StudentID && a.Status === 'PENDING').length} รออนุมัติ)
+                Review Activities ({activities.filter(a => a.StudentID === activeStudent.StudentID && a.Status === 'PENDING').length} Pending)
               </button>
             </div>
 
@@ -184,16 +184,16 @@ export default function AdvisorPanel({
                                 {cert.Category}
                               </span>
                               <h4 className="font-semibold text-xs text-gray-800 leading-snug">{cert.Name}</h4>
-                              <p className="text-[10px] text-gray-400">วันที่ยื่นเรื่อง: {cert.Date}</p>
+                              <p className="text-[10px] text-gray-400 font-mono">Date Received: {cert.Date}</p>
                             </div>
 
                             {cert.Status === 'PENDING' ? (
                               <div className="space-y-3 pt-3 border-t border-gray-50">
                                 <div>
-                                  <label className="text-[10px] font-semibold text-gray-500 block mb-1">ความเห็นหรือฟีดแบคของอาจารย์ (Advisor Comment)</label>
+                                  <label className="text-[10px] font-semibold text-gray-500 block mb-1">Advisor Feedback & Remarks</label>
                                   <input
                                     type="text"
-                                    placeholder="เช่น เอกสารประเมินเรียบร้อยดีมาก..."
+                                    placeholder="e.g., Excellent credentials, approved."
                                     value={actingId === cert.CertID ? feedbackText : ''}
                                     onChange={e => {
                                       setActingId(cert.CertID);
@@ -206,22 +206,22 @@ export default function AdvisorPanel({
                                 <div className="flex gap-2">
                                   <button
                                     onClick={() => handleVerifyCert(cert.CertID, 'APPROVED')}
-                                    className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition"
+                                    className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition cursor-pointer"
                                   >
-                                    อนุมัติใบประกาศ
+                                    Approve Certificate
                                   </button>
                                   <button
                                     onClick={() => handleVerifyCert(cert.CertID, 'REJECTED')}
-                                    className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs rounded-lg transition"
+                                    className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs rounded-lg transition cursor-pointer"
                                   >
-                                    ให้แก้ไข
+                                    Request Revision
                                   </button>
                                 </div>
                               </div>
                             ) : (
                               <div className="p-2.5 bg-gray-50 rounded-xl text-[11px] text-gray-600 border border-gray-100">
-                                <span className="font-bold text-gray-800">ฟีดแบคที่ระบุแล้ว: </span>
-                                <p className="italic">"{cert.Feedback || 'ไม่มีความเห็นเพิ่มเติม'}"</p>
+                                <span className="font-bold text-gray-800">Submitted Feedback: </span>
+                                <p className="italic">"{cert.Feedback || 'No further feedback provided.'}"</p>
                               </div>
                             )}
                           </div>
@@ -231,7 +231,7 @@ export default function AdvisorPanel({
                     {certificates.filter(c => c.StudentID === activeStudent.StudentID).length === 0 && (
                       <div className="col-span-2 text-center py-12 bg-white rounded-2xl border border-gray-100">
                         <AlertTriangle className="mx-auto text-gray-300 mb-2" size={32} />
-                        <p className="text-sm text-gray-500 font-medium">ไม่มีใบประกาศนียบัตรสะสมที่ยื่นขออนุมัติ</p>
+                        <p className="text-sm text-gray-500 font-medium">No certificates submitted by this student yet.</p>
                       </div>
                     )}
                   </div>
@@ -253,7 +253,7 @@ export default function AdvisorPanel({
                         <div key={act.ActivityID} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs grid grid-cols-1 md:grid-cols-3 gap-6">
                           {/* Collage side */}
                           <div>
-                            <span className="text-[9px] uppercase font-bold text-tu-red tracking-wider block mb-2">COLLAGE EVIDENCE</span>
+                            <span className="text-[9px] uppercase font-bold text-tu-red tracking-wider block mb-2 font-mono">Collage Evidence</span>
                             <div className="grid grid-cols-2 gap-1.5">
                               {act.ImagesURL.map((url, i) => (
                                 <img key={i} src={url} alt="act" className="w-full h-16 object-cover rounded-lg" />
@@ -272,17 +272,17 @@ export default function AdvisorPanel({
                                   {act.Status}
                                 </span>
                               </div>
-                              <p className="text-[10px] text-gray-400">วันที่ดำเนินเรื่อง: {act.Date}</p>
+                              <p className="text-[10px] text-gray-400 font-mono">Date Submitted: {act.Date}</p>
                               <p className="text-xs text-gray-600 leading-relaxed">{act.Description}</p>
                             </div>
 
                             {act.Status === 'PENDING' ? (
                               <div className="space-y-3 pt-3 border-t border-gray-50">
                                 <div>
-                                  <label className="text-[10px] font-semibold text-gray-500 block mb-1">ความเห็นหรือฟีดแบคกิจกรรม</label>
+                                  <label className="text-[10px] font-semibold text-gray-500 block mb-1">Advisor Activity Feedback</label>
                                   <input
                                     type="text"
-                                    placeholder="เช่น ขอชื่นชมในการลงพื้นที่ครั้งนี้..."
+                                    placeholder="e.g., Great community presentation, approved."
                                     value={actingId === act.ActivityID ? feedbackText : ''}
                                     onChange={e => {
                                       setActingId(act.ActivityID);
@@ -295,22 +295,22 @@ export default function AdvisorPanel({
                                 <div className="flex gap-2">
                                   <button
                                     onClick={() => handleVerifyAct(act.ActivityID, 'APPROVED')}
-                                    className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition"
+                                    className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition cursor-pointer"
                                   >
-                                    อนุมัติกิจกรรม
+                                    Approve Activity
                                   </button>
                                   <button
                                     onClick={() => handleVerifyAct(act.ActivityID, 'REJECTED')}
-                                    className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs rounded-lg transition"
+                                    className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs rounded-lg transition cursor-pointer"
                                   >
-                                    ให้แก้ไข
+                                    Request Revision
                                   </button>
                                 </div>
                               </div>
                             ) : (
                               <div className="p-2.5 bg-gray-50 rounded-xl text-[11px] text-gray-600 border border-gray-100">
-                                <span className="font-bold text-gray-800">ความเห็นอาจารย์: </span>
-                                <p className="italic">"{act.Feedback || 'อนุมัติเรียบร้อย'}"</p>
+                                <span className="font-bold text-gray-800 font-mono">Advisor Recommendation: </span>
+                                <p className="italic">"{act.Feedback || 'Approved successfully.'}"</p>
                               </div>
                             )}
                           </div>
@@ -320,7 +320,7 @@ export default function AdvisorPanel({
                     {activities.filter(a => a.StudentID === activeStudent.StudentID).length === 0 && (
                       <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
                         <AlertTriangle className="mx-auto text-gray-300 mb-2" size={32} />
-                        <p className="text-sm text-gray-500 font-medium">ไม่มีประวัติกิจกรรมสะสมงานความก้าวหน้าที่ยื่นขออนุมัติ</p>
+                        <p className="text-sm text-gray-500 font-medium">No progress activities submitted by this student yet.</p>
                       </div>
                     )}
                   </div>
@@ -331,8 +331,8 @@ export default function AdvisorPanel({
         ) : (
           <div className="bg-white p-12 text-center rounded-2xl border border-gray-100 shadow-xs">
             <Users className="mx-auto text-gray-300 mb-3" size={40} />
-            <h3 className="font-bold text-gray-800 text-sm">ไม่พบนักศึกษาในความดูแลในระบบ</h3>
-            <p className="text-xs text-gray-500 mt-1">กรุณากำหนดให้ชื่อของท่านเป็นที่ปรึกษาในเมนู Demographics ของนักศึกษา</p>
+            <h3 className="font-bold text-gray-800 text-sm">No Supervised Students Assigned</h3>
+            <p className="text-xs text-gray-500 mt-1">Configure student accounts to list you as their Major Advisor or Co-Advisor in the demographics section.</p>
           </div>
         )}
       </div>

@@ -20,6 +20,7 @@ export interface User {
   ResearchInterests?: string;
   ExpectedGraduationYear?: string;
   PhotoURL?: string;
+  Password?: string;
 }
 
 export type CertStatus = 'PENDING' | 'APPROVED' | 'REJECTED';

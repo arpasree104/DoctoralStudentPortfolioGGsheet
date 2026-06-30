@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Award, BookOpen, Clock, FileText, Settings, Users, LogOut, KeyRound,
   HelpCircle, RefreshCw, Layers, CheckCircle2, AlertCircle, Sparkles, GraduationCap,
-  MessageSquare, Bell, UserPlus
+  MessageSquare, Bell, UserPlus, Database
 } from 'lucide-react';
 
 // Import Types
@@ -43,6 +43,7 @@ export default function App() {
   const [configOptions, setConfigOptions] = useState<ConfigOption[]>([]);
   const [studentPortfolio, setStudentPortfolio] = useState<StudentPortfolioData | null>(null);
   const [apiUrl, setApiUrl] = useState('');
+  const [showUrlConfig, setShowUrlConfig] = useState(false);
 
   // UI States
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -64,10 +65,11 @@ export default function App() {
   const [regAdvisor, setRegAdvisor] = useState('');
   const [regCoAdvisor, setRegCoAdvisor] = useState('');
   const [regThesisTitle, setRegThesisTitle] = useState('');
+  const [regPassword, setRegPassword] = useState('');
 
   // Load Database and Initialize
-  const loadDatabase = async () => {
-    setSyncStatus('syncing');
+  const loadDatabase = async (isSilent = false) => {
+    if (!isSilent) setSyncStatus('syncing');
     try {
       initializeDatabase();
       const fetchedUsers = await getUsers();
@@ -93,19 +95,41 @@ export default function App() {
           setCurrentUser(freshUser);
         }
       }
-      setSyncStatus('success');
-      setTimeout(() => setSyncStatus('idle'), 2000);
+      if (!isSilent) {
+        setSyncStatus('success');
+        setTimeout(() => setSyncStatus('idle'), 2000);
+      } else {
+        setSyncStatus('idle');
+      }
     } catch (e) {
       console.error('Error synchronizing database:', e);
-      setSyncStatus('failed');
-      setTimeout(() => setSyncStatus('idle'), 2000);
+      if (!isSilent) {
+        setSyncStatus('failed');
+        setTimeout(() => setSyncStatus('idle'), 2000);
+      }
     }
   };
 
   useEffect(() => {
-    loadDatabase().then(() => {
-      setIsInitialized(true);
-    });
+    // 1. Instantly load from local storage cache to open under 1 second
+    initializeDatabase();
+    const cachedUsers = JSON.parse(localStorage.getItem('TU_PHD_USERS') || '[]');
+    const cachedCerts = JSON.parse(localStorage.getItem('TU_PHD_CERTS') || '[]');
+    const cachedActs = JSON.parse(localStorage.getItem('TU_PHD_ACTIVITIES') || '[]');
+    const cachedConfigs = JSON.parse(localStorage.getItem('TU_PHD_CONFIGS') || '[]');
+    const scriptUrl = getAppsScriptUrl();
+
+    if (cachedUsers.length > 0) {
+      setUsers(cachedUsers);
+      setCertificates(cachedCerts);
+      setActivities(cachedActs);
+      setConfigOptions(cachedConfigs);
+    }
+    setApiUrl(scriptUrl);
+    setIsInitialized(true);
+
+    // 2. Refresh from Google Sheets silently in background
+    loadDatabase(true);
   }, []);
 
   // Sync portfolio on student change
@@ -126,13 +150,23 @@ export default function App() {
       setLoginError('Please enter your registered email.');
       return;
     }
+    if (!loginPassword.trim()) {
+      setLoginError('Please enter your password.');
+      return;
+    }
 
     const match = users.find(u => u.Email.toLowerCase().trim() === loginEmail.toLowerCase().trim());
     if (match) {
-      setCurrentUser(match);
-      logActivity(match.UserID, 'LOGIN', `User ${match.FullName} logged into PhD Portfolio system`);
-      setLoginError('');
-      setActiveTab('dashboard');
+      const userPassword = (match.Password || '1234').toLowerCase().trim();
+      const inputPassword = loginPassword.toLowerCase().trim();
+      if (userPassword === inputPassword) {
+        setCurrentUser(match);
+        logActivity(match.UserID, 'LOGIN', `User ${match.FullName} logged into PhD Portfolio system`);
+        setLoginError('');
+        setActiveTab('dashboard');
+      } else {
+        setLoginError('Incorrect password. Please try again (Default is "1234").');
+      }
     } else {
       setLoginError('User account not found. Please double check your email or Sign Up for an account below.');
     }
@@ -140,8 +174,8 @@ export default function App() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!regFullName.trim() || !regEmail.trim() || !regStudentID.trim()) {
-      setLoginError('Please fill in all required fields.');
+    if (!regFullName.trim() || !regEmail.trim() || !regStudentID.trim() || !regPassword.trim()) {
+      setLoginError('Please fill in all required fields including password.');
       return;
     }
 
@@ -161,7 +195,8 @@ export default function App() {
       Advisor: regAdvisor || undefined,
       CoAdvisor: regCoAdvisor || undefined,
       ThesisTitle: regThesisTitle.trim() || undefined,
-      PhotoURL: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80'
+      PhotoURL: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80',
+      Password: regPassword.trim()
     };
 
     try {
@@ -172,6 +207,7 @@ export default function App() {
       setLoginError('');
       setIsRegistering(false);
       setActiveTab('dashboard');
+      setRegPassword(''); // clear after register
     } catch (err) {
       console.error(err);
       setLoginError('Registration failed. Please try again.');
@@ -202,14 +238,23 @@ export default function App() {
 
   // Profile update handler
   const handleUpdateProfile = async (updatedProfile: User) => {
-    await saveUser(updatedProfile);
-    await loadDatabase(); // refresh
+    saveUser(updatedProfile); // Background Sync
+    setUsers(prev => prev.map(u => u.UserID === updatedProfile.UserID ? updatedProfile : u));
+    if (currentUser && currentUser.UserID === updatedProfile.UserID) {
+      setCurrentUser(updatedProfile);
+    }
   };
 
   // Add Certificate
   const handleAddCertificate = async (cert: Certificate) => {
-    await saveCertificate(cert);
-    await loadDatabase();
+    saveCertificate(cert); // Background Sync
+    setCertificates(prev => {
+      const exists = prev.some(c => c.CertID === cert.CertID);
+      if (exists) {
+        return prev.map(c => c.CertID === cert.CertID ? cert : c);
+      }
+      return [cert, ...prev];
+    });
   };
 
   // Verify Certificate
@@ -222,16 +267,22 @@ export default function App() {
         Feedback: feedback,
         ApprovedBy: currentUser.FullName
       };
-      await saveCertificate(updated);
+      saveCertificate(updated); // Background Sync
       logActivity(currentUser.UserID, 'VERIFY_CERTIFICATE', `Advisor verified Certificate ${certId} with status ${status}`);
-      await loadDatabase();
+      setCertificates(prev => prev.map(c => c.CertID === certId ? updated : c));
     }
   };
 
   // Add Activity
   const handleAddActivity = async (act: Activity) => {
-    await saveActivity(act);
-    await loadDatabase();
+    saveActivity(act); // Background Sync
+    setActivities(prev => {
+      const exists = prev.some(a => a.ActivityID === act.ActivityID);
+      if (exists) {
+        return prev.map(a => a.ActivityID === act.ActivityID ? act : a);
+      }
+      return [act, ...prev];
+    });
   };
 
   // Verify Activity
@@ -244,39 +295,54 @@ export default function App() {
         Feedback: feedback,
         ApprovedBy: currentUser.FullName
       };
-      await saveActivity(updated);
+      saveActivity(updated); // Background Sync
       logActivity(currentUser.UserID, 'VERIFY_ACTIVITY', `Advisor verified Activity Progress ${actId} with status ${status}`);
-      await loadDatabase();
+      setActivities(prev => prev.map(a => a.ActivityID === actId ? updated : a));
     }
   };
 
   // Save Portfolio
   const handleSavePortfolio = async (data: StudentPortfolioData) => {
     if (currentUser && currentUser.StudentID) {
-      await saveStudentPortfolio(currentUser.StudentID, data);
+      saveStudentPortfolio(currentUser.StudentID, data); // Background Sync
       setStudentPortfolio(data);
     }
   };
 
   // Save config option
   const handleSaveConfig = async (opt: ConfigOption) => {
-    await saveConfigOption(opt);
-    await loadDatabase();
+    saveConfigOption(opt); // Background Sync
+    setConfigOptions(prev => {
+      const exists = prev.some(c => c.id === opt.id);
+      if (exists) {
+        return prev.map(c => c.id === opt.id ? opt : c);
+      }
+      return [...prev, opt];
+    });
   };
 
   const handleDeleteConfig = async (id: string) => {
-    await deleteConfigOption(id);
-    await loadDatabase();
+    deleteConfigOption(id); // Background Sync
+    setConfigOptions(prev => prev.filter(c => c.id !== id));
   };
 
   const handleSaveUser = async (u: User) => {
-    await saveUser(u);
-    await loadDatabase();
+    saveUser(u); // Background Sync
+    setUsers(prev => {
+      const exists = prev.some(x => x.UserID === u.UserID);
+      if (exists) {
+        return prev.map(x => x.UserID === u.UserID ? u : x);
+      }
+      return [...prev, u];
+    });
+    if (currentUser && currentUser.UserID === u.UserID) {
+      setCurrentUser(u);
+    }
   };
 
   const handleDeleteUserAccount = async (id: string) => {
-    await deleteUser(id);
-    await loadDatabase();
+    deleteUser(id); // Background Sync
+    setUsers(prev => prev.filter(u => u.UserID !== id));
   };
 
   const handleSaveApiUrl = (url: string) => {
@@ -316,10 +382,15 @@ export default function App() {
                   return next;
                 });
               }}
-              className="w-20 h-20 bg-gradient-to-br from-[#B31B1B] to-[#800000] text-white rounded-[1.8rem] flex items-center justify-center shadow-lg border-2 border-white/10 hover:scale-105 active:scale-95 transition duration-150 shrink-0"
+              className="w-24 h-24 bg-[#FAF6EC] rounded-full flex items-center justify-center shadow-md border border-red-100 hover:scale-105 active:scale-95 transition duration-150 shrink-0 p-2.5 cursor-pointer"
               title="Click 5 times to reveal quick evaluator login"
             >
-              <GraduationCap size={44} className="text-white" />
+              <img 
+                src="https://lh3.googleusercontent.com/d/1qmMuV0e2tItZuhX0oexmhhnu3GdBBbe0" 
+                alt="Thammasat University Logo" 
+                className="w-full h-full object-contain"
+                referrerPolicy="no-referrer"
+              />
             </button>
 
             {/* University & Department Titles */}
@@ -500,6 +571,20 @@ export default function App() {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-700 mb-1">
+                    Password / Access Code <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Set your password (e.g., 1234)"
+                    value={regPassword}
+                    onChange={e => setRegPassword(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-[#F4F6F9] border-0 rounded-xl focus:outline-0 focus:ring-2 focus:ring-[#B31B1B] text-xs font-mono"
+                  />
+                </div>
+
                 {loginError && (
                   <div className="p-2.5 bg-red-50 text-red-700 rounded-xl border border-red-100 flex items-start gap-1.5 leading-normal text-[11px]">
                     <AlertCircle size={14} className="shrink-0 mt-0.5" />
@@ -604,10 +689,15 @@ export default function App() {
                   return next;
                 });
               }}
-              className="w-10 h-10 bg-tu-red rounded-xl flex items-center justify-center text-white border border-tu-gold shadow-sm font-bold text-sm shrink-0 cursor-pointer hover:scale-105 transition"
+              className="w-10 h-10 flex items-center justify-center shrink-0 cursor-pointer hover:scale-105 transition"
               title="Click 5 times to toggle mockup tools"
             >
-              TU
+              <img 
+                src="https://lh3.googleusercontent.com/d/1qmMuV0e2tItZuhX0oexmhhnu3GdBBbe0" 
+                alt="TU" 
+                className="w-10 h-10 object-contain"
+                referrerPolicy="no-referrer"
+              />
             </button>
             <div>
               <h1 className="text-xs sm:text-sm font-extrabold text-tu-red leading-tight">
@@ -621,9 +711,53 @@ export default function App() {
 
           {/* User profile & Database sync indicator */}
           <div className="flex items-center gap-4">
+            {/* Database status icon & tiny config */}
+            <div className="relative flex items-center">
+              <button
+                onClick={() => setShowUrlConfig(prev => !prev)}
+                className={`p-2 rounded-xl transition flex items-center gap-1.5 text-xs cursor-pointer ${
+                  apiUrl ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100' : 'text-amber-600 bg-amber-50 hover:bg-amber-100'
+                }`}
+                title={apiUrl ? 'Connected to Google Sheets (Click to edit URL)' : 'Offline Local Mode (Click to set URL)'}
+              >
+                <div className={`w-1.5 h-1.5 rounded-full ${apiUrl ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                <Database size={13} />
+                <span className="hidden sm:inline font-semibold">
+                  {apiUrl ? 'Connected' : 'Local Mode'}
+                </span>
+              </button>
+              
+              {showUrlConfig && (
+                <div className="absolute right-0 top-11 bg-white border border-gray-100 rounded-2xl shadow-xl p-4 w-72 z-50 space-y-2 animate-fade-in text-left">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-gray-800 flex items-center gap-1">
+                      <Settings size={12} className="text-gray-400 font-bold" />
+                      Google Sheets API Endpoint
+                    </span>
+                    <button 
+                      onClick={() => setShowUrlConfig(false)} 
+                      className="text-gray-400 hover:text-gray-600 text-xs font-bold cursor-pointer"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="https://script.google.com/macros/s/..."
+                    value={apiUrl}
+                    onChange={e => handleSaveApiUrl(e.target.value)}
+                    className="w-full text-[10px] p-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:border-tu-red"
+                  />
+                  <div className="text-[9px] text-gray-400">
+                    {apiUrl ? '✓ Connected to live sheets.' : '⚠️ Using cached local state.'}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Sync status */}
             <button
-              onClick={loadDatabase}
+              onClick={() => loadDatabase(false)}
               disabled={syncStatus === 'syncing'}
               className="p-2 text-gray-400 hover:text-tu-red hover:bg-red-50 rounded-xl transition flex items-center gap-1.5 text-xs cursor-pointer"
               title="Refresh / Sync Google Sheets Database"
@@ -697,26 +831,6 @@ export default function App() {
           </div>
         </div>
       </header>
-
-      {/* API Endpoint bar - Hidden during print */}
-      <div className="no-print bg-amber-500 text-white px-4 py-2 text-[10px] font-mono flex flex-col sm:flex-row justify-between items-center gap-2">
-        <div className="flex items-center gap-1.5">
-          <Settings size={12} />
-          <span>Google Sheets API Live Connection / Apps Script Web App Endpoint:</span>
-        </div>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <input
-            type="text"
-            placeholder="Paste your Apps Script Web App URL here to synchronize live Google Sheets data..."
-            value={apiUrl}
-            onChange={e => handleSaveApiUrl(e.target.value)}
-            className="bg-white/10 text-white border border-white/20 px-2 py-0.5 rounded text-[10px] w-full sm:w-96 focus:outline-none focus:bg-white/20"
-          />
-          <span className="bg-white/20 px-2 py-0.5 rounded text-[9px] font-bold uppercase shrink-0">
-            {apiUrl ? 'CONNECTED' : 'LOCAL CACHE FALLBACK'}
-          </span>
-        </div>
-      </div>
 
       {/* 2. Main Grid Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">

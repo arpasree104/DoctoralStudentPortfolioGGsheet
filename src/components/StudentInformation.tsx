@@ -46,6 +46,10 @@ export default function StudentInformation({
     images: [] as string[]
   });
 
+  React.useEffect(() => {
+    setProfileForm({ ...currentUser });
+  }, [currentUser]);
+
   // Filter dynamic dropdown list options from dynamic ConfigOptions
   const advisorOptions = configOptions.filter(c => c.OptionType === 'ADVISOR').map(c => c.OptionValue);
   const coAdvisorOptions = configOptions.filter(c => c.OptionType === 'CO_ADVISOR').map(c => c.OptionValue);
@@ -415,6 +419,18 @@ export default function StudentInformation({
                     value={profileForm.ThesisTitle || ''}
                     onChange={e => setProfileForm({ ...profileForm, ThesisTitle: e.target.value })}
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm disabled:opacity-75 focus:outline-tu-red"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 block mb-1">Personal Password / Access Code (รหัสผ่านเข้าสู่ระบบ)</label>
+                  <input
+                    type="text"
+                    disabled={!isEditingProfile}
+                    value={profileForm.Password || ''}
+                    onChange={e => setProfileForm({ ...profileForm, Password: e.target.value })}
+                    placeholder="Enter password (e.g., 1234)"
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm disabled:opacity-75 focus:outline-tu-red font-mono"
                   />
                 </div>
 

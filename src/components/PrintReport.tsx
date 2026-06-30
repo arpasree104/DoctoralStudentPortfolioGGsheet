@@ -84,8 +84,18 @@ export default function PrintReport({
 
           {/* Cover Center Title */}
           <div className="text-center my-10 space-y-4">
-            <div className="w-16 h-16 bg-red-50 text-tu-red rounded-full flex items-center justify-center mx-auto mb-2 border border-red-100">
-              <span className="font-bold text-xl text-tu-red">TU</span>
+            <div className="flex flex-col items-center mx-auto mb-4">
+              <div className="relative flex flex-col items-center">
+                <img 
+                  src="https://lh3.googleusercontent.com/d/1qmMuV0e2tItZuhX0oexmhhnu3GdBBbe0" 
+                  alt="Thammasat University Logo" 
+                  className="w-28 h-28 object-contain drop-shadow-xs"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="mt-2 bg-gradient-to-r from-[#B31B1B] to-[#991818] text-white text-[10px] font-extrabold px-3.5 py-1 rounded-full uppercase tracking-wider shadow-xs border border-amber-300">
+                  Faculty of Nursing
+                </div>
+              </div>
             </div>
             <h2 className="text-3xl font-extrabold text-tu-red tracking-tight leading-normal">
               Doctoral Student Portfolio

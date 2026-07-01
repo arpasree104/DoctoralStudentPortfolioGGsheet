@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { StudentPortfolioData, User } from '../types';
 import { motion } from 'motion/react';
+import FileUploader from './FileUploader';
 import {
   BookOpen, Award, CheckCircle, Clock, Save, Plus, Trash2, Calendar,
   ChevronRight, Compass, HelpCircle, Star, Heart, FileText, Check, AlertCircle, Sparkles
@@ -1073,6 +1074,34 @@ export default function EditPortfolio({
           </div>
         )}
 
+        {activeSection === 11 && (
+          <div className="space-y-6 text-xs text-gray-700">
+            <div>
+              <h3 className="text-sm font-bold text-gray-700">11.1 Supporting Evidence & Electronic Portfolio Documents</h3>
+              <p className="text-xs text-gray-400 font-normal">
+                Upload and manage key files (research papers, ethics approval notices, certificates, dissertation drafts) securely stored in your personal Google Drive folder.
+              </p>
+            </div>
+
+            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs space-y-4">
+              <label className="text-xs font-semibold text-gray-500 block">Attach Supporting Files</label>
+              <FileUploader
+                studentId={currentUser.StudentID || '6601010024'}
+                studentName={currentUser.FullName || 'Student'}
+                uploaderId={currentUser.StudentID || '6601010024'}
+                uploaderRole="student"
+                files={formData.supportingFiles || []}
+                onChange={(files) => {
+                  setFormData({
+                    ...formData,
+                    supportingFiles: files
+                  });
+                }}
+              />
+            </div>
+          </div>
+        )}
+
         {activeSection === 16 && (
           <div className="space-y-4 text-xs text-gray-700">
             <h3 className="text-sm font-bold text-gray-700">16.1 Advisory Verification Sign-off & Endorsement</h3>
@@ -1098,7 +1127,7 @@ export default function EditPortfolio({
         )}
 
         {/* Default edit fallbacks for simplicity in navigation */}
-        {![1, 2, 3, 4, 5, 6, 7, 12, 15, 16].includes(activeSection) && (
+        {![1, 2, 3, 4, 5, 6, 7, 11, 12, 15, 16].includes(activeSection) && (
           <div className="space-y-4 text-xs text-gray-700">
             <p className="text-sm text-gray-600 leading-relaxed">
               Section {activeSection} fields are automatically completed with compliant reference profiles. You can review advisor remarks or download your complete portfolio in the Print Report PDF section immediately.

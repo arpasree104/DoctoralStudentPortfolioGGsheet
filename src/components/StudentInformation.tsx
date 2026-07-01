@@ -6,7 +6,8 @@
 import React, { useState } from 'react';
 import { User, Certificate, Activity, ConfigOption } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { User as UserIcon, Award, Image as ImageIcon, Plus, Edit2, CheckCircle2, AlertCircle, Trash2, ExternalLink, Calendar, PlusCircle, Check, Loader2, HeartHandshake } from 'lucide-react';
+import { User as UserIcon, Award, Image as ImageIcon, Plus, Edit2, CheckCircle2, AlertCircle, Trash2, ExternalLink, Calendar, PlusCircle, Check, Loader2, HeartHandshake, Paperclip } from 'lucide-react';
+import FileUploader, { AttachedFile } from './FileUploader';
 
 interface StudentInformationProps {
   currentUser: User;
@@ -33,6 +34,9 @@ export default function StudentInformation({
   
   // Forms state
   const [profileForm, setProfileForm] = useState<User>({ ...currentUser });
+  const [certFiles, setCertFiles] = useState<AttachedFile[]>([]);
+  const [actFiles, setActFiles] = useState<AttachedFile[]>([]);
+
   const [newCertForm, setNewCertForm] = useState({
     name: '',
     date: new Date().toISOString().split('T')[0],
@@ -110,7 +114,7 @@ export default function StudentInformation({
       Name: newCertForm.name,
       Date: newCertForm.date,
       Category: newCertForm.category,
-      ImageURL: newCertForm.imageUrl || 'https://images.unsplash.com/photo-1589330694653-ded6df03f754?auto=format&fit=crop&w=800&q=80',
+      ImageURL: certFiles.length > 0 ? JSON.stringify(certFiles) : 'https://images.unsplash.com/photo-1589330694653-ded6df03f754?auto=format&fit=crop&w=800&q=80',
       Status: 'PENDING'
     };
 
@@ -123,6 +127,7 @@ export default function StudentInformation({
       category: '',
       imageUrl: ''
     });
+    setCertFiles([]);
   };
 
   // Add Activity Progress (Collage)
@@ -136,7 +141,7 @@ export default function StudentInformation({
       Title: newActForm.title,
       Date: newActForm.date,
       Description: newActForm.description,
-      ImagesURL: newActForm.images.length > 0 ? newActForm.images : [
+      ImagesURL: actFiles.length > 0 ? actFiles.map(f => f.url) : [
         'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=600&q=80'
       ],
       Status: 'PENDING'
@@ -151,6 +156,7 @@ export default function StudentInformation({
       description: '',
       images: []
     });
+    setActFiles([]);
   };
 
   return (
@@ -517,23 +523,15 @@ export default function StudentInformation({
                     </div>
 
                     <div>
-                      <label className="text-xs font-semibold text-gray-500 block mb-1">Attach Certificate (PNG/JPG)</label>
-                      <div className="flex gap-2">
-                        <label className="flex-1 flex items-center justify-center border border-dashed border-gray-300 hover:border-tu-red cursor-pointer bg-gray-50 py-2 rounded-xl text-xs font-medium text-gray-600 transition">
-                          {isUploading ? (
-                            <>
-                              <Loader2 size={14} className="animate-spin text-tu-red mr-1.5" />
-                              <span>Uploading original file to Drive...</span>
-                            </>
-                          ) : (
-                            <>
-                              <ImageIcon size={14} className="text-gray-400 mr-1.5" />
-                              <span>{newCertForm.imageUrl ? '✓ Image Selected' : 'Choose image (PNG, JPG)'}</span>
-                            </>
-                          )}
-                          <input type="file" onChange={simulateImageUpload} className="hidden" accept="image/*" />
-                        </label>
-                      </div>
+                      <label className="text-xs font-semibold text-gray-500 block mb-1">Attach Certificate Files</label>
+                      <FileUploader
+                        studentId={currentUser.StudentID || '6601010024'}
+                        studentName={currentUser.FullName || 'Student'}
+                        uploaderId={currentUser.StudentID || '6601010024'}
+                        uploaderRole="student"
+                        files={certFiles}
+                        onChange={setCertFiles}
+                      />
                     </div>
                   </div>
                 </div>
@@ -559,44 +557,88 @@ export default function StudentInformation({
                   .filter(c => c.StudentID === currentUser.StudentID || currentUser.StudentID === '6601010024')
                   .map((cert) => (
                     <div key={cert.CertID} className="bg-white rounded-2xl overflow-hidden border border-gray-100 flex flex-col justify-between shadow-xs">
-                      <div className="relative h-44 bg-gray-100">
-                        <img src={cert.ImageURL} alt={cert.Name} className="w-full h-full object-cover" />
-                        <div className="absolute top-3 right-3">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider shadow-sm flex items-center gap-1 ${
-                            cert.Status === 'APPROVED'
-                              ? 'bg-emerald-500 text-white'
-                              : cert.Status === 'REJECTED'
-                              ? 'bg-red-500 text-white'
-                              : 'bg-amber-500 text-white'
-                          }`}>
-                            {cert.Status === 'APPROVED' && <CheckCircle2 size={10} />}
-                            {cert.Status === 'REJECTED' && <AlertCircle size={10} />}
-                            {cert.Status}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-                        <div className="space-y-2">
-                          <span className="text-[10px] uppercase font-bold text-tu-red block tracking-wider font-mono">
-                            {cert.Category}
-                          </span>
-                          <h4 className="text-sm font-semibold text-gray-800 line-clamp-2 leading-snug">
-                            {cert.Name}
-                          </h4>
-                          <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                            <Calendar size={12} />
-                            <span>Received on: {cert.Date}</span>
-                          </div>
-                        </div>
-
-                        {cert.Feedback && (
-                          <div className="mt-3 p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-xs text-gray-600 space-y-1">
-                            <span className="font-semibold block text-gray-700">Feedback from Advisor ({cert.ApprovedBy || 'Advisor'}):</span>
-                            <p className="italic leading-normal text-[11px]">"{cert.Feedback}"</p>
-                          </div>
-                        )}
-                      </div>
+                      {(() => {
+                        let files: { name: string; url: string }[] = [];
+                        if (cert.ImageURL) {
+                          if (cert.ImageURL.trim().startsWith('[')) {
+                            try {
+                              files = JSON.parse(cert.ImageURL);
+                            } catch(e) {
+                              files = [{ name: cert.Name || 'Attachment', url: cert.ImageURL }];
+                            }
+                          } else {
+                            files = [{ name: cert.Name || 'Attachment', url: cert.ImageURL }];
+                          }
+                        }
+                        
+                        const firstFile = files[0];
+                        const isImg = firstFile && (/\.(png|jpe?g|gif|webp)$/i.test(firstFile.name) || firstFile.url.includes('images.unsplash.com'));
+                        const coverUrl = isImg ? firstFile.url : 'https://images.unsplash.com/photo-1589330694653-ded6df03f754?auto=format&fit=crop&w=800&q=80';
+                        
+                        return (
+                          <>
+                            <div className="relative h-44 bg-gray-100">
+                              <img src={coverUrl} alt={cert.Name} className="w-full h-full object-cover" />
+                              <div className="absolute top-3 right-3">
+                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider shadow-sm flex items-center gap-1 ${
+                                  cert.Status === 'APPROVED'
+                                    ? 'bg-emerald-500 text-white'
+                                    : cert.Status === 'REJECTED'
+                                    ? 'bg-red-500 text-white'
+                                    : 'bg-amber-500 text-white'
+                                }`}>
+                                  {cert.Status === 'APPROVED' && <CheckCircle2 size={10} />}
+                                  {cert.Status === 'REJECTED' && <AlertCircle size={10} />}
+                                  {cert.Status}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+                              <div className="space-y-2">
+                                <span className="text-[10px] uppercase font-bold text-tu-red block tracking-wider font-mono">
+                                  {cert.Category}
+                                </span>
+                                <h4 className="text-sm font-semibold text-gray-800 line-clamp-2 leading-snug">
+                                  {cert.Name}
+                                </h4>
+                                <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                                  <Calendar size={12} />
+                                  <span>Received on: {cert.Date}</span>
+                                </div>
+                                
+                                {files.length > 0 && (
+                                  <div className="pt-2 border-t border-gray-100 space-y-1">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Attachments ({files.length})</span>
+                                    <div className="space-y-1">
+                                      {files.map((file, i) => (
+                                        <a
+                                          key={i}
+                                          href={file.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center gap-1.5 text-xs text-tu-red hover:underline break-all"
+                                        >
+                                          <Paperclip size={12} className="shrink-0 text-gray-400" />
+                                          <span className="truncate max-w-[180px]">{file.name}</span>
+                                          <ExternalLink size={10} className="shrink-0" />
+                                        </a>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {cert.Feedback && (
+                                <div className="mt-3 p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-xs text-gray-600 space-y-1">
+                                  <span className="font-semibold block text-gray-700">Feedback from Advisor ({cert.ApprovedBy || 'Advisor'}):</span>
+                                  <p className="italic leading-normal text-[11px]">"{cert.Feedback}"</p>
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   ))}
               </div>
@@ -660,27 +702,15 @@ export default function StudentInformation({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-gray-500 block">Upload multiple images to form a Photo Collage</label>
-                  <div className="flex flex-wrap gap-3 items-center">
-                    <label className="flex items-center justify-center border border-dashed border-gray-300 hover:border-tu-red cursor-pointer bg-gray-50 px-4 py-2 rounded-xl text-xs font-medium text-gray-600 transition">
-                      <ImageIcon size={14} className="text-gray-400 mr-1.5" />
-                      <span>Choose additional images (Max 3)</span>
-                      <input type="file" multiple onChange={e => simulateImageUpload(e, true)} className="hidden" accept="image/*" />
-                    </label>
-
-                    {newActForm.images.map((img, idx) => (
-                      <div key={idx} className="relative w-14 h-14 rounded-lg overflow-hidden border border-gray-200">
-                        <img src={img} alt="chosen" className="w-full h-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => setNewActForm(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }))}
-                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 transition"
-                        >
-                          <Trash2 size={10} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+                  <label className="text-xs font-semibold text-gray-500 block">Upload Supporting Files (Images or Documents)</label>
+                  <FileUploader
+                    studentId={currentUser.StudentID || '6601010024'}
+                    studentName={currentUser.FullName || 'Student'}
+                    uploaderId={currentUser.StudentID || '6601010024'}
+                    uploaderRole="student"
+                    files={actFiles}
+                    onChange={setActFiles}
+                  />
                 </div>
 
                 <div className="text-right">
@@ -704,65 +734,117 @@ export default function StudentInformation({
                   .filter(a => a.StudentID === currentUser.StudentID || currentUser.StudentID === '6601010024')
                   .map((act) => (
                     <div key={act.ActivityID} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs grid grid-cols-1 md:grid-cols-3 gap-6">
-                      
-                      {/* Left: Collage representation */}
-                      <div className="md:col-span-1 space-y-2">
-                        <span className="text-[10px] uppercase font-bold tracking-wider text-tu-red block font-mono">ACTIVITY PHOTO COLLAGE</span>
-                        
-                        <div className="grid grid-cols-2 gap-2">
-                          {act.ImagesURL.length === 1 && (
-                            <img src={act.ImagesURL[0]} alt="activity" className="w-full h-36 object-cover rounded-xl col-span-2" />
-                          )}
-                          {act.ImagesURL.length === 2 && (
-                            <>
-                              <img src={act.ImagesURL[0]} alt="activity" className="w-full h-36 object-cover rounded-xl" />
-                              <img src={act.ImagesURL[1]} alt="activity" className="w-full h-36 object-cover rounded-xl" />
-                            </>
-                          )}
-                          {act.ImagesURL.length >= 3 && (
-                            <>
-                              <img src={act.ImagesURL[0]} alt="activity" className="w-full h-36 object-cover rounded-xl col-span-2" />
-                              <img src={act.ImagesURL[1]} alt="activity" className="w-full h-20 object-cover rounded-xl" />
-                              <img src={act.ImagesURL[2]} alt="activity" className="w-full h-20 object-cover rounded-xl" />
-                            </>
-                          )}
-                        </div>
-                      </div>
+                      {(() => {
+                        let files: { name: string; url: string }[] = [];
+                        if (Array.isArray(act.ImagesURL)) {
+                          files = act.ImagesURL.map((u, i) => typeof u === 'string' ? { name: `File ${i + 1}`, url: u } : u);
+                        } else if (typeof act.ImagesURL === 'string') {
+                          if ((act.ImagesURL as string).trim().startsWith('[')) {
+                            try {
+                              files = JSON.parse(act.ImagesURL);
+                            } catch(e) {
+                              files = [{ name: 'Attachment', url: act.ImagesURL }];
+                            }
+                          } else {
+                            files = [{ name: 'Attachment', url: act.ImagesURL }];
+                          }
+                        }
 
-                      {/* Right: details and status */}
-                      <div className="md:col-span-2 flex flex-col justify-between space-y-4">
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <h4 className="text-base font-bold text-gray-900 leading-snug">{act.Title}</h4>
-                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                              act.Status === 'APPROVED'
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : act.Status === 'REJECTED'
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-amber-100 text-amber-800'
-                            }`}>
-                              {act.Status}
-                            </span>
-                          </div>
+                        const imageFiles = files.filter(f => f.url && (/\.(png|jpe?g|gif|webp)$/i.test(f.name) || f.url.includes('images.unsplash.com')));
+                        const otherFiles = files.filter(f => f.url && !(/\.(png|jpe?g|gif|webp)$/i.test(f.name) || f.url.includes('images.unsplash.com')));
 
-                          <div className="flex items-center gap-1 text-xs text-gray-400 font-medium">
-                            <Calendar size={12} />
-                            <span>Activity Date: {act.Date}</span>
-                          </div>
+                        return (
+                          <>
+                            {/* Left: Collage representation of images */}
+                            <div className="md:col-span-1 space-y-2">
+                              <span className="text-[10px] uppercase font-bold tracking-wider text-tu-red block font-mono">ACTIVITY ATTACHMENTS</span>
+                              
+                              {imageFiles.length > 0 ? (
+                                <div className="grid grid-cols-2 gap-2">
+                                  {imageFiles.length === 1 && (
+                                    <img src={imageFiles[0].url} alt="activity" className="w-full h-36 object-cover rounded-xl col-span-2" />
+                                  )}
+                                  {imageFiles.length === 2 && (
+                                    <>
+                                      <img src={imageFiles[0].url} alt="activity" className="w-full h-36 object-cover rounded-xl" />
+                                      <img src={imageFiles[1].url} alt="activity" className="w-full h-36 object-cover rounded-xl" />
+                                    </>
+                                  )}
+                                  {imageFiles.length >= 3 && (
+                                    <>
+                                      <img src={imageFiles[0].url} alt="activity" className="w-full h-36 object-cover rounded-xl col-span-2" />
+                                      <img src={imageFiles[1].url} alt="activity" className="w-full h-20 object-cover rounded-xl" />
+                                      <img src={imageFiles[2].url} alt="activity" className="w-full h-20 object-cover rounded-xl" />
+                                    </>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="h-36 bg-gray-50 border border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center text-gray-400 p-4">
+                                  <Paperclip size={24} className="mb-1" />
+                                  <span className="text-xs">No image attachments</span>
+                                </div>
+                              )}
+                            </div>
 
-                          <p className="text-sm text-gray-600 leading-relaxed pt-1">{act.Description}</p>
-                        </div>
+                            {/* Right: details and status */}
+                            <div className="md:col-span-2 flex flex-col justify-between space-y-4">
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="text-base font-bold text-gray-900 leading-snug">{act.Title}</h4>
+                                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                                    act.Status === 'APPROVED'
+                                      ? 'bg-emerald-100 text-emerald-800'
+                                      : act.Status === 'REJECTED'
+                                      ? 'bg-red-100 text-red-800'
+                                      : 'bg-amber-100 text-amber-800'
+                                  }`}>
+                                    {act.Status}
+                                  </span>
+                                </div>
 
-                        {act.Feedback && (
-                          <div className="p-3 bg-red-50/50 border border-red-100/50 rounded-xl text-xs text-gray-700 space-y-1">
-                            <span className="font-semibold block text-tu-red flex items-center gap-1">
-                              <HeartHandshake size={13} />
-                              Advisor Recommendations ({act.ApprovedBy || 'Advisor'}):
-                            </span>
-                            <p className="italic leading-normal">"{act.Feedback}"</p>
-                          </div>
-                        )}
-                      </div>
+                                <div className="flex items-center gap-1 text-xs text-gray-400 font-medium">
+                                  <Calendar size={12} />
+                                  <span>Activity Date: {act.Date}</span>
+                                </div>
+
+                                <p className="text-sm text-gray-600 leading-relaxed pt-1">{act.Description}</p>
+
+                                {/* List all files (including docs) as links */}
+                                {files.length > 0 && (
+                                  <div className="pt-3 border-t border-gray-100 space-y-1.5">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Attached Files ({files.length})</span>
+                                    <div className="flex flex-wrap gap-2">
+                                      {files.map((file, i) => (
+                                        <a
+                                          key={i}
+                                          href={file.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-50 border border-gray-200 rounded-lg text-xs text-tu-red hover:bg-gray-100 transition max-w-[200px]"
+                                        >
+                                          <Paperclip size={12} className="shrink-0 text-gray-400" />
+                                          <span className="truncate">{file.name}</span>
+                                          <ExternalLink size={10} className="shrink-0 text-gray-400" />
+                                        </a>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              {act.Feedback && (
+                                <div className="p-3 bg-red-50/50 border border-red-100/50 rounded-xl text-xs text-gray-700 space-y-1">
+                                  <span className="font-semibold block text-tu-red flex items-center gap-1">
+                                    <HeartHandshake size={13} />
+                                    Advisor Recommendations ({act.ApprovedBy || 'Advisor'}):
+                                  </span>
+                                  <p className="italic leading-normal">"{act.Feedback}"</p>
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   ))}
               </div>

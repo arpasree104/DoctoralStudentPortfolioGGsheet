@@ -1068,22 +1068,22 @@ function setupDatabase() {
     "ActivityLogs": ["LogID", "Timestamp", "Action", "UserID", "Details"],
     "Chats": ["MessageID", "SenderID", "SenderName", "ReceiverID", "MessageText", "Timestamp"],
     "Notifications": ["NotificationID", "SenderID", "SenderName", "ReceiverID", "Title", "MessageText", "Timestamp", "IsRead"],
-    "P1_StudentProfile": ["StudentID", "AcademicBackgroundJSON", "ProfessionalBackgroundJSON", "LastUpdated"],
-    "P2_Milestones": ["StudentID", "MilestonesJSON", "LastUpdated"],
-    "P3_EnglishLanguage": ["StudentID", "EnglishTestJSON", "EnglishActivitiesJSON", "EnglishReflection", "LastUpdated"],
-    "P4_Coursework": ["StudentID", "CompletedCoursesJSON", "WorkshopsJSON", "LastUpdated"],
-    "P5_Dissertation": ["StudentID", "DissertationInfoJSON", "DissertationProgressJSON", "AdvisorMeetingsJSON", "LastUpdated"],
-    "P6_ResearchExperience": ["StudentID", "EthicsGovernanceJSON", "ResearchExperienceJSON", "ResearchReflection", "LastUpdated"],
-    "P7_ScholarlyOutput": ["StudentID", "ConferencePresentationsJSON", "PublicationsJSON", "ManuscriptsJSON", "GrantsJSON", "AwardsJSON", "LastUpdated"],
-    "P8_TeachingService": ["StudentID", "TeachingExperiencesJSON", "SupervisionsJSON", "AcademicServicesJSON", "LastUpdated"],
-    "P9_LeadershipNetworking": ["StudentID", "LeadershipsJSON", "LastUpdated"],
-    "P10_ReflectivePractice": ["StudentID", "ReflectivePracticeText", "LastUpdated"],
-    "P11_SupportingEvidence": ["StudentID", "EvidenceFilesJSON", "LastUpdated"],
-    "P12_CompetencySelfAssessment": ["StudentID", "CompetencySelfAssessmentJSON", "LastUpdated"],
-    "P13_AnnualReview": ["StudentID", "AnnualReviewJSON", "LastUpdated"],
-    "P14_FutureCareerPlan": ["StudentID", "FutureCareerJSON", "LastUpdated"],
+    "P1_StudentProfile": ["StudentID", "RecordType", "Degree", "Field", "Institution", "Year", "Period", "Role", "Remarks", "LastUpdated"],
+    "P2_Milestones": ["StudentID", "MilestoneKey", "MilestoneLabel", "PlannedDate", "ActualDate", "Remarks", "Status", "LastUpdated"],
+    "P3_EnglishLanguage": ["StudentID", "RecordType", "TestName", "DateTaken", "ScoreAchieved", "RequiredScore", "TestStatus", "TestEvidence", "ActivityDate", "ActivityName", "ActivityOrganizer", "ActivityDescription", "ActivityEvidence", "EnglishReflection", "LastUpdated"],
+    "P4_Coursework": ["StudentID", "RecordType", "CourseCode", "CourseTitle", "Semester", "Credits", "Grade", "WorkshopDate", "WorkshopTitle", "WorkshopOrganizer", "WorkshopRole", "WorkshopKeyLearning", "LastUpdated"],
+    "P5_Dissertation": ["StudentID", "RecordType", "InfoTitle", "InfoBackground", "InfoProblem", "InfoObjectives", "InfoHypotheses", "InfoConceptualFramework", "InfoMethodology", "ProgressActivity", "ProgressDate", "ProgressDetails", "ProgressEvidence", "MeetingDate", "MeetingPersons", "MeetingIssues", "MeetingActionPoints", "LastUpdated"],
+    "P6_ResearchExperience": ["StudentID", "RecordType", "EthicsDateApplied", "EthicsDateApproved", "EthicsApprovalNumber", "EthicsAmendments", "EthicsConfidentiality", "ExperienceDate", "ExperienceActivity", "ExperienceDescription", "ExperienceHours", "ExperienceSupervisor", "ExperienceEvidence", "ResearchReflection", "LastUpdated"],
+    "P7_ScholarlyOutput": ["StudentID", "RecordType", "ConfDate", "ConfTitle", "ConfName", "ConfType", "ConfVenue", "PubYear", "PubTitle", "PubJournal", "PubStatus", "PubDoi", "MscTitle", "MscJournal", "MscStage", "MscPlannedSubmission", "GrantTitle", "GrantSource", "GrantRole", "GrantAmount", "GrantPeriod", "AwardDate", "AwardName", "AwardOrganizer", "AwardDescription", "LastUpdated"],
+    "P8_TeachingService": ["StudentID", "RecordType", "TeachSemester", "TeachCourse", "TeachRole", "TeachStudentLevel", "TeachDescription", "SupervisionDate", "SupervisionType", "SupervisionStudentLevel", "SupervisionDescription", "ServiceDate", "ServiceActivity", "ServiceRole", "ServiceOrganization", "LastUpdated"],
+    "P9_LeadershipNetworking": ["StudentID", "LeadershipDate", "LeadershipRole", "LeadershipOrganization", "LeadershipResponsibilities", "LastUpdated"],
+    "P10_ReflectivePractice": ["StudentID", "ReflectionCourse", "ReflectionKeyLearning", "ReflectionApplication", "LastUpdated"],
+    "P11_SupportingEvidence": ["StudentID", "FileName", "FileUrl", "LastUpdated"],
+    "P12_CompetencySelfAssessment": ["StudentID", "CompetencyName", "CompetencyRating", "CompetencyRemarks", "LastUpdated"],
+    "P13_AnnualReview": ["StudentID", "RecordType", "ReviewAchievements", "ReviewImprovements", "Goal", "Steps", "Timeline", "Support", "LastUpdated"],
+    "P14_FutureCareerPlan": ["StudentID", "ShortTermGoal", "LongTermGoal", "Preparation", "LastUpdated"],
     "P15_AdvisorFeedback": ["StudentID", "AdvisorComments", "LastUpdated"],
-    "P16_AdvisorEndorsement": ["StudentID", "EndorsementsJSON", "LastUpdated"]
+    "P16_AdvisorEndorsement": ["StudentID", "EndorsementRole", "EndorsementName", "EndorsementSignatureDate", "LastUpdated"]
   };
   
   for (var sheetName in schemas) {
@@ -1099,7 +1099,7 @@ function setupDatabase() {
   // Insert initial seeds
   insertExampleData();
   
-  return "SUCCESS: Database schema created and 16 separate portfolio sheets initialized successfully!";
+  return "SUCCESS: Database schema created and 16 separate portfolio sheets initialized successfully with flat columns!";
 }
 
 function insertExampleData() {
@@ -1196,125 +1196,416 @@ function loadPortfolioFromSheets(studentId) {
   var defaultPort = getDefaultPortfolio(studentId);
   var portfolio = JSON.parse(JSON.stringify(defaultPort)); // Clone default
 
+  function formatDate(val) {
+    if (!val) return "";
+    if (val instanceof Date) {
+      var y = val.getFullYear();
+      var m = ("0" + (val.getMonth() + 1)).slice(-2);
+      var d = ("0" + val.getDate()).slice(-2);
+      return y + "-" + m + "-" + d;
+    }
+    return String(val).trim();
+  }
+
+  function findRowsByStudentID(sheet, sId) {
+    var data = getSheetDataAsJson(sheet);
+    var matched = [];
+    for (var i = 0; i < data.length; i++) {
+      if (String(data[i].StudentID) === String(sId)) {
+        matched.push(data[i]);
+      }
+    }
+    return matched;
+  }
+
   try {
+    // 1. Student Profile
     var s1 = ss.getSheetByName("P1_StudentProfile");
     if (s1) {
-      var row = findRowByStudentID(s1, studentId);
-      if (row) {
-        if (row.AcademicBackgroundJSON) portfolio.academicBackground = JSON.parse(row.AcademicBackgroundJSON);
-        if (row.ProfessionalBackgroundJSON) portfolio.professionalBackground = JSON.parse(row.ProfessionalBackgroundJSON);
+      var rows = findRowsByStudentID(s1, studentId);
+      if (rows.length > 0) {
+        portfolio.academicBackground = [];
+        portfolio.professionalBackground = [];
+        for (var i = 0; i < rows.length; i++) {
+          var r = rows[i];
+          if (r.RecordType === "ACADEMIC") {
+            portfolio.academicBackground.push({
+              degree: r.Degree || "",
+              field: r.Field || "",
+              institution: r.Institution || "",
+              year: String(r.Year || "")
+            });
+          } else if (r.RecordType === "PROFESSIONAL") {
+            portfolio.professionalBackground.push({
+              period: r.Period || "",
+              role: r.Role || "",
+              remarks: r.Remarks || ""
+            });
+          }
+        }
       }
     }
 
+    // 2. Milestones
     var s2 = ss.getSheetByName("P2_Milestones");
     if (s2) {
-      var row = findRowByStudentID(s2, studentId);
-      if (row && row.MilestonesJSON) portfolio.milestones = JSON.parse(row.MilestonesJSON);
+      var rows = findRowsByStudentID(s2, studentId);
+      if (rows.length > 0) {
+        portfolio.milestones = rows.map(function(r) {
+          return {
+            key: r.MilestoneKey || "",
+            label: r.MilestoneLabel || "",
+            plannedDate: formatDate(r.PlannedDate),
+            actualDate: formatDate(r.ActualDate),
+            remarks: r.Remarks || "",
+            status: r.Status || ""
+          };
+        });
+      }
     }
 
+    // 3. English Language
     var s3 = ss.getSheetByName("P3_EnglishLanguage");
     if (s3) {
-      var row = findRowByStudentID(s3, studentId);
-      if (row) {
-        if (row.EnglishTestJSON) portfolio.englishTest = JSON.parse(row.EnglishTestJSON);
-        if (row.EnglishActivitiesJSON) portfolio.englishActivities = JSON.parse(row.EnglishActivitiesJSON);
-        if (row.EnglishReflection !== undefined) portfolio.englishReflection = row.EnglishReflection;
+      var rows = findRowsByStudentID(s3, studentId);
+      if (rows.length > 0) {
+        portfolio.englishActivities = [];
+        for (var i = 0; i < rows.length; i++) {
+          var r = rows[i];
+          if (r.RecordType === "TEST") {
+            portfolio.englishTest = {
+              testName: r.TestName || "",
+              dateTaken: formatDate(r.DateTaken),
+              scoreAchieved: String(r.ScoreAchieved || ""),
+              requiredScore: String(r.RequiredScore || ""),
+              status: r.TestStatus || "",
+              evidence: r.TestEvidence || ""
+            };
+            if (r.EnglishReflection !== undefined) {
+              portfolio.englishReflection = r.EnglishReflection;
+            }
+          } else if (r.RecordType === "ACTIVITY") {
+            portfolio.englishActivities.push({
+              date: formatDate(r.ActivityDate),
+              activity: r.ActivityName || "",
+              organizer: r.ActivityOrganizer || "",
+              description: r.ActivityDescription || "",
+              evidence: r.ActivityEvidence || ""
+            });
+          }
+        }
       }
     }
 
+    // 4. Coursework
     var s4 = ss.getSheetByName("P4_Coursework");
     if (s4) {
-      var row = findRowByStudentID(s4, studentId);
-      if (row) {
-        if (row.CompletedCoursesJSON) portfolio.completedCourses = JSON.parse(row.CompletedCoursesJSON);
-        if (row.WorkshopsJSON) portfolio.workshops = JSON.parse(row.WorkshopsJSON);
+      var rows = findRowsByStudentID(s4, studentId);
+      if (rows.length > 0) {
+        portfolio.completedCourses = [];
+        portfolio.workshops = [];
+        for (var i = 0; i < rows.length; i++) {
+          var r = rows[i];
+          if (r.RecordType === "COURSE") {
+            portfolio.completedCourses.push({
+              code: r.CourseCode || "",
+              title: r.CourseTitle || "",
+              semester: r.Semester || "",
+              credits: String(r.Credits || ""),
+              grade: r.Grade || ""
+            });
+          } else if (r.RecordType === "WORKSHOP") {
+            portfolio.workshops.push({
+              date: formatDate(r.WorkshopDate),
+              title: r.WorkshopTitle || "",
+              organizer: r.WorkshopOrganizer || "",
+              role: r.WorkshopRole || "",
+              keyLearning: r.WorkshopKeyLearning || ""
+            });
+          }
+        }
       }
     }
 
+    // 5. Dissertation
     var s5 = ss.getSheetByName("P5_Dissertation");
     if (s5) {
-      var row = findRowByStudentID(s5, studentId);
-      if (row) {
-        if (row.DissertationInfoJSON) portfolio.dissertationInfo = JSON.parse(row.DissertationInfoJSON);
-        if (row.DissertationProgressJSON) portfolio.dissertationProgress = JSON.parse(row.DissertationProgressJSON);
-        if (row.AdvisorMeetingsJSON) portfolio.advisorMeetings = JSON.parse(row.AdvisorMeetingsJSON);
+      var rows = findRowsByStudentID(s5, studentId);
+      if (rows.length > 0) {
+        portfolio.dissertationProgress = [];
+        portfolio.advisorMeetings = [];
+        for (var i = 0; i < rows.length; i++) {
+          var r = rows[i];
+          if (r.RecordType === "INFO") {
+            portfolio.dissertationInfo = {
+              title: r.InfoTitle || "",
+              background: r.InfoBackground || "",
+              problem: r.InfoProblem || "",
+              objectives: r.InfoObjectives || "",
+              hypotheses: r.InfoHypotheses || "",
+              conceptualFramework: r.InfoConceptualFramework || "",
+              methodology: r.InfoMethodology || ""
+            };
+          } else if (r.RecordType === "PROGRESS") {
+            portfolio.dissertationProgress.push({
+              activity: r.ProgressActivity || "",
+              date: formatDate(r.ProgressDate),
+              progress: r.ProgressDetails || "",
+              evidence: r.ProgressEvidence || ""
+            });
+          } else if (r.RecordType === "MEETING") {
+            portfolio.advisorMeetings.push({
+              date: formatDate(r.MeetingDate),
+              persons: r.MeetingPersons || "",
+              issues: r.MeetingIssues || "",
+              actionPoints: r.MeetingActionPoints || ""
+            });
+          }
+        }
       }
     }
 
+    // 6. Research Experience
     var s6 = ss.getSheetByName("P6_ResearchExperience");
     if (s6) {
-      var row = findRowByStudentID(s6, studentId);
-      if (row) {
-        if (row.EthicsGovernanceJSON) portfolio.ethicsGovernance = JSON.parse(row.EthicsGovernanceJSON);
-        if (row.ResearchExperienceJSON) portfolio.researchExperience = JSON.parse(row.ResearchExperienceJSON);
-        if (row.ResearchReflection !== undefined) portfolio.researchReflection = row.ResearchReflection;
+      var rows = findRowsByStudentID(s6, studentId);
+      if (rows.length > 0) {
+        portfolio.researchExperience = [];
+        for (var i = 0; i < rows.length; i++) {
+          var r = rows[i];
+          if (r.RecordType === "ETHICS") {
+            portfolio.ethicsGovernance = {
+              dateApplied: formatDate(r.EthicsDateApplied),
+              dateApproved: formatDate(r.EthicsDateApproved),
+              approvalNumber: r.EthicsApprovalNumber || "",
+              amendments: r.EthicsAmendments || "",
+              confidentiality: r.EthicsConfidentiality || ""
+            };
+            if (r.ResearchReflection !== undefined) {
+              portfolio.researchReflection = r.ResearchReflection;
+            }
+          } else if (r.RecordType === "EXPERIENCE") {
+            portfolio.researchExperience.push({
+              date: formatDate(r.ExperienceDate),
+              activity: r.ExperienceActivity || "",
+              description: r.ExperienceDescription || "",
+              hours: Number(r.ExperienceHours || 0),
+              supervisor: r.ExperienceSupervisor || "",
+              evidence: r.ExperienceEvidence || ""
+            });
+          }
+        }
       }
     }
 
+    // 7. Scholarly Output
     var s7 = ss.getSheetByName("P7_ScholarlyOutput");
     if (s7) {
-      var row = findRowByStudentID(s7, studentId);
-      if (row) {
-        if (row.ConferencePresentationsJSON) portfolio.conferencePresentations = JSON.parse(row.ConferencePresentationsJSON);
-        if (row.PublicationsJSON) portfolio.publications = JSON.parse(row.PublicationsJSON);
-        if (row.ManuscriptsJSON) portfolio.manuscripts = JSON.parse(row.ManuscriptsJSON);
-        if (row.GrantsJSON) portfolio.grants = JSON.parse(row.GrantsJSON);
-        if (row.AwardsJSON) portfolio.awards = JSON.parse(row.AwardsJSON);
+      var rows = findRowsByStudentID(s7, studentId);
+      if (rows.length > 0) {
+        portfolio.conferencePresentations = [];
+        portfolio.publications = [];
+        portfolio.manuscripts = [];
+        portfolio.grants = [];
+        portfolio.awards = [];
+        for (var i = 0; i < rows.length; i++) {
+          var r = rows[i];
+          if (r.RecordType === "CONFERENCE") {
+            portfolio.conferencePresentations.push({
+              date: formatDate(r.ConfDate),
+              title: r.ConfTitle || "",
+              conference: r.ConfName || "",
+              type: r.ConfType || "",
+              venue: r.ConfVenue || ""
+            });
+          } else if (r.RecordType === "PUBLICATION") {
+            portfolio.publications.push({
+              year: String(r.PubYear || ""),
+              title: r.PubTitle || "",
+              journal: r.PubJournal || "",
+              status: r.PubStatus || "",
+              doi: r.PubDoi || ""
+            });
+          } else if (r.RecordType === "MANUSCRIPT") {
+            portfolio.manuscripts.push({
+              title: r.MscTitle || "",
+              journal: r.MscJournal || "",
+              stage: r.MscStage || "",
+              plannedSubmission: formatDate(r.MscPlannedSubmission)
+            });
+          } else if (r.RecordType === "GRANT") {
+            portfolio.grants.push({
+              title: r.GrantTitle || "",
+              source: r.GrantSource || "",
+              role: r.GrantRole || "",
+              amount: r.GrantAmount || "",
+              period: r.GrantPeriod || ""
+            });
+          } else if (r.RecordType === "AWARD") {
+            portfolio.awards.push({
+              date: formatDate(r.AwardDate),
+              award: r.AwardName || "",
+              organizer: r.AwardOrganizer || "",
+              description: r.AwardDescription || ""
+            });
+          }
+        }
       }
     }
 
+    // 8. Teaching Service
     var s8 = ss.getSheetByName("P8_TeachingService");
     if (s8) {
-      var row = findRowByStudentID(s8, studentId);
-      if (row) {
-        if (row.TeachingExperiencesJSON) portfolio.teachingExperiences = JSON.parse(row.TeachingExperiencesJSON);
-        if (row.SupervisionsJSON) portfolio.supervisions = JSON.parse(row.SupervisionsJSON);
-        if (row.AcademicServicesJSON) portfolio.academicServices = JSON.parse(row.AcademicServicesJSON);
+      var rows = findRowsByStudentID(s8, studentId);
+      if (rows.length > 0) {
+        portfolio.teachingExperiences = [];
+        portfolio.supervisions = [];
+        portfolio.academicServices = [];
+        for (var i = 0; i < rows.length; i++) {
+          var r = rows[i];
+          if (r.RecordType === "TEACHING") {
+            portfolio.teachingExperiences.push({
+              semester: r.TeachSemester || "",
+              course: r.TeachCourse || "",
+              role: r.TeachRole || "",
+              studentLevel: r.TeachStudentLevel || "",
+              description: r.TeachDescription || ""
+            });
+          } else if (r.RecordType === "SUPERVISION") {
+            portfolio.supervisions.push({
+              date: formatDate(r.SupervisionDate),
+              type: r.SupervisionType || "",
+              studentLevel: r.SupervisionStudentLevel || "",
+              description: r.SupervisionDescription || ""
+            });
+          } else if (r.RecordType === "SERVICE") {
+            portfolio.academicServices.push({
+              date: formatDate(r.ServiceDate),
+              activity: r.ServiceActivity || "",
+              role: r.ServiceRole || "",
+              organization: r.ServiceOrganization || ""
+            });
+          }
+        }
       }
     }
 
+    // 9. Leadership
     var s9 = ss.getSheetByName("P9_LeadershipNetworking");
     if (s9) {
-      var row = findRowByStudentID(s9, studentId);
-      if (row && row.LeadershipsJSON) portfolio.leaderships = JSON.parse(row.LeadershipsJSON);
-    }
-
-    var s10 = ss.getSheetByName("P10_ReflectivePractice");
-    if (s10) {
-      var row = findRowByStudentID(s10, studentId);
-      if (row && row.ReflectivePracticeText) {
-        try { portfolio.keyLearnings = JSON.parse(row.ReflectivePracticeText); } catch(err) {}
+      var rows = findRowsByStudentID(s9, studentId);
+      if (rows.length > 0) {
+        portfolio.leaderships = rows.map(function(r) {
+          return {
+            date: r.LeadershipDate || "",
+            role: r.LeadershipRole || "",
+            organization: r.LeadershipOrganization || "",
+            responsibilities: r.LeadershipResponsibilities || ""
+          };
+        });
       }
     }
 
+    // 10. Reflective Practice
+    var s10 = ss.getSheetByName("P10_ReflectivePractice");
+    if (s10) {
+      var rows = findRowsByStudentID(s10, studentId);
+      if (rows.length > 0) {
+        portfolio.keyLearnings = rows.map(function(r) {
+          return {
+            course: r.ReflectionCourse || "",
+            keyLearning: r.ReflectionKeyLearning || "",
+            application: r.ReflectionApplication || ""
+          };
+        });
+      }
+    }
+
+    // 11. Supporting Evidence
+    var s11 = ss.getSheetByName("P11_SupportingEvidence");
+    if (s11) {
+      var rows = findRowsByStudentID(s11, studentId);
+      portfolio.supportingFiles = rows.map(function(r) {
+        return {
+          name: r.FileName || "",
+          url: r.FileUrl || ""
+        };
+      });
+    }
+
+    // 12. Competencies
     var s12 = ss.getSheetByName("P12_CompetencySelfAssessment");
     if (s12) {
-      var row = findRowByStudentID(s12, studentId);
-      if (row && row.CompetencySelfAssessmentJSON) portfolio.competencySelfAssessment = JSON.parse(row.CompetencySelfAssessmentJSON);
+      var rows = findRowsByStudentID(s12, studentId);
+      if (rows.length > 0) {
+        portfolio.competencySelfAssessment = rows.map(function(r) {
+          return {
+            competency: r.CompetencyName || "",
+            rating: r.CompetencyRating || "",
+            remarks: r.CompetencyRemarks || ""
+          };
+        });
+      }
     }
 
+    // 13. Annual Review
     var s13 = ss.getSheetByName("P13_AnnualReview");
     if (s13) {
-      var row = findRowByStudentID(s13, studentId);
-      if (row && row.AnnualReviewJSON) portfolio.annualReview = JSON.parse(row.AnnualReviewJSON);
+      var rows = findRowsByStudentID(s13, studentId);
+      if (rows.length > 0) {
+        portfolio.annualReview = { achievements: "", improvements: "", actionPlans: [] };
+        for (var i = 0; i < rows.length; i++) {
+          var r = rows[i];
+          if (r.RecordType === "REVIEW") {
+            portfolio.annualReview.achievements = r.ReviewAchievements || "";
+            portfolio.annualReview.improvements = r.ReviewImprovements || "";
+          } else if (r.RecordType === "ACTION_PLAN") {
+            portfolio.annualReview.actionPlans.push({
+              goal: r.Goal || "",
+              steps: r.Steps || "",
+              timeline: r.Timeline || "",
+              support: r.Support || ""
+            });
+          }
+        }
+      }
     }
 
+    // 14. Future Career Plan
     var s14 = ss.getSheetByName("P14_FutureCareerPlan");
     if (s14) {
-      var row = findRowByStudentID(s14, studentId);
-      if (row && row.FutureCareerJSON) portfolio.futureCareer = JSON.parse(row.FutureCareerJSON);
+      var rows = findRowsByStudentID(s14, studentId);
+      if (rows.length > 0) {
+        portfolio.futureCareer = {
+          shortTerm: rows[0].ShortTermGoal || "",
+          longTerm: rows[0].LongTermGoal || "",
+          preparation: rows[0].Preparation || ""
+        };
+      }
     }
 
+    // 15. Advisor Feedback
     var s15 = ss.getSheetByName("P15_AdvisorFeedback");
     if (s15) {
-      var row = findRowByStudentID(s15, studentId);
-      if (row && row.AdvisorComments !== undefined) portfolio.advisorComments = row.AdvisorComments;
+      var rows = findRowsByStudentID(s15, studentId);
+      if (rows.length > 0) {
+        portfolio.advisorComments = rows[0].AdvisorComments || "";
+      }
     }
 
+    // 16. Advisor Endorsement
     var s16 = ss.getSheetByName("P16_AdvisorEndorsement");
     if (s16) {
-      var row = findRowByStudentID(s16, studentId);
-      if (row && row.EndorsementsJSON) portfolio.endorsements = JSON.parse(row.EndorsementsJSON);
+      var rows = findRowsByStudentID(s16, studentId);
+      if (rows.length > 0) {
+        portfolio.endorsements = rows.map(function(r) {
+          return {
+            role: r.EndorsementRole || "",
+            name: r.EndorsementName || "",
+            signatureDate: formatDate(r.EndorsementSignatureDate)
+          };
+        });
+      }
     }
   } catch (err) {
     Logger.log("Error loading portfolio sections: " + err.toString());
@@ -1327,53 +1618,296 @@ function savePortfolioToSheets(studentId, portfolio) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var nowStr = new Date().toISOString();
 
+  function formatDate(val) {
+    if (!val) return "";
+    if (val instanceof Date) {
+      var y = val.getFullYear();
+      var m = ("0" + (val.getMonth() + 1)).slice(-2);
+      var d = ("0" + val.getDate()).slice(-2);
+      return y + "-" + m + "-" + d;
+    }
+    return String(val).trim();
+  }
+
+  // 1. Student Profile
   var s1 = ss.getSheetByName("P1_StudentProfile");
-  if (s1) upsertRow(s1, "StudentID", { StudentID: studentId, AcademicBackgroundJSON: JSON.stringify(portfolio.academicBackground), ProfessionalBackgroundJSON: JSON.stringify(portfolio.professionalBackground), LastUpdated: nowStr });
+  if (s1) {
+    deleteRow(s1, "StudentID", studentId);
+    var acs = portfolio.academicBackground || [];
+    for (var i = 0; i < acs.length; i++) {
+      var ac = acs[i];
+      appendObjectAsRow(s1, ["StudentID", "RecordType", "Degree", "Field", "Institution", "Year", "Period", "Role", "Remarks", "LastUpdated"], {
+        StudentID: studentId, RecordType: "ACADEMIC", Degree: ac.degree, Field: ac.field, Institution: ac.institution, Year: ac.year, LastUpdated: nowStr
+      });
+    }
+    var prs = portfolio.professionalBackground || [];
+    for (var i = 0; i < prs.length; i++) {
+      var pr = prs[i];
+      appendObjectAsRow(s1, ["StudentID", "RecordType", "Degree", "Field", "Institution", "Year", "Period", "Role", "Remarks", "LastUpdated"], {
+        StudentID: studentId, RecordType: "PROFESSIONAL", Period: pr.period, Role: pr.role, Remarks: pr.remarks, LastUpdated: nowStr
+      });
+    }
+  }
 
+  // 2. Milestones
   var s2 = ss.getSheetByName("P2_Milestones");
-  if (s2) upsertRow(s2, "StudentID", { StudentID: studentId, MilestonesJSON: JSON.stringify(portfolio.milestones), LastUpdated: nowStr });
+  if (s2) {
+    deleteRow(s2, "StudentID", studentId);
+    var ms = portfolio.milestones || [];
+    for (var i = 0; i < ms.length; i++) {
+      var m = ms[i];
+      appendObjectAsRow(s2, ["StudentID", "MilestoneKey", "MilestoneLabel", "PlannedDate", "ActualDate", "Remarks", "Status", "LastUpdated"], {
+        StudentID: studentId, MilestoneKey: m.key, MilestoneLabel: m.label, PlannedDate: formatDate(m.plannedDate), ActualDate: formatDate(m.actualDate), Remarks: m.remarks, Status: m.status, LastUpdated: nowStr
+      });
+    }
+  }
 
+  // 3. English Language
   var s3 = ss.getSheetByName("P3_EnglishLanguage");
-  if (s3) upsertRow(s3, "StudentID", { StudentID: studentId, EnglishTestJSON: JSON.stringify(portfolio.englishTest), EnglishActivitiesJSON: JSON.stringify(portfolio.englishActivities), EnglishReflection: portfolio.englishReflection || "", LastUpdated: nowStr });
+  if (s3) {
+    deleteRow(s3, "StudentID", studentId);
+    var et = portfolio.englishTest || {};
+    appendObjectAsRow(s3, ["StudentID", "RecordType", "TestName", "DateTaken", "ScoreAchieved", "RequiredScore", "TestStatus", "TestEvidence", "ActivityDate", "ActivityName", "ActivityOrganizer", "ActivityDescription", "ActivityEvidence", "EnglishReflection", "LastUpdated"], {
+      StudentID: studentId, RecordType: "TEST", TestName: et.testName, DateTaken: formatDate(et.dateTaken), ScoreAchieved: et.scoreAchieved, RequiredScore: et.requiredScore, TestStatus: et.status, TestEvidence: et.evidence, EnglishReflection: portfolio.englishReflection || "", LastUpdated: nowStr
+    });
+    var acts = portfolio.englishActivities || [];
+    for (var i = 0; i < acts.length; i++) {
+      var act = acts[i];
+      appendObjectAsRow(s3, ["StudentID", "RecordType", "TestName", "DateTaken", "ScoreAchieved", "RequiredScore", "TestStatus", "TestEvidence", "ActivityDate", "ActivityName", "ActivityOrganizer", "ActivityDescription", "ActivityEvidence", "EnglishReflection", "LastUpdated"], {
+        StudentID: studentId, RecordType: "ACTIVITY", ActivityDate: formatDate(act.date), ActivityName: act.activity, ActivityOrganizer: act.organizer, ActivityDescription: act.description, ActivityEvidence: act.evidence, LastUpdated: nowStr
+      });
+    }
+  }
 
+  // 4. Coursework
   var s4 = ss.getSheetByName("P4_Coursework");
-  if (s4) upsertRow(s4, "StudentID", { StudentID: studentId, CompletedCoursesJSON: JSON.stringify(portfolio.completedCourses), WorkshopsJSON: JSON.stringify(portfolio.workshops), LastUpdated: nowStr });
+  if (s4) {
+    deleteRow(s4, "StudentID", studentId);
+    var crs = portfolio.completedCourses || [];
+    for (var i = 0; i < crs.length; i++) {
+      var cr = crs[i];
+      appendObjectAsRow(s4, ["StudentID", "RecordType", "CourseCode", "CourseTitle", "Semester", "Credits", "Grade", "WorkshopDate", "WorkshopTitle", "WorkshopOrganizer", "WorkshopRole", "WorkshopKeyLearning", "LastUpdated"], {
+        StudentID: studentId, RecordType: "COURSE", CourseCode: cr.code, CourseTitle: cr.title, Semester: cr.semester, Credits: cr.credits, Grade: cr.grade, LastUpdated: nowStr
+      });
+    }
+    var wks = portfolio.workshops || [];
+    for (var i = 0; i < wks.length; i++) {
+      var wk = wks[i];
+      appendObjectAsRow(s4, ["StudentID", "RecordType", "CourseCode", "CourseTitle", "Semester", "Credits", "Grade", "WorkshopDate", "WorkshopTitle", "WorkshopOrganizer", "WorkshopRole", "WorkshopKeyLearning", "LastUpdated"], {
+        StudentID: studentId, RecordType: "WORKSHOP", WorkshopDate: formatDate(wk.date), WorkshopTitle: wk.title, WorkshopOrganizer: wk.organizer, WorkshopRole: wk.role, WorkshopKeyLearning: wk.keyLearning, LastUpdated: nowStr
+      });
+    }
+  }
 
+  // 5. Dissertation
   var s5 = ss.getSheetByName("P5_Dissertation");
-  if (s5) upsertRow(s5, "StudentID", { StudentID: studentId, DissertationInfoJSON: JSON.stringify(portfolio.dissertationInfo), DissertationProgressJSON: JSON.stringify(portfolio.dissertationProgress), AdvisorMeetingsJSON: JSON.stringify(portfolio.advisorMeetings), LastUpdated: nowStr });
+  if (s5) {
+    deleteRow(s5, "StudentID", studentId);
+    var di = portfolio.dissertationInfo || {};
+    appendObjectAsRow(s5, ["StudentID", "RecordType", "InfoTitle", "InfoBackground", "InfoProblem", "InfoObjectives", "InfoHypotheses", "InfoConceptualFramework", "InfoMethodology", "ProgressActivity", "ProgressDate", "ProgressDetails", "ProgressEvidence", "MeetingDate", "MeetingPersons", "MeetingIssues", "MeetingActionPoints", "LastUpdated"], {
+      StudentID: studentId, RecordType: "INFO", InfoTitle: di.title, InfoBackground: di.background, InfoProblem: di.problem, InfoObjectives: di.objectives, InfoHypotheses: di.hypotheses, InfoConceptualFramework: di.conceptualFramework, InfoMethodology: di.methodology, LastUpdated: nowStr
+    });
+    var dps = portfolio.dissertationProgress || [];
+    for (var i = 0; i < dps.length; i++) {
+      var dp = dps[i];
+      appendObjectAsRow(s5, ["StudentID", "RecordType", "InfoTitle", "InfoBackground", "InfoProblem", "InfoObjectives", "InfoHypotheses", "InfoConceptualFramework", "InfoMethodology", "ProgressActivity", "ProgressDate", "ProgressDetails", "ProgressEvidence", "MeetingDate", "MeetingPersons", "MeetingIssues", "MeetingActionPoints", "LastUpdated"], {
+        StudentID: studentId, RecordType: "PROGRESS", ProgressActivity: dp.activity, ProgressDate: formatDate(dp.date), ProgressDetails: dp.progress, ProgressEvidence: dp.evidence, LastUpdated: nowStr
+      });
+    }
+    var ams = portfolio.advisorMeetings || [];
+    for (var i = 0; i < ams.length; i++) {
+      var am = ams[i];
+      appendObjectAsRow(s5, ["StudentID", "RecordType", "InfoTitle", "InfoBackground", "InfoProblem", "InfoObjectives", "InfoHypotheses", "InfoConceptualFramework", "InfoMethodology", "ProgressActivity", "ProgressDate", "ProgressDetails", "ProgressEvidence", "MeetingDate", "MeetingPersons", "MeetingIssues", "MeetingActionPoints", "LastUpdated"], {
+        StudentID: studentId, RecordType: "MEETING", MeetingDate: formatDate(am.date), MeetingPersons: am.persons, MeetingIssues: am.issues, MeetingActionPoints: am.actionPoints, LastUpdated: nowStr
+      });
+    }
+  }
 
+  // 6. Research Experience
   var s6 = ss.getSheetByName("P6_ResearchExperience");
-  if (s6) upsertRow(s6, "StudentID", { StudentID: studentId, EthicsGovernanceJSON: JSON.stringify(portfolio.ethicsGovernance), ResearchExperienceJSON: JSON.stringify(portfolio.researchExperience), ResearchReflection: portfolio.researchReflection || "", LastUpdated: nowStr });
+  if (s6) {
+    deleteRow(s6, "StudentID", studentId);
+    var eg = portfolio.ethicsGovernance || {};
+    appendObjectAsRow(s6, ["StudentID", "RecordType", "EthicsDateApplied", "EthicsDateApproved", "EthicsApprovalNumber", "EthicsAmendments", "EthicsConfidentiality", "ExperienceDate", "ExperienceActivity", "ExperienceDescription", "ExperienceHours", "ExperienceSupervisor", "ExperienceEvidence", "ResearchReflection", "LastUpdated"], {
+      StudentID: studentId, RecordType: "ETHICS", EthicsDateApplied: formatDate(eg.dateApplied), EthicsDateApproved: formatDate(eg.dateApproved), EthicsApprovalNumber: eg.approvalNumber, EthicsAmendments: eg.amendments, EthicsConfidentiality: eg.confidentiality, ResearchReflection: portfolio.researchReflection || "", LastUpdated: nowStr
+    });
+    var resExp = portfolio.researchExperience || [];
+    for (var i = 0; i < resExp.length; i++) {
+      var re = resExp[i];
+      appendObjectAsRow(s6, ["StudentID", "RecordType", "EthicsDateApplied", "EthicsDateApproved", "EthicsApprovalNumber", "EthicsAmendments", "EthicsConfidentiality", "ExperienceDate", "ExperienceActivity", "ExperienceDescription", "ExperienceHours", "ExperienceSupervisor", "ExperienceEvidence", "ResearchReflection", "LastUpdated"], {
+        StudentID: studentId, RecordType: "EXPERIENCE", ExperienceDate: formatDate(re.date), ExperienceActivity: re.activity, ExperienceDescription: re.description, ExperienceHours: re.hours, ExperienceSupervisor: re.supervisor, ExperienceEvidence: re.evidence, LastUpdated: nowStr
+      });
+    }
+  }
 
+  // 7. Scholarly Output
   var s7 = ss.getSheetByName("P7_ScholarlyOutput");
-  if (s7) upsertRow(s7, "StudentID", { StudentID: studentId, ConferencePresentationsJSON: JSON.stringify(portfolio.conferencePresentations), PublicationsJSON: JSON.stringify(portfolio.publications), ManuscriptsJSON: JSON.stringify(portfolio.manuscripts), GrantsJSON: JSON.stringify(portfolio.grants), AwardsJSON: JSON.stringify(portfolio.awards), LastUpdated: nowStr });
+  if (s7) {
+    deleteRow(s7, "StudentID", studentId);
+    var confs = portfolio.conferencePresentations || [];
+    for (var i = 0; i < confs.length; i++) {
+      var c = confs[i];
+      appendObjectAsRow(s7, ["StudentID", "RecordType", "ConfDate", "ConfTitle", "ConfName", "ConfType", "ConfVenue", "PubYear", "PubTitle", "PubJournal", "PubStatus", "PubDoi", "MscTitle", "MscJournal", "MscStage", "MscPlannedSubmission", "GrantTitle", "GrantSource", "GrantRole", "GrantAmount", "GrantPeriod", "AwardDate", "AwardName", "AwardOrganizer", "AwardDescription", "LastUpdated"], {
+        StudentID: studentId, RecordType: "CONFERENCE", ConfDate: formatDate(c.date), ConfTitle: c.title, ConfName: c.conference, ConfType: c.type, ConfVenue: c.venue, LastUpdated: nowStr
+      });
+    }
+    var pubs = portfolio.publications || [];
+    for (var i = 0; i < pubs.length; i++) {
+      var p = pubs[i];
+      appendObjectAsRow(s7, ["StudentID", "RecordType", "ConfDate", "ConfTitle", "ConfName", "ConfType", "ConfVenue", "PubYear", "PubTitle", "PubJournal", "PubStatus", "PubDoi", "MscTitle", "MscJournal", "MscStage", "MscPlannedSubmission", "GrantTitle", "GrantSource", "GrantRole", "GrantAmount", "GrantPeriod", "AwardDate", "AwardName", "AwardOrganizer", "AwardDescription", "LastUpdated"], {
+        StudentID: studentId, RecordType: "PUBLICATION", PubYear: p.year, PubTitle: p.title, PubJournal: p.journal, PubStatus: p.status, PubDoi: p.doi, LastUpdated: nowStr
+      });
+    }
+    var mscs = portfolio.manuscripts || [];
+    for (var i = 0; i < mscs.length; i++) {
+      var m = mscs[i];
+      appendObjectAsRow(s7, ["StudentID", "RecordType", "ConfDate", "ConfTitle", "ConfName", "ConfType", "ConfVenue", "PubYear", "PubTitle", "PubJournal", "PubStatus", "PubDoi", "MscTitle", "MscJournal", "MscStage", "MscPlannedSubmission", "GrantTitle", "GrantSource", "GrantRole", "GrantAmount", "GrantPeriod", "AwardDate", "AwardName", "AwardOrganizer", "AwardDescription", "LastUpdated"], {
+        StudentID: studentId, RecordType: "MANUSCRIPT", MscTitle: m.title, MscJournal: m.journal, MscStage: m.stage, MscPlannedSubmission: formatDate(m.plannedSubmission), LastUpdated: nowStr
+      });
+    }
+    var grs = portfolio.grants || [];
+    for (var i = 0; i < grs.length; i++) {
+      var g = grs[i];
+      appendObjectAsRow(s7, ["StudentID", "RecordType", "ConfDate", "ConfTitle", "ConfName", "ConfType", "ConfVenue", "PubYear", "PubTitle", "PubJournal", "PubStatus", "PubDoi", "MscTitle", "MscJournal", "MscStage", "MscPlannedSubmission", "GrantTitle", "GrantSource", "GrantRole", "GrantAmount", "GrantPeriod", "AwardDate", "AwardName", "AwardOrganizer", "AwardDescription", "LastUpdated"], {
+        StudentID: studentId, RecordType: "GRANT", GrantTitle: g.title, GrantSource: g.source, GrantRole: g.role, GrantAmount: g.amount, GrantPeriod: g.period, LastUpdated: nowStr
+      });
+    }
+    var aws = portfolio.awards || [];
+    for (var i = 0; i < aws.length; i++) {
+      var a = aws[i];
+      appendObjectAsRow(s7, ["StudentID", "RecordType", "ConfDate", "ConfTitle", "ConfName", "ConfType", "ConfVenue", "PubYear", "PubTitle", "PubJournal", "PubStatus", "PubDoi", "MscTitle", "MscJournal", "MscStage", "MscPlannedSubmission", "GrantTitle", "GrantSource", "GrantRole", "GrantAmount", "GrantPeriod", "AwardDate", "AwardName", "AwardOrganizer", "AwardDescription", "LastUpdated"], {
+        StudentID: studentId, RecordType: "AWARD", AwardDate: formatDate(a.date), AwardName: a.award, AwardOrganizer: a.organizer, AwardDescription: a.description, LastUpdated: nowStr
+      });
+    }
+  }
 
+  // 8. Teaching Service
   var s8 = ss.getSheetByName("P8_TeachingService");
-  if (s8) upsertRow(s8, "StudentID", { StudentID: studentId, TeachingExperiencesJSON: JSON.stringify(portfolio.teachingExperiences), SupervisionsJSON: JSON.stringify(portfolio.supervisions), AcademicServicesJSON: JSON.stringify(portfolio.academicServices), LastUpdated: nowStr });
+  if (s8) {
+    deleteRow(s8, "StudentID", studentId);
+    var tchs = portfolio.teachingExperiences || [];
+    for (var i = 0; i < tchs.length; i++) {
+      var t = tchs[i];
+      appendObjectAsRow(s8, ["StudentID", "RecordType", "TeachSemester", "TeachCourse", "TeachRole", "TeachStudentLevel", "TeachDescription", "SupervisionDate", "SupervisionType", "SupervisionStudentLevel", "SupervisionDescription", "ServiceDate", "ServiceActivity", "ServiceRole", "ServiceOrganization", "LastUpdated"], {
+        StudentID: studentId, RecordType: "TEACHING", TeachSemester: t.semester, TeachCourse: t.course, TeachRole: t.role, TeachStudentLevel: t.studentLevel, TeachDescription: t.description, LastUpdated: nowStr
+      });
+    }
+    var sups = portfolio.supervisions || [];
+    for (var i = 0; i < sups.length; i++) {
+      var s = sups[i];
+      appendObjectAsRow(s8, ["StudentID", "RecordType", "TeachSemester", "TeachCourse", "TeachRole", "TeachStudentLevel", "TeachDescription", "SupervisionDate", "SupervisionType", "SupervisionStudentLevel", "SupervisionDescription", "ServiceDate", "ServiceActivity", "ServiceRole", "ServiceOrganization", "LastUpdated"], {
+        StudentID: studentId, RecordType: "SUPERVISION", SupervisionDate: formatDate(s.date), SupervisionType: s.type, SupervisionStudentLevel: s.studentLevel, SupervisionDescription: s.description, LastUpdated: nowStr
+      });
+    }
+    var svcs = portfolio.academicServices || [];
+    for (var i = 0; i < svcs.length; i++) {
+      var sv = svcs[i];
+      appendObjectAsRow(s8, ["StudentID", "RecordType", "TeachSemester", "TeachCourse", "TeachRole", "TeachStudentLevel", "TeachDescription", "SupervisionDate", "SupervisionType", "SupervisionStudentLevel", "SupervisionDescription", "ServiceDate", "ServiceActivity", "ServiceRole", "ServiceOrganization", "LastUpdated"], {
+        StudentID: studentId, RecordType: "SERVICE", ServiceDate: formatDate(sv.date), ServiceActivity: sv.activity, ServiceRole: sv.role, ServiceOrganization: sv.organization, LastUpdated: nowStr
+      });
+    }
+  }
 
+  // 9. Leadership
   var s9 = ss.getSheetByName("P9_LeadershipNetworking");
-  if (s9) upsertRow(s9, "StudentID", { StudentID: studentId, LeadershipsJSON: JSON.stringify(portfolio.leaderships), LastUpdated: nowStr });
+  if (s9) {
+    deleteRow(s9, "StudentID", studentId);
+    var ldrs = portfolio.leaderships || [];
+    for (var i = 0; i < ldrs.length; i++) {
+      var l = ldrs[i];
+      appendObjectAsRow(s9, ["StudentID", "LeadershipDate", "LeadershipRole", "LeadershipOrganization", "LeadershipResponsibilities", "LastUpdated"], {
+        StudentID: studentId, LeadershipDate: l.date, LeadershipRole: l.role, LeadershipOrganization: l.organization, LeadershipResponsibilities: l.responsibilities, LastUpdated: nowStr
+      });
+    }
+  }
 
+  // 10. Reflective Practice
   var s10 = ss.getSheetByName("P10_ReflectivePractice");
-  if (s10) upsertRow(s10, "StudentID", { StudentID: studentId, ReflectivePracticeText: JSON.stringify(portfolio.keyLearnings), LastUpdated: nowStr });
+  if (s10) {
+    deleteRow(s10, "StudentID", studentId);
+    var kls = portfolio.keyLearnings || [];
+    for (var i = 0; i < kls.length; i++) {
+      var kl = kls[i];
+      appendObjectAsRow(s10, ["StudentID", "ReflectionCourse", "ReflectionKeyLearning", "ReflectionApplication", "LastUpdated"], {
+        StudentID: studentId, ReflectionCourse: kl.course, ReflectionKeyLearning: kl.keyLearning, ReflectionApplication: kl.application, LastUpdated: nowStr
+      });
+    }
+  }
 
+  // 11. Supporting Evidence
   var s11 = ss.getSheetByName("P11_SupportingEvidence");
-  if (s11) upsertRow(s11, "StudentID", { StudentID: studentId, EvidenceFilesJSON: JSON.stringify(portfolio.supportingFiles || []), LastUpdated: nowStr });
+  if (s11) {
+    deleteRow(s11, "StudentID", studentId);
+    var files = portfolio.supportingFiles || [];
+    for (var i = 0; i < files.length; i++) {
+      var f = files[i];
+      appendObjectAsRow(s11, ["StudentID", "FileName", "FileUrl", "LastUpdated"], {
+        StudentID: studentId, FileName: f.name, FileUrl: f.url, LastUpdated: nowStr
+      });
+    }
+  }
 
+  // 12. Competencies
   var s12 = ss.getSheetByName("P12_CompetencySelfAssessment");
-  if (s12) upsertRow(s12, "StudentID", { StudentID: studentId, CompetencySelfAssessmentJSON: JSON.stringify(portfolio.competencySelfAssessment), LastUpdated: nowStr });
+  if (s12) {
+    deleteRow(s12, "StudentID", studentId);
+    var comps = portfolio.competencySelfAssessment || [];
+    for (var i = 0; i < comps.length; i++) {
+      var c = comps[i];
+      appendObjectAsRow(s12, ["StudentID", "CompetencyName", "CompetencyRating", "CompetencyRemarks", "LastUpdated"], {
+        StudentID: studentId, CompetencyName: c.competency, CompetencyRating: c.rating, CompetencyRemarks: c.remarks, LastUpdated: nowStr
+      });
+    }
+  }
 
+  // 13. Annual Review
   var s13 = ss.getSheetByName("P13_AnnualReview");
-  if (s13) upsertRow(s13, "StudentID", { StudentID: studentId, AnnualReviewJSON: JSON.stringify(portfolio.annualReview), LastUpdated: nowStr });
+  if (s13) {
+    deleteRow(s13, "StudentID", studentId);
+    var ar = portfolio.annualReview || {};
+    appendObjectAsRow(s13, ["StudentID", "RecordType", "ReviewAchievements", "ReviewImprovements", "Goal", "Steps", "Timeline", "Support", "LastUpdated"], {
+      StudentID: studentId, RecordType: "REVIEW", ReviewAchievements: ar.achievements, ReviewImprovements: ar.improvements, LastUpdated: nowStr
+    });
+    var aps = ar.actionPlans || [];
+    for (var i = 0; i < aps.length; i++) {
+      var ap = aps[i];
+      appendObjectAsRow(s13, ["StudentID", "RecordType", "ReviewAchievements", "ReviewImprovements", "Goal", "Steps", "Timeline", "Support", "LastUpdated"], {
+        StudentID: studentId, RecordType: "ACTION_PLAN", Goal: ap.goal, Steps: ap.steps, Timeline: ap.timeline, Support: ap.support, LastUpdated: nowStr
+      });
+    }
+  }
 
+  // 14. Future Career Plan
   var s14 = ss.getSheetByName("P14_FutureCareerPlan");
-  if (s14) upsertRow(s14, "StudentID", { StudentID: studentId, FutureCareerJSON: JSON.stringify(portfolio.futureCareer), LastUpdated: nowStr });
+  if (s14) {
+    deleteRow(s14, "StudentID", studentId);
+    var fc = portfolio.futureCareer || {};
+    appendObjectAsRow(s14, ["StudentID", "ShortTermGoal", "LongTermGoal", "Preparation", "LastUpdated"], {
+      StudentID: studentId, ShortTermGoal: fc.shortTerm, LongTermGoal: fc.longTerm, Preparation: fc.preparation, LastUpdated: nowStr
+    });
+  }
 
+  // 15. Advisor Feedback
   var s15 = ss.getSheetByName("P15_AdvisorFeedback");
-  if (s15) upsertRow(s15, "StudentID", { StudentID: studentId, AdvisorComments: portfolio.advisorComments || "", LastUpdated: nowStr });
+  if (s15) {
+    deleteRow(s15, "StudentID", studentId);
+    appendObjectAsRow(s15, ["StudentID", "AdvisorComments", "LastUpdated"], {
+      StudentID: studentId, AdvisorComments: portfolio.advisorComments || "", LastUpdated: nowStr
+    });
+  }
 
+  // 16. Advisor Endorsement
   var s16 = ss.getSheetByName("P16_AdvisorEndorsement");
-  if (s16) upsertRow(s16, "StudentID", { StudentID: studentId, EndorsementsJSON: JSON.stringify(portfolio.endorsements), LastUpdated: nowStr });
+  if (s16) {
+    deleteRow(s16, "StudentID", studentId);
+    var eds = portfolio.endorsements || [];
+    for (var i = 0; i < eds.length; i++) {
+      var ed = eds[i];
+      appendObjectAsRow(s16, ["StudentID", "EndorsementRole", "EndorsementName", "EndorsementSignatureDate", "LastUpdated"], {
+        StudentID: studentId, EndorsementRole: ed.role, EndorsementName: ed.name, EndorsementSignatureDate: formatDate(ed.signatureDate), LastUpdated: nowStr
+      });
+    }
+  }
 }
 
 function findRowByStudentID(sheet, studentId) {

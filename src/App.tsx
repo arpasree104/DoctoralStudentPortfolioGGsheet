@@ -921,7 +921,7 @@ export default function App() {
             </button>
           )}
 
-          {currentUser.Role === 'ADMIN' && (
+          {['ADMIN', 'SUPER_ADVISOR'].includes(currentUser.Role) && (
             <button
               onClick={() => setActiveTab('admin')}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
@@ -931,7 +931,7 @@ export default function App() {
               }`}
             >
               <Settings size={13} />
-              Admin System Panel
+              Admin & Matchmaking Panel
             </button>
           )}
 
@@ -961,17 +961,19 @@ export default function App() {
             Advisory Chat & Reminders
           </button>
 
-          <button
-            onClick={() => setActiveTab('help')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-              activeTab === 'help'
-                ? 'bg-tu-red text-white shadow-sm'
-                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-100'
-            }`}
-          >
-            <HelpCircle size={13} />
-            Google Sheets Setup Guide
-          </button>
+          {currentUser.Role === 'ADMIN' && (
+            <button
+              onClick={() => setActiveTab('help')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                activeTab === 'help'
+                  ? 'bg-tu-red text-white shadow-sm'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-100'
+              }`}
+            >
+              <HelpCircle size={13} />
+              Google Sheets Setup Guide
+            </button>
+          )}
         </div>
 
         {/* Tab contents transition container */}
@@ -1061,7 +1063,7 @@ export default function App() {
               </motion.div>
             )}
 
-            {activeTab === 'admin' && currentUser.Role === 'ADMIN' && (
+            {activeTab === 'admin' && ['ADMIN', 'SUPER_ADVISOR'].includes(currentUser.Role) && (
               <motion.div
                 key="admin"
                 initial={{ opacity: 0, y: 15 }}
@@ -1097,7 +1099,7 @@ export default function App() {
               </motion.div>
             )}
 
-            {activeTab === 'help' && (
+            {activeTab === 'help' && currentUser.Role === 'ADMIN' && (
               <motion.div
                 key="help"
                 initial={{ opacity: 0, y: 15 }}

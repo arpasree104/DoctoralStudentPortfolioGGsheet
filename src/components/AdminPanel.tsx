@@ -33,6 +33,7 @@ export default function AdminPanel({
   
   // User Manager State
   const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [newUserForm, setNewUserForm] = useState<Partial<User>>({
     Email: '',
     FullName: '',
@@ -52,6 +53,13 @@ export default function AdminPanel({
   useEffect(() => {
     setLogs(getLogs());
   }, [adminTab]);
+
+  const handleEditUserSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser || !editingUser.Email || !editingUser.FullName) return;
+    await onAddUser(editingUser);
+    setEditingUser(null);
+  };
 
   const handleAddUserSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,7 +192,10 @@ export default function AdminPanel({
                         <td className="p-4">
                           <span className="font-semibold block text-gray-900">{user.FullName}</span>
                           {user.Role === 'STUDENT' && (
-                            <span className="text-[10px] text-gray-400 font-mono">Advisor: {user.Advisor || 'None'}</span>
+                            <div className="text-[10px] text-gray-400 space-y-0.5 mt-0.5">
+                              <div><span className="font-bold text-gray-500">Advisor:</span> {user.Advisor || 'Not Assigned'}</div>
+                              <div><span className="font-bold text-gray-500">Co-Advisor:</span> {user.CoAdvisor || 'Not Assigned'}</div>
+                            </div>
                           )}
                         </td>
                         <td className="p-4 font-mono">{user.Email}</td>
@@ -194,6 +205,10 @@ export default function AdminPanel({
                               ? 'bg-blue-50 text-blue-700'
                               : user.Role === 'ADVISOR'
                               ? 'bg-amber-50 text-amber-700'
+                              : user.Role === 'CO_ADVISOR'
+                              ? 'bg-purple-50 text-purple-700'
+                              : user.Role === 'SUPER_ADVISOR'
+                              ? 'bg-rose-50 text-rose-700'
                               : 'bg-red-50 text-red-700'
                           }`}>
                             {user.Role}
@@ -201,13 +216,22 @@ export default function AdminPanel({
                         </td>
                         <td className="p-4 font-mono">{user.StudentID || 'N/A'}</td>
                         <td className="p-4 text-center">
-                          <button
-                            onClick={() => onDeleteUser(user.UserID)}
-                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition cursor-pointer"
-                            title="Delete User Account"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                          <div className="flex justify-center items-center gap-1">
+                            <button
+                              onClick={() => setEditingUser(user)}
+                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                              title="Edit User / Pair Advisors"
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            <button
+                              onClick={() => onDeleteUser(user.UserID)}
+                              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                              title="Delete User Account"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -234,20 +258,24 @@ export default function AdminPanel({
                           onChange={e => setNewUserForm({ ...newUserForm, Role: e.target.value as any })}
                           className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
                         >
-                          <option value="STUDENT">STUDENT</option>
-                          <option value="ADVISOR">ADVISOR</option>
-                          <option value="ADMIN">ADMIN</option>
+                          <option value="STUDENT">STUDENT (นักศึกษา)</option>
+                          <option value="ADVISOR">ADVISOR (อาจารย์ที่ปรึกษาหลัก)</option>
+                          <option value="CO_ADVISOR">CO_ADVISOR (อาจารย์ที่ปรึกษาร่วม)</option>
+                          <option value="SUPER_ADVISOR">SUPER_ADVISOR (อาจารย์ผู้ดูแลหลักหลักสูตร)</option>
+                          <option value="ADMIN">ADMIN (แอดมินระบบ)</option>
                         </select>
                       </div>
 
                       <div>
-                        <label className="font-semibold text-gray-500 block mb-1">ID Number (Student/Staff)</label>
+                        <label className="font-semibold text-gray-500 block mb-1">
+                          ID Number (Student/Staff) {newUserForm.Role === 'STUDENT' && <span className="text-red-500">*</span>}
+                        </label>
                         <input
                           type="text"
-                          required
-                          value={newUserForm.StudentID}
+                          required={newUserForm.Role === 'STUDENT'}
+                          value={newUserForm.StudentID || ''}
                           onChange={e => setNewUserForm({ ...newUserForm, StudentID: e.target.value })}
-                          placeholder="e.g., 6601010024"
+                          placeholder={newUserForm.Role === 'STUDENT' ? "e.g., 6601010024" : "e.g., STAFF-123 (Optional)"}
                           className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl font-mono"
                         />
                       </div>
@@ -321,6 +349,145 @@ export default function AdminPanel({
                         className="px-4 py-2 bg-tu-red hover:bg-tu-red-hover text-white rounded-xl font-semibold cursor-pointer"
                       >
                         Register Account
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* EDIT USER / PAIR ADVISORS MODAL */}
+            {editingUser && (
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-gray-100 space-y-4">
+                  <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                    <h3 className="font-bold text-gray-900 text-sm">Edit User Profile / Pair Advisors</h3>
+                    <button onClick={() => setEditingUser(null)} className="text-gray-400 hover:text-gray-600 font-bold cursor-pointer">×</button>
+                  </div>
+
+                  <form onSubmit={handleEditUserSubmit} className="space-y-4 text-xs">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="font-semibold text-gray-500 block mb-1">Role</label>
+                        <select
+                          value={editingUser.Role}
+                          onChange={e => setEditingUser({ ...editingUser, Role: e.target.value as any })}
+                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
+                        >
+                          <option value="STUDENT">STUDENT (นักศึกษา)</option>
+                          <option value="ADVISOR">ADVISOR (อาจารย์ที่ปรึกษาหลัก)</option>
+                          <option value="CO_ADVISOR">CO_ADVISOR (อาจารย์ที่ปรึกษาร่วม)</option>
+                          <option value="SUPER_ADVISOR">SUPER_ADVISOR (อาจารย์ผู้ดูแลหลักหลักสูตร)</option>
+                          <option value="ADMIN">ADMIN (แอดมินระบบ)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="font-semibold text-gray-500 block mb-1">
+                          ID Number (Student/Staff) {editingUser.Role === 'STUDENT' && <span className="text-red-500">*</span>}
+                        </label>
+                        <input
+                          type="text"
+                          required={editingUser.Role === 'STUDENT'}
+                          value={editingUser.StudentID || ''}
+                          onChange={e => setEditingUser({ ...editingUser, StudentID: e.target.value })}
+                          placeholder={editingUser.Role === 'STUDENT' ? "e.g., 6601010024" : "e.g., STAFF-123 (Optional)"}
+                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl font-mono"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="font-semibold text-gray-500 block mb-1">Full Name (including titles)</label>
+                      <input
+                        type="text"
+                        required
+                        value={editingUser.FullName}
+                        onChange={e => setEditingUser({ ...editingUser, FullName: e.target.value })}
+                        placeholder="e.g., Assoc. Prof. Dr. Sarah Smith"
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-semibold text-gray-500 block mb-1">User Email Address</label>
+                      <input
+                        type="email"
+                        required
+                        value={editingUser.Email}
+                        onChange={e => setEditingUser({ ...editingUser, Email: e.target.value })}
+                        placeholder="student@tu.ac.th"
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl font-mono"
+                      />
+                    </div>
+
+                    {editingUser.Role === 'STUDENT' && (
+                      <div className="grid grid-cols-2 gap-3 bg-red-50/50 p-3 rounded-xl border border-red-100">
+                        <div className="col-span-2 text-[10px] font-bold text-tu-red uppercase tracking-wide mb-1">
+                          🎓 Advisor Mapping (การจับคู่อาจารย์ที่ปรึกษา)
+                        </div>
+                        <div>
+                          <label className="font-semibold text-gray-600 block mb-1">Major Advisor</label>
+                          <select
+                            value={editingUser.Advisor || ''}
+                            onChange={e => setEditingUser({ ...editingUser, Advisor: e.target.value })}
+                            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl font-medium"
+                          >
+                            <option value="">Select Major Advisor...</option>
+                            {/* Option 1: From configs */}
+                            {configOptions.filter(c => c.OptionType === 'ADVISOR').map(c => (
+                              <option key={c.id} value={c.OptionValue}>{c.OptionValue}</option>
+                            ))}
+                            {/* Option 2: From advisors users */}
+                            {users.filter(u => u.Role === 'ADVISOR' || u.Role === 'SUPER_ADVISOR').map(u => (
+                              <option key={u.UserID} value={u.FullName}>{u.FullName}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="font-semibold text-gray-600 block mb-1">Co-Advisor</label>
+                          <select
+                            value={editingUser.CoAdvisor || ''}
+                            onChange={e => setEditingUser({ ...editingUser, CoAdvisor: e.target.value })}
+                            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl font-medium"
+                          >
+                            <option value="">Select Co-Advisor...</option>
+                            {/* Option 1: From configs */}
+                            {configOptions.filter(c => c.OptionType === 'CO_ADVISOR').map(c => (
+                              <option key={c.id} value={c.OptionValue}>{c.OptionValue}</option>
+                            ))}
+                            {/* Option 2: From co-advisor users */}
+                            {users.filter(u => u.Role === 'CO_ADVISOR').map(u => (
+                              <option key={u.UserID} value={u.FullName}>{u.FullName}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="col-span-2">
+                          <label className="font-semibold text-gray-600 block mb-1">Thesis Title (Draft)</label>
+                          <input
+                            type="text"
+                            value={editingUser.ThesisTitle || ''}
+                            onChange={e => setEditingUser({ ...editingUser, ThesisTitle: e.target.value })}
+                            placeholder="e.g., Efficacy of Mindfulness-Based Tele-Nursing Intervention..."
+                            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex justify-end gap-2 border-t border-gray-100 pt-3">
+                      <button
+                        type="button"
+                        onClick={() => setEditingUser(null)}
+                        className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-tu-red hover:bg-tu-red-hover text-white rounded-xl font-semibold cursor-pointer"
+                      >
+                        Save Changes
                       </button>
                     </div>
                   </form>

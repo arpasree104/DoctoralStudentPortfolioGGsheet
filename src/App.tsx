@@ -158,7 +158,7 @@ export default function App() {
 
     const match = users.find(u => u.Email && typeof u.Email === 'string' && u.Email.toLowerCase().trim() === loginEmail.toLowerCase().trim());
     if (match) {
-      const userPassword = (match.Password || '1234').toLowerCase().trim();
+      const userPassword = String(match.Password || '1234').toLowerCase().trim();
       const inputPassword = loginPassword.toLowerCase().trim();
       if (userPassword === inputPassword) {
         setCurrentUser(match);

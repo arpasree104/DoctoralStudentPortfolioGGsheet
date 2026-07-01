@@ -734,8 +734,10 @@ export async function getStudentPortfolio(studentId: string): Promise<StudentPor
       const res = await fetch(`${scriptUrl}?type=portfolio&studentId=${studentId}`);
       if (res.ok) {
         const data = await res.json();
-        localStorage.setItem(`${KEYS.PORTFOLIO}_${studentId}`, JSON.stringify(data));
-        return data;
+        if (data && !data.error) {
+          localStorage.setItem(`${KEYS.PORTFOLIO}_${studentId}`, JSON.stringify(data));
+          return data;
+        }
       }
     } catch (e) {
       console.warn('Sync portfolio failed, falling back to LocalStorage:', e);
@@ -745,7 +747,12 @@ export async function getStudentPortfolio(studentId: string): Promise<StudentPor
   const storeKey = studentId === '6601010024' ? KEYS.PORTFOLIO : `${KEYS.PORTFOLIO}_${studentId}`;
   const localData = localStorage.getItem(storeKey);
   if (localData) {
-    return JSON.parse(localData);
+    try {
+      const parsed = JSON.parse(localData);
+      if (parsed && !parsed.error) {
+        return parsed;
+      }
+    } catch (e) {}
   }
   // Otherwise duplicate the DEFAULT structure for this new student
   const newData = { ...DEFAULT_STUDENT_PORTFOLIO };
@@ -845,7 +852,14 @@ function doGet(e) {
         return ContentService.createTextOutput(match.DataJSON)
           .setMimeType(ContentService.MimeType.JSON);
       } else {
-        return ContentService.createTextOutput(JSON.stringify({ error: 'Not found' }))
+        var defaultPort = getDefaultPortfolio(studentId);
+        var rowObj = {
+          StudentID: studentId,
+          DataJSON: JSON.stringify(defaultPort),
+          LastUpdated: new Date().toISOString()
+        };
+        upsertRow(sheet, 'StudentID', rowObj);
+        return ContentService.createTextOutput(JSON.stringify(defaultPort))
           .setMimeType(ContentService.MimeType.JSON);
       }
     }
@@ -976,7 +990,8 @@ function insertExampleData() {
     "ConfigOptions": ["id", "OptionType", "OptionValue"],
     "ActivityLogs": ["LogID", "Timestamp", "Action", "UserID", "Details"],
     "Chats": ["MessageID", "SenderID", "SenderName", "ReceiverID", "MessageText", "Timestamp"],
-    "Notifications": ["NotificationID", "SenderID", "SenderName", "ReceiverID", "Title", "MessageText", "Timestamp", "IsRead"]
+    "Notifications": ["NotificationID", "SenderID", "SenderName", "ReceiverID", "Title", "MessageText", "Timestamp", "IsRead"],
+    "Portfolios": ["StudentID", "DataJSON", "LastUpdated"]
   };
   
   // 1. Seed Users (5-6 rows)
@@ -1089,6 +1104,21 @@ function insertExampleData() {
       appendObjectAsRow(notifSheet, headersMap["Notifications"], sampleNotifs[i]);
     }
   }
+
+  // 8. Seed Portfolios (3 rows)
+  var portfolioSheet = ss.getSheetByName("Portfolios");
+  if (portfolioSheet.getLastRow() <= 1) {
+    var sampleStudentIDs = ["6601010024", "6601010032", "6501010011"];
+    for (var i = 0; i < sampleStudentIDs.length; i++) {
+      var sId = sampleStudentIDs[i];
+      var rowObj = {
+        StudentID: sId,
+        DataJSON: JSON.stringify(getDefaultPortfolio(sId)),
+        LastUpdated: new Date().toISOString()
+      };
+      appendObjectAsRow(portfolioSheet, headersMap["Portfolios"], rowObj);
+    }
+  }
 }
 
 function appendObjectAsRow(sheet, headers, obj) {
@@ -1151,5 +1181,122 @@ function deleteRow(sheet, keyColumnName, keyValue) {
       sheet.deleteRow(r + 1);
     }
   }
+}
+
+function getDefaultPortfolio(studentId) {
+  var isOrapan = studentId === '6601010024';
+  var isAnanya = studentId === '6601010032';
+  return {
+    academicBackground: [
+      { degree: 'Master of Science (Nursing)', field: 'Adult Nursing', institution: 'Thammasat University', year: '2021' },
+      { degree: 'Bachelor of Science (Nursing)', field: 'Nursing Science', institution: 'Mahidol University', year: '2017' }
+    ],
+    professionalBackground: [
+      { period: '2021 - 2023', role: 'Registered Nurse', remarks: 'Thammasat University Hospital' }
+    ],
+    milestones: [
+      { key: 'coursework', label: 'Coursework completion', plannedDate: '2024-03-15', actualDate: '2024-03-12', remarks: 'Completed GPA 3.90', status: 'Completed' },
+      { key: 'english', label: 'English language proficiency requirement', plannedDate: '2024-05-20', actualDate: '2024-05-18', remarks: 'IELTS Band 7.0 achieved', status: 'Completed' },
+      { key: 'research_hours', label: 'Completion of 180 research experience hours', plannedDate: '2025-06-30', actualDate: '2025-06-15', remarks: '185 hours completed', status: 'Completed' },
+      { key: 'qe', label: 'Qualifying examination', plannedDate: '2024-10-10', actualDate: '2024-10-12', remarks: 'Passed on first attempt', status: 'Completed' },
+      { key: 'study_abroad', label: 'Studying abroad', plannedDate: '2025-09-01', actualDate: '', remarks: 'University of Michigan', status: 'In Progress' },
+      { key: 'proposal_dev', label: 'Dissertation proposal development', plannedDate: '2025-01-15', actualDate: '2025-01-10', remarks: 'Draft approved', status: 'Completed' },
+      { key: 'proposal_defense', label: 'Proposal defense', plannedDate: '2025-03-20', actualDate: '2025-03-24', remarks: 'Passed with minor revisions', status: 'Completed' },
+      { key: 'ethics', label: 'Ethics approval', plannedDate: '2025-05-10', actualDate: '2025-05-29', remarks: 'COA No. MUPN-2025-084', status: 'Completed' },
+      { key: 'data_collection', label: 'Data collection', plannedDate: '2025-11-30', actualDate: '', remarks: 'Active recruitment', status: 'In Progress' },
+      { key: 'data_analysis', label: 'Data analysis', plannedDate: '2026-03-15', actualDate: '', remarks: '', status: 'Not Started' },
+      { key: 'manuscript_prep', label: 'Manuscript preparation', plannedDate: '2026-06-30', actualDate: '', remarks: '', status: 'Not Started' },
+      { key: 'dissertation_writing', label: 'Dissertation writing', plannedDate: '2026-10-31', actualDate: '', remarks: '', status: 'Not Started' },
+      { key: 'final_defense', label: 'Final defense', plannedDate: '2027-02-28', actualDate: '', remarks: '', status: 'Not Started' },
+      { key: 'graduation', label: 'Graduation', plannedDate: '2027-05-31', actualDate: '', remarks: '', status: 'Not Started' }
+    ],
+    englishTest: {
+      testName: 'IELTS Academic', dateTaken: '2024-05-18', scoreAchieved: '7.0', requiredScore: '6.5', status: 'Passed Requirement', evidence: 'IELTS TRF No. 24TH008432K'
+    },
+    englishActivities: [
+      { date: '2024-01-10', activity: 'Academic English Writing Course', organizer: 'TU Language Institute', description: '60-hour intensive writing', evidence: 'Certificate No. TULI-2024' }
+    ],
+    englishReflection: 'Focused on health science academic vocabulary and research methodology writing.',
+    completedCourses: [
+      { code: 'NS901', title: 'Advanced Philosophical Foundations of Nursing Science', semester: '1/2023', credits: '3', grade: 'A' },
+      { code: 'NS902', title: 'Theory Development and Nursing Knowledge Construction', semester: '1/2023', credits: '3', grade: 'A' },
+      { code: 'NS903', title: 'Advanced Quantitative Research Methodology', semester: '2/2023', credits: '3', grade: 'A' },
+      { code: 'NS904', title: 'Qualitative Research in Healthcare', semester: '2/2023', credits: '3', grade: 'A-' }
+    ],
+    keyLearnings: [
+      { course: 'NS903 Quantitative Methods', keyLearning: 'Learned multi-level linear regression and sample calculations.', application: 'Used to calculate caregiver sample size (N=120).' }
+    ],
+    workshops: [
+      { date: '2024-07-12', title: 'Systematic Review and Meta-Analysis Workshop', organizer: 'Cochrane Thailand', role: 'Participant', keyLearning: 'Risk of bias assessment tools' }
+    ],
+    dissertationInfo: {
+      title: isOrapan ? 'Efficacy of Mindfulness-Based Tele-Nursing Intervention on Quality of Life and Coping Strategies in Thai Post-Stroke Caregivers' : (isAnanya ? 'ปัจจัยที่มีอิทธิพลต่อความพร้อมในการดูแลตนเองของผู้ป่วยภาวะหัวใจล้มเหลวเฉียบพลันในชุมชน' : 'Interactive Mobile-Health Guided Pulmonary Rehabilitation for Elderly COPD Patients'),
+      background: 'Caregivers or patients experience severe physical and psychological strain.',
+      problem: 'Traditional hospital care lacks consistent, continuous follow-up coaching.',
+      objectives: 'To evaluate the effectiveness of an 8-week intervention.',
+      hypotheses: 'Participants receiving the intervention will report significantly higher adaptation scores.',
+      conceptualFramework: 'Stress and Coping Model of Lazarus & Folkman.',
+      methodology: 'A double-blinded, parallel randomized controlled trial (N=120).'
+    },
+    dissertationProgress: [
+      { activity: 'Literature Review completed', date: '2024-11-15', progress: 'Wrote 45-page chapter.', evidence: 'Chapter 2 approved by Advisor' }
+    ],
+    advisorMeetings: [
+      { date: '2025-04-10', persons: 'Dr. Nonglak, Dr. Wipa', issues: 'Sample recruitment pathways.', actionPoints: 'Contact TU Hospital clinics.' }
+    ],
+    ethicsGovernance: {
+      dateApplied: '2025-03-30', dateApproved: '2025-05-29', approvalNumber: isOrapan ? 'MUPN-2025-084' : 'MUPN-2025-091', amendments: 'None', confidentiality: 'All identifiers are replaced with randomized secure hashes.'
+    },
+    researchExperience: [
+      { date: '2024-08-01', activity: 'Research Assistant', description: 'Assisted in quantitative phone interviews (100 hours total).', hours: 100, supervisor: 'รศ.ดร. นงลักษณ์ วิเศษศิลป์', evidence: 'Signed logsheet' }
+    ],
+    researchReflection: 'Completing active research experience deepened my understanding of clinical trial logistics.',
+    conferencePresentations: [
+      { date: '2024-11-20', title: 'Burden and Psychological Distress Among Primary Family Caregivers', conference: 'The 4th International Nursing Conference', type: 'Oral Presentation', venue: 'Chiang Mai, Thailand' }
+    ],
+    publications: [
+      { year: '2025', title: 'Psychometric Evaluation of the Thai Zarit Burden Interview (ZBI-12)', journal: 'Journal of Health Research', status: 'Published', doi: '10.11086/jhr-2025-0012' }
+    ],
+    manuscripts: [
+      { title: 'Tele-health interventions in Thai Nursing Practice', journal: 'Pacific Rim Journal of Nursing Research', stage: 'Under Review', plannedSubmission: 'Submitted 2025-05-02' }
+    ],
+    grants: [
+      { title: 'Development of Tele-Nursing Support System', source: 'TU Doctoral Research Fund', role: 'Principal Investigator', amount: '150,000 THB', period: '2025 - 2026' }
+    ],
+    awards: [
+      { date: '2024-11-21', award: 'Best Oral Presentation Award', organizer: 'Nursing Conference Committee', description: 'Received outstanding presentation recognition.' }
+    ],
+    teachingExperiences: [
+      { semester: '1/2024', course: 'Adult and Gerontological Nursing Practicum', role: 'Teaching Assistant', studentLevel: 'Undergraduate (Year 3)', description: 'Supervised clinical rotations of 8 students.' }
+    ],
+    supervisions: [
+      { date: '2024-03-01', type: 'Clinical Skills Tutoring', studentLevel: 'Bachelor Year 2', description: 'Instructed basic stroke screening.' }
+    ],
+    academicServices: [
+      { date: '2025-01-15', activity: 'Community Health Screening', role: 'Head Educator', organization: 'Pathum Thani Center' }
+    ],
+    leaderships: [
+      { date: '2024 - 2025', role: 'President of Doctoral Student Committee', organization: 'Faculty of Nursing, TU', responsibilities: 'Coordinated student academic forums.' }
+    ],
+    competencySelfAssessment: [
+      { competency: 'Advanced disciplinary knowledge', rating: 'Proficient', remarks: 'Excellent grasp of nursing epistemology.' },
+      { competency: 'Critical analysis and synthesis', rating: 'Proficient', remarks: 'Strong abilities validated by publishing.' },
+      { competency: 'Research design and methodology', rating: 'Competent', remarks: 'Highly skilled in RCT randomized trials.' }
+    ],
+    annualReview: {
+      achievements: 'Passed QE, obtained IRB, completed 185 research hours, and published first manuscript.',
+      improvements: 'Improve skills in qualitative research methodologies.',
+      actionPlans: [
+        { goal: 'Pilot trial completion', steps: 'Recruit and train 5 pilot caregivers.', timeline: 'August 2025', support: 'Advisor' }
+      ]
+    },
+    futureCareer: {
+      shortTerm: 'Secure a tenure-track Assistant Professor role.', longTerm: 'Become an international leader.', preparation: 'Build collaborator relationships.'
+    },
+    advisorComments: 'Orapan is an exceptionally dedicated doctoral student.',
+    endorsements: [
+      { role: 'Major Advisor', name: isOrapan ? 'รศ.ดร. นงลักษณ์ วิเศษศิลป์' : 'ศ.ดร. สร้อยอนุสาสน์ สุขดี', signatureDate: '2025-06-15' }
+    ]
+  };
 }
 `;

@@ -414,7 +414,9 @@ export default function StudentInformation({
 
               <div>
                 <h3 className="font-bold text-lg text-gray-900">{currentUser.FullName}</h3>
-                <p className="text-sm text-gray-500 font-mono">ID: {currentUser.StudentID || 'Not specified'}</p>
+                {currentUser.Role === 'STUDENT' && (
+                  <p className="text-sm text-gray-500 font-mono">ID: {currentUser.StudentID || 'Not specified'}</p>
+                )}
                 <p className="text-xs font-semibold text-tu-red bg-red-50 px-2.5 py-0.5 rounded-full mt-1.5 inline-block font-mono">
                   {currentUser.Role}
                 </p>
@@ -425,14 +427,18 @@ export default function StudentInformation({
                   <span className="text-gray-400 font-medium block">Registered Email</span>
                   <span className="text-gray-800 font-medium font-mono">{currentUser.Email}</span>
                 </div>
-                <div className="text-xs">
-                  <span className="text-gray-400 font-medium block">Year of Admission</span>
-                  <span className="text-gray-800 font-medium font-mono">{currentUser.YearOfAdmission || 'Not specified'}</span>
-                </div>
-                <div className="text-xs">
-                  <span className="text-gray-400 font-medium block">Date of Submission</span>
-                  <span className="text-gray-800 font-medium font-mono">{currentUser.DateOfSubmission || 'Not specified'}</span>
-                </div>
+                {currentUser.Role === 'STUDENT' && (
+                  <>
+                    <div className="text-xs">
+                      <span className="text-gray-400 font-medium block">Year of Admission</span>
+                      <span className="text-gray-800 font-medium font-mono">{currentUser.YearOfAdmission || 'Not specified'}</span>
+                    </div>
+                    <div className="text-xs">
+                      <span className="text-gray-400 font-medium block">Date of Submission</span>
+                      <span className="text-gray-800 font-medium font-mono">{currentUser.DateOfSubmission || 'Not specified'}</span>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Additional Photos Section */}

@@ -1144,7 +1144,7 @@ export default function App() {
               </motion.div>
             )}
 
-            {activeTab === 'info' && currentUser.Role === 'STUDENT' && (
+            {activeTab === 'info' && (
               <motion.div
                 key="info"
                 initial={{ opacity: 0, y: 15 }}

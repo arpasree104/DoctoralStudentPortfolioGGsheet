@@ -236,47 +236,29 @@ const KEYS = {
 
 // Initializer helper
 export function initializeDatabase() {
-  let forceClear = false;
-  const localUsers = localStorage.getItem(KEYS.USERS);
-  // Detect if the user still has pre-loaded mock data
-  if (localUsers && (localUsers.includes('student@tu.ac.th') || localUsers.includes('6601010024'))) {
-    forceClear = true;
-  }
-
-  if (forceClear) {
+  if (!localStorage.getItem(KEYS.USERS)) {
     localStorage.setItem(KEYS.USERS, JSON.stringify([]));
+  }
+  if (!localStorage.getItem(KEYS.CERTIFICATES)) {
     localStorage.setItem(KEYS.CERTIFICATES, JSON.stringify([]));
+  }
+  if (!localStorage.getItem(KEYS.ACTIVITIES)) {
     localStorage.setItem(KEYS.ACTIVITIES, JSON.stringify([]));
+  }
+  if (!localStorage.getItem(KEYS.CONFIGS)) {
     localStorage.setItem(KEYS.CONFIGS, JSON.stringify(DEFAULT_CONFIGS));
+  }
+  if (!localStorage.getItem(KEYS.LOGS)) {
     localStorage.setItem(KEYS.LOGS, JSON.stringify([]));
+  }
+  if (!localStorage.getItem(KEYS.PORTFOLIO)) {
     localStorage.setItem(KEYS.PORTFOLIO, JSON.stringify(DEFAULT_STUDENT_PORTFOLIO));
+  }
+  if (!localStorage.getItem(KEYS.CHATS)) {
     localStorage.setItem(KEYS.CHATS, JSON.stringify([]));
+  }
+  if (!localStorage.getItem(KEYS.NOTIFICATIONS)) {
     localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify([]));
-  } else {
-    if (!localStorage.getItem(KEYS.USERS)) {
-      localStorage.setItem(KEYS.USERS, JSON.stringify([]));
-    }
-    if (!localStorage.getItem(KEYS.CERTIFICATES)) {
-      localStorage.setItem(KEYS.CERTIFICATES, JSON.stringify([]));
-    }
-    if (!localStorage.getItem(KEYS.ACTIVITIES)) {
-      localStorage.setItem(KEYS.ACTIVITIES, JSON.stringify([]));
-    }
-    if (!localStorage.getItem(KEYS.CONFIGS)) {
-      localStorage.setItem(KEYS.CONFIGS, JSON.stringify(DEFAULT_CONFIGS));
-    }
-    if (!localStorage.getItem(KEYS.LOGS)) {
-      localStorage.setItem(KEYS.LOGS, JSON.stringify([]));
-    }
-    if (!localStorage.getItem(KEYS.PORTFOLIO)) {
-      localStorage.setItem(KEYS.PORTFOLIO, JSON.stringify(DEFAULT_STUDENT_PORTFOLIO));
-    }
-    if (!localStorage.getItem(KEYS.CHATS)) {
-      localStorage.setItem(KEYS.CHATS, JSON.stringify([]));
-    }
-    if (!localStorage.getItem(KEYS.NOTIFICATIONS)) {
-      localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify([]));
-    }
   }
 }
 

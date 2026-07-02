@@ -129,6 +129,10 @@ const DEFAULT_STUDENT_PORTFOLIO: StudentPortfolioData = {
     preparation: ''
   },
   advisorComments: '',
+  reflectionAcademicGrowth: '',
+  reflectionResearchIdentity: '',
+  reflectionChallengesResilience: '',
+  reflectionTransformation: '',
   endorsements: [],
   englishVerification: {
     comments: '',
@@ -214,6 +218,18 @@ export function ensurePortfolioDefaults(data: any): StudentPortfolioData {
   }
   if (typeof merged.advisorComments !== 'string') {
     merged.advisorComments = '';
+  }
+  if (typeof merged.reflectionAcademicGrowth !== 'string') {
+    merged.reflectionAcademicGrowth = '';
+  }
+  if (typeof merged.reflectionResearchIdentity !== 'string') {
+    merged.reflectionResearchIdentity = '';
+  }
+  if (typeof merged.reflectionChallengesResilience !== 'string') {
+    merged.reflectionChallengesResilience = '';
+  }
+  if (typeof merged.reflectionTransformation !== 'string') {
+    merged.reflectionTransformation = '';
   }
 
   return merged;
@@ -1082,8 +1098,8 @@ function getOrCreateSheet(sheetName) {
       "P7_ScholarlyOutput": ["StudentID", "RecordType", "ConfDate", "ConfTitle", "ConfName", "ConfType", "ConfVenue", "PubYear", "PubTitle", "PubJournal", "PubStatus", "PubDoi", "MscTitle", "MscJournal", "MscStage", "MscPlannedSubmission", "GrantTitle", "GrantSource", "GrantRole", "GrantAmount", "GrantPeriod", "AwardDate", "AwardName", "AwardOrganizer", "AwardDescription", "LastUpdated"],
       "P8_TeachingService": ["StudentID", "RecordType", "TeachSemester", "TeachCourse", "TeachRole", "TeachStudentLevel", "TeachDescription", "SupervisionDate", "SupervisionType", "SupervisionStudentLevel", "SupervisionDescription", "ServiceDate", "ServiceActivity", "ServiceRole", "ServiceOrganization", "LastUpdated"],
       "P9_LeadershipNetworking": ["StudentID", "LeadershipDate", "LeadershipRole", "LeadershipOrganization", "LeadershipResponsibilities", "LastUpdated"],
-      "P10_ReflectivePractice": ["StudentID", "ReflectionCourse", "ReflectionKeyLearning", "ReflectionApplication", "LastUpdated"],
-      "P11_SupportingEvidence": ["StudentID", "FileName", "FileUrl", "LastUpdated"],
+      "P10_ReflectivePractice": ["StudentID", "RecordType", "ReflectionCourse", "ReflectionKeyLearning", "ReflectionApplication", "ReflectionAcademicGrowth", "ReflectionResearchIdentity", "ReflectionChallengesResilience", "ReflectionTransformation", "LastUpdated"],
+      "P11_SupportingEvidence": ["StudentID", "FileName", "FileUrl", "FileTitle", "FileDate", "FileDescription", "LastUpdated"],
       "P12_CompetencySelfAssessment": ["StudentID", "CompetencyName", "CompetencyRating", "CompetencyRemarks", "LastUpdated"],
       "P13_AnnualReview": ["StudentID", "RecordType", "ReviewAchievements", "ReviewImprovements", "Goal", "Steps", "Timeline", "Support", "LastUpdated"],
       "P14_FutureCareerPlan": ["StudentID", "ShortTermGoal", "LongTermGoal", "Preparation", "LastUpdated"],
@@ -1119,8 +1135,8 @@ function setupDatabase() {
     "P7_ScholarlyOutput": ["StudentID", "RecordType", "ConfDate", "ConfTitle", "ConfName", "ConfType", "ConfVenue", "PubYear", "PubTitle", "PubJournal", "PubStatus", "PubDoi", "MscTitle", "MscJournal", "MscStage", "MscPlannedSubmission", "GrantTitle", "GrantSource", "GrantRole", "GrantAmount", "GrantPeriod", "AwardDate", "AwardName", "AwardOrganizer", "AwardDescription", "LastUpdated"],
     "P8_TeachingService": ["StudentID", "RecordType", "TeachSemester", "TeachCourse", "TeachRole", "TeachStudentLevel", "TeachDescription", "SupervisionDate", "SupervisionType", "SupervisionStudentLevel", "SupervisionDescription", "ServiceDate", "ServiceActivity", "ServiceRole", "ServiceOrganization", "LastUpdated"],
     "P9_LeadershipNetworking": ["StudentID", "LeadershipDate", "LeadershipRole", "LeadershipOrganization", "LeadershipResponsibilities", "LastUpdated"],
-    "P10_ReflectivePractice": ["StudentID", "ReflectionCourse", "ReflectionKeyLearning", "ReflectionApplication", "LastUpdated"],
-    "P11_SupportingEvidence": ["StudentID", "FileName", "FileUrl", "LastUpdated"],
+    "P10_ReflectivePractice": ["StudentID", "RecordType", "ReflectionCourse", "ReflectionKeyLearning", "ReflectionApplication", "ReflectionAcademicGrowth", "ReflectionResearchIdentity", "ReflectionChallengesResilience", "ReflectionTransformation", "LastUpdated"],
+    "P11_SupportingEvidence": ["StudentID", "FileName", "FileUrl", "FileTitle", "FileDate", "FileDescription", "LastUpdated"],
     "P12_CompetencySelfAssessment": ["StudentID", "CompetencyName", "CompetencyRating", "CompetencyRemarks", "LastUpdated"],
     "P13_AnnualReview": ["StudentID", "RecordType", "ReviewAchievements", "ReviewImprovements", "Goal", "Steps", "Timeline", "Support", "LastUpdated"],
     "P14_FutureCareerPlan": ["StudentID", "ShortTermGoal", "LongTermGoal", "Preparation", "LastUpdated"],
@@ -1596,13 +1612,30 @@ function loadPortfolioFromSheets(studentId) {
     if (s10) {
       var rows = findRowsByStudentID(s10, studentId);
       if (rows.length > 0) {
-        portfolio.keyLearnings = rows.map(function(r) {
-          return {
-            course: r.ReflectionCourse || "",
-            keyLearning: r.ReflectionKeyLearning || "",
-            application: r.ReflectionApplication || ""
-          };
-        });
+        portfolio.keyLearnings = [];
+        for (var i = 0; i < rows.length; i++) {
+          var r = rows[i];
+          var rType = r.RecordType || "";
+          if (rType === "KEY_LEARNING") {
+            portfolio.keyLearnings.push({
+              course: r.ReflectionCourse || "",
+              keyLearning: r.ReflectionKeyLearning || "",
+              application: r.ReflectionApplication || ""
+            });
+          } else if (rType === "GENERAL" || !rType) {
+            if (r.ReflectionAcademicGrowth) portfolio.reflectionAcademicGrowth = r.ReflectionAcademicGrowth;
+            if (r.ReflectionResearchIdentity) portfolio.reflectionResearchIdentity = r.ReflectionResearchIdentity;
+            if (r.ReflectionChallengesResilience) portfolio.reflectionChallengesResilience = r.ReflectionChallengesResilience;
+            if (r.ReflectionTransformation) portfolio.reflectionTransformation = r.ReflectionTransformation;
+            if (r.ReflectionCourse && !rType) {
+              portfolio.keyLearnings.push({
+                course: r.ReflectionCourse || "",
+                keyLearning: r.ReflectionKeyLearning || "",
+                application: r.ReflectionApplication || ""
+              });
+            }
+          }
+        }
       }
     }
 
@@ -1613,7 +1646,10 @@ function loadPortfolioFromSheets(studentId) {
       portfolio.supportingFiles = rows.map(function(r) {
         return {
           name: r.FileName || "",
-          url: r.FileUrl || ""
+          url: r.FileUrl || "",
+          title: r.FileTitle || "",
+          date: r.FileDate ? formatDate(r.FileDate) : "",
+          description: r.FileDescription || ""
         };
       });
     }
@@ -1941,12 +1977,21 @@ function savePortfolioToSheets(studentId, portfolio) {
   if (s10) {
     deleteRow(s10, "StudentID", studentId);
     var kls = portfolio.keyLearnings || [];
+    var p10Headers = ["StudentID", "RecordType", "ReflectionCourse", "ReflectionKeyLearning", "ReflectionApplication", "ReflectionAcademicGrowth", "ReflectionResearchIdentity", "ReflectionChallengesResilience", "ReflectionTransformation", "LastUpdated"];
     for (var i = 0; i < kls.length; i++) {
       var kl = kls[i];
-      appendObjectAsRow(s10, ["StudentID", "ReflectionCourse", "ReflectionKeyLearning", "ReflectionApplication", "LastUpdated"], {
-        StudentID: studentId, ReflectionCourse: kl.course, ReflectionKeyLearning: kl.keyLearning, ReflectionApplication: kl.application, LastUpdated: nowStr
+      appendObjectAsRow(s10, p10Headers, {
+        StudentID: studentId, RecordType: "KEY_LEARNING", ReflectionCourse: kl.course, ReflectionKeyLearning: kl.keyLearning, ReflectionApplication: kl.application, LastUpdated: nowStr
       });
     }
+    appendObjectAsRow(s10, p10Headers, {
+      StudentID: studentId, RecordType: "GENERAL",
+      ReflectionAcademicGrowth: portfolio.reflectionAcademicGrowth || "",
+      ReflectionResearchIdentity: portfolio.reflectionResearchIdentity || "",
+      ReflectionChallengesResilience: portfolio.reflectionChallengesResilience || "",
+      ReflectionTransformation: portfolio.reflectionTransformation || "",
+      LastUpdated: nowStr
+    });
   }
 
   // 11. Supporting Evidence
@@ -1956,8 +2001,14 @@ function savePortfolioToSheets(studentId, portfolio) {
     var files = portfolio.supportingFiles || [];
     for (var i = 0; i < files.length; i++) {
       var f = files[i];
-      appendObjectAsRow(s11, ["StudentID", "FileName", "FileUrl", "LastUpdated"], {
-        StudentID: studentId, FileName: f.name, FileUrl: f.url, LastUpdated: nowStr
+      appendObjectAsRow(s11, ["StudentID", "FileName", "FileUrl", "FileTitle", "FileDate", "FileDescription", "LastUpdated"], {
+        StudentID: studentId,
+        FileName: f.name || "",
+        FileUrl: f.url || "",
+        FileTitle: f.title || "",
+        FileDate: f.date ? formatDate(f.date) : "",
+        FileDescription: f.description || "",
+        LastUpdated: nowStr
       });
     }
   }

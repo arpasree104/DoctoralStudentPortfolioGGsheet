@@ -10,7 +10,7 @@ import FileUploader from './FileUploader';
 import DatePickerField from './DatePickerField';
 import {
   BookOpen, Award, CheckCircle, Clock, Save, Plus, Trash2, Calendar,
-  ChevronRight, Compass, HelpCircle, Star, Heart, FileText, Check, AlertCircle, Sparkles, Info
+  ChevronRight, Compass, HelpCircle, Star, Heart, FileText, Check, AlertCircle, Sparkles, Info, Paperclip
 } from 'lucide-react';
 
 interface EditPortfolioProps {
@@ -147,6 +147,74 @@ export default function EditPortfolio({
     setFormData({
       ...formData,
       advisorMeetings: [...formData.advisorMeetings, { date: '', persons: '', issues: '', actionPoints: '' }]
+    });
+  };
+
+  const [newFileMeta, setNewFileMeta] = React.useState({ title: '', date: '', description: '' });
+
+  const addConferencePresentation = () => {
+    setFormData({
+      ...formData,
+      conferencePresentations: [...(formData.conferencePresentations || []), { date: '', title: '', conference: '', type: 'Oral', venue: '' }]
+    });
+  };
+
+  const addManuscript = () => {
+    setFormData({
+      ...formData,
+      manuscripts: [...(formData.manuscripts || []), { title: '', journal: '', stage: 'Drafting', plannedSubmission: '' }]
+    });
+  };
+
+  const addGrant = () => {
+    setFormData({
+      ...formData,
+      grants: [...(formData.grants || []), { title: '', source: '', role: 'Principal Investigator', amount: '', period: '' }]
+    });
+  };
+
+  const addAward = () => {
+    setFormData({
+      ...formData,
+      awards: [...(formData.awards || []), { date: '', award: '', organizer: '', description: '' }]
+    });
+  };
+
+  const addTeachingExperience = () => {
+    setFormData({
+      ...formData,
+      teachingExperiences: [...(formData.teachingExperiences || []), { semester: '', course: '', role: '', studentLevel: 'Undergraduate', description: '' }]
+    });
+  };
+
+  const addSupervision = () => {
+    setFormData({
+      ...formData,
+      supervisions: [...(formData.supervisions || []), { date: '', type: 'Thesis Mentoring', studentLevel: 'Undergraduate', description: '' }]
+    });
+  };
+
+  const addAcademicService = () => {
+    setFormData({
+      ...formData,
+      academicServices: [...(formData.academicServices || []), { date: '', activity: '', role: '', organization: '' }]
+    });
+  };
+
+  const addLeadership = () => {
+    setFormData({
+      ...formData,
+      leaderships: [...(formData.leaderships || []), { date: '', role: '', organization: '', responsibilities: '' }]
+    });
+  };
+
+  const addActionPlan = () => {
+    setFormData({
+      ...formData,
+      annualReview: {
+        ...formData.annualReview,
+        actionPlans: [...(formData.annualReview.actionPlans || []), { goal: '', steps: '', timeline: '', support: '' }]
+      }
     });
   };
 
@@ -1854,74 +1922,438 @@ export default function EditPortfolio({
         {/* SECTION 7: Scholarly Output (Publications) */}
         {/* ------------------------------------------------------------- */}
         {activeSection === 7 && (
-          <div className="space-y-6 text-xs text-gray-700">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-gray-700">7.2 Peer-Reviewed Journal Publications</h3>
-              <button
-                onClick={addPublication}
-                className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 hover:bg-red-50 hover:text-tu-red text-gray-600 rounded-lg text-xs font-semibold transition cursor-pointer"
-              >
-                <Plus size={12} />
-                Add Publication Row
-              </button>
+          <div className="space-y-8 text-xs text-gray-700">
+            {/* 7.1 Conference Presentations */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-gray-700">7.1 Conference Presentations</h3>
+                <button
+                  onClick={addConferencePresentation}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 hover:bg-red-50 hover:text-tu-red text-gray-600 rounded-lg text-xs font-semibold transition cursor-pointer"
+                >
+                  <Plus size={12} />
+                  Add Presentation
+                </button>
+              </div>
+
+              {(formData.conferencePresentations || []).map((conf, idx) => (
+                <div key={idx} className="p-4 bg-gray-50 rounded-xl border border-gray-100 relative grid grid-cols-1 sm:grid-cols-5 gap-4">
+                  <button
+                    onClick={() => {
+                      const updated = formData.conferencePresentations.filter((_, i) => i !== idx);
+                      setFormData({ ...formData, conferencePresentations: updated });
+                    }}
+                    className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition cursor-pointer"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Date</label>
+                    <DatePickerField
+                      value={conf.date}
+                      onChange={val => {
+                        const updated = [...formData.conferencePresentations];
+                        updated[idx].date = val;
+                        setFormData({ ...formData, conferencePresentations: updated });
+                      }}
+                      className="!py-1.5"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Presentation Title</label>
+                    <input
+                      type="text"
+                      value={conf.title}
+                      placeholder="e.g., Quality of Life in Older Adults..."
+                      onChange={e => {
+                        const updated = [...formData.conferencePresentations];
+                        updated[idx].title = e.target.value;
+                        setFormData({ ...formData, conferencePresentations: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Conference Name</label>
+                    <input
+                      type="text"
+                      value={conf.conference}
+                      placeholder="e.g., International Nursing Congress 2025"
+                      onChange={e => {
+                        const updated = [...formData.conferencePresentations];
+                        updated[idx].conference = e.target.value;
+                        setFormData({ ...formData, conferencePresentations: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Type / Venue</label>
+                    <div className="flex gap-2">
+                      <select
+                        value={conf.type}
+                        onChange={e => {
+                          const updated = [...formData.conferencePresentations];
+                          updated[idx].type = e.target.value;
+                          setFormData({ ...formData, conferencePresentations: updated });
+                        }}
+                        className="px-2 py-1.5 bg-white border border-gray-200 rounded text-xs"
+                      >
+                        <option value="Oral">Oral</option>
+                        <option value="Poster">Poster</option>
+                        <option value="Keynote">Keynote</option>
+                      </select>
+                      <input
+                        type="text"
+                        value={conf.venue}
+                        placeholder="e.g., Bangkok"
+                        onChange={e => {
+                          const updated = [...formData.conferencePresentations];
+                          updated[idx].venue = e.target.value;
+                          setFormData({ ...formData, conferencePresentations: updated });
+                        }}
+                        className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
 
-            {formData.publications.map((pub, idx) => (
-              <div key={idx} className="p-4 bg-gray-50 rounded-xl border border-gray-100 relative grid grid-cols-1 sm:grid-cols-4 gap-4">
+            {/* 7.2 Peer-Reviewed Journal Publications */}
+            <div className="space-y-4 border-t border-gray-100 pt-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-gray-700">7.2 Peer-Reviewed Journal Publications</h3>
                 <button
-                  onClick={() => {
-                    const updated = formData.publications.filter((_, i) => i !== idx);
-                    setFormData({ ...formData, publications: updated });
-                  }}
-                  className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition cursor-pointer"
+                  onClick={addPublication}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 hover:bg-red-50 hover:text-tu-red text-gray-600 rounded-lg text-xs font-semibold transition cursor-pointer"
                 >
-                  <Trash2 size={14} />
+                  <Plus size={12} />
+                  Add Publication
                 </button>
-
-                <div>
-                  <label className="text-[10px] font-bold text-gray-400 block mb-1">Publication Year</label>
-                  <input
-                    type="text"
-                    value={pub.year}
-                    placeholder="e.g., 2025"
-                    onChange={e => {
-                      const updated = [...formData.publications];
-                      updated[idx].year = e.target.value;
-                      setFormData({ ...formData, publications: updated });
-                    }}
-                    className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-mono"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="text-[10px] font-bold text-gray-400 block mb-1">Article/Paper Title</label>
-                  <input
-                    type="text"
-                    value={pub.title}
-                    placeholder="e.g., Psychometric Evaluation of Nursing Practices..."
-                    onChange={e => {
-                      const updated = [...formData.publications];
-                      updated[idx].title = e.target.value;
-                      setFormData({ ...formData, publications: updated });
-                    }}
-                    className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-gray-400 block mb-1">Journal Name / DOI URL link</label>
-                  <input
-                    type="text"
-                    value={pub.journal}
-                    placeholder="e.g., Journal of Nursing Science / https://doi.org/10..."
-                    onChange={e => {
-                      const updated = [...formData.publications];
-                      updated[idx].journal = e.target.value;
-                      setFormData({ ...formData, publications: updated });
-                    }}
-                    className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
-                  />
-                </div>
               </div>
-            ))}
+
+              {(formData.publications || []).map((pub, idx) => (
+                <div key={idx} className="p-4 bg-gray-50 rounded-xl border border-gray-100 relative grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  <button
+                    onClick={() => {
+                      const updated = formData.publications.filter((_, i) => i !== idx);
+                      setFormData({ ...formData, publications: updated });
+                    }}
+                    className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition cursor-pointer"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Publication Year</label>
+                    <input
+                      type="text"
+                      value={pub.year}
+                      placeholder="e.g., 2025"
+                      onChange={e => {
+                        const updated = [...formData.publications];
+                        updated[idx].year = e.target.value;
+                        setFormData({ ...formData, publications: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-mono"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Article/Paper Title</label>
+                    <input
+                      type="text"
+                      value={pub.title}
+                      placeholder="e.g., Psychometric Evaluation of Nursing Practices..."
+                      onChange={e => {
+                        const updated = [...formData.publications];
+                        updated[idx].title = e.target.value;
+                        setFormData({ ...formData, publications: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Journal Name / DOI link</label>
+                    <input
+                      type="text"
+                      value={pub.journal}
+                      placeholder="e.g., Journal of Nursing Science / https://doi.org/10..."
+                      onChange={e => {
+                        const updated = [...formData.publications];
+                        updated[idx].journal = e.target.value;
+                        setFormData({ ...formData, publications: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 7.3 Manuscripts in Preparation */}
+            <div className="space-y-4 border-t border-gray-100 pt-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-gray-700">7.3 Manuscripts in Preparation</h3>
+                <button
+                  onClick={addManuscript}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 hover:bg-red-50 hover:text-tu-red text-gray-600 rounded-lg text-xs font-semibold transition cursor-pointer"
+                >
+                  <Plus size={12} />
+                  Add Manuscript
+                </button>
+              </div>
+
+              {(formData.manuscripts || []).map((msc, idx) => (
+                <div key={idx} className="p-4 bg-gray-50 rounded-xl border border-gray-100 relative grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  <button
+                    onClick={() => {
+                      const updated = formData.manuscripts.filter((_, i) => i !== idx);
+                      setFormData({ ...formData, manuscripts: updated });
+                    }}
+                    className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition cursor-pointer"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+
+                  <div className="sm:col-span-2">
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Working Title</label>
+                    <input
+                      type="text"
+                      value={msc.title}
+                      placeholder="e.g., Determinants of Healthy Aging..."
+                      onChange={e => {
+                        const updated = [...formData.manuscripts];
+                        updated[idx].title = e.target.value;
+                        setFormData({ ...formData, manuscripts: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Target Journal</label>
+                    <input
+                      type="text"
+                      value={msc.journal}
+                      placeholder="e.g., International Journal of Nursing Studies"
+                      onChange={e => {
+                        const updated = [...formData.manuscripts];
+                        updated[idx].journal = e.target.value;
+                        setFormData({ ...formData, manuscripts: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Stage & Planned Submission Date</label>
+                    <div className="flex gap-2">
+                      <select
+                        value={msc.stage}
+                        onChange={e => {
+                          const updated = [...formData.manuscripts];
+                          updated[idx].stage = e.target.value;
+                          setFormData({ ...formData, manuscripts: updated });
+                        }}
+                        className="px-2 py-1.5 bg-white border border-gray-200 rounded text-xs"
+                      >
+                        <option value="Drafting">Drafting</option>
+                        <option value="Reviewing">Reviewing</option>
+                        <option value="Ready">Ready</option>
+                        <option value="Submitted">Submitted</option>
+                      </select>
+                      <DatePickerField
+                        value={msc.plannedSubmission}
+                        onChange={val => {
+                          const updated = [...formData.manuscripts];
+                          updated[idx].plannedSubmission = val;
+                          setFormData({ ...formData, manuscripts: updated });
+                        }}
+                        className="!py-1.5"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 7.4 Research Grants and Funding */}
+            <div className="space-y-4 border-t border-gray-100 pt-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-gray-700">7.4 Research Grants and Funding</h3>
+                <button
+                  onClick={addGrant}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 hover:bg-red-50 hover:text-tu-red text-gray-600 rounded-lg text-xs font-semibold transition cursor-pointer"
+                >
+                  <Plus size={12} />
+                  Add Grant
+                </button>
+              </div>
+
+              {(formData.grants || []).map((gr, idx) => (
+                <div key={idx} className="p-4 bg-gray-50 rounded-xl border border-gray-100 relative grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  <button
+                    onClick={() => {
+                      const updated = formData.grants.filter((_, i) => i !== idx);
+                      setFormData({ ...formData, grants: updated });
+                    }}
+                    className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition cursor-pointer"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+
+                  <div className="sm:col-span-2">
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Grant Title / Project Name</label>
+                    <input
+                      type="text"
+                      value={gr.title}
+                      placeholder="e.g., Healthcare Innovations in Remote Areas..."
+                      onChange={e => {
+                        const updated = [...formData.grants];
+                        updated[idx].title = e.target.value;
+                        setFormData({ ...formData, grants: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Funding Source / Sponsor</label>
+                    <input
+                      type="text"
+                      value={gr.source}
+                      placeholder="e.g., National Research Council of Thailand"
+                      onChange={e => {
+                        const updated = [...formData.grants];
+                        updated[idx].source = e.target.value;
+                        setFormData({ ...formData, grants: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Role / Budget / Period</label>
+                    <div className="grid grid-cols-3 gap-1">
+                      <input
+                        type="text"
+                        value={gr.role}
+                        placeholder="e.g., Researcher"
+                        onChange={e => {
+                          const updated = [...formData.grants];
+                          updated[idx].role = e.target.value;
+                          setFormData({ ...formData, grants: updated });
+                        }}
+                        className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded text-xs"
+                      />
+                      <input
+                        type="text"
+                        value={gr.amount}
+                        placeholder="e.g., 100,000 THB"
+                        onChange={e => {
+                          const updated = [...formData.grants];
+                          updated[idx].amount = e.target.value;
+                          setFormData({ ...formData, grants: updated });
+                        }}
+                        className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded text-xs"
+                      />
+                      <input
+                        type="text"
+                        value={gr.period}
+                        placeholder="e.g., 2025-2026"
+                        onChange={e => {
+                          const updated = [...formData.grants];
+                          updated[idx].period = e.target.value;
+                          setFormData({ ...formData, grants: updated });
+                        }}
+                        className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 7.5 Awards and Recognition */}
+            <div className="space-y-4 border-t border-gray-100 pt-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-gray-700">7.5 Awards and Recognition</h3>
+                <button
+                  onClick={addAward}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 hover:bg-red-50 hover:text-tu-red text-gray-600 rounded-lg text-xs font-semibold transition cursor-pointer"
+                >
+                  <Plus size={12} />
+                  Add Award
+                </button>
+              </div>
+
+              {(formData.awards || []).map((aw, idx) => (
+                <div key={idx} className="p-4 bg-gray-50 rounded-xl border border-gray-100 relative grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  <button
+                    onClick={() => {
+                      const updated = formData.awards.filter((_, i) => i !== idx);
+                      setFormData({ ...formData, awards: updated });
+                    }}
+                    className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition cursor-pointer"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Award Date</label>
+                    <DatePickerField
+                      value={aw.date}
+                      onChange={val => {
+                        const updated = [...formData.awards];
+                        updated[idx].date = val;
+                        setFormData({ ...formData, awards: updated });
+                      }}
+                      className="!py-1.5"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Award / Honor Name</label>
+                    <input
+                      type="text"
+                      value={aw.award}
+                      placeholder="e.g., Outstanding Student Presenter"
+                      onChange={e => {
+                        const updated = [...formData.awards];
+                        updated[idx].award = e.target.value;
+                        setFormData({ ...formData, awards: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Award Organizer / Institution</label>
+                    <input
+                      type="text"
+                      value={aw.organizer}
+                      placeholder="e.g., Faculty of Nursing, TU"
+                      onChange={e => {
+                        const updated = [...formData.awards];
+                        updated[idx].organizer = e.target.value;
+                        setFormData({ ...formData, awards: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Brief Description</label>
+                    <input
+                      type="text"
+                      value={aw.description}
+                      placeholder="e.g., Awarded for highest rated poster presentation..."
+                      onChange={e => {
+                        const updated = [...formData.awards];
+                        updated[idx].description = e.target.value;
+                        setFormData({ ...formData, awards: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -1974,6 +2406,711 @@ export default function EditPortfolio({
         )}
 
         {/* ------------------------------------------------------------- */}
+        {/* SECTION 8: Teaching & Academic Service */}
+        {/* ------------------------------------------------------------- */}
+        {activeSection === 8 && (
+          <div className="space-y-8 text-xs text-gray-700">
+            {/* 8.1 Teaching Experience */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-gray-700">8.1 Teaching Experience</h3>
+                <button
+                  onClick={addTeachingExperience}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 hover:bg-red-50 hover:text-tu-red text-gray-600 rounded-lg text-xs font-semibold transition cursor-pointer"
+                >
+                  <Plus size={12} />
+                  Add Teaching
+                </button>
+              </div>
+
+              {(formData.teachingExperiences || []).map((tch, idx) => (
+                <div key={idx} className="p-4 bg-gray-50 rounded-xl border border-gray-100 relative grid grid-cols-1 sm:grid-cols-5 gap-4">
+                  <button
+                    onClick={() => {
+                      const updated = formData.teachingExperiences.filter((_, i) => i !== idx);
+                      setFormData({ ...formData, teachingExperiences: updated });
+                    }}
+                    className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition cursor-pointer"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Semester / Year</label>
+                    <input
+                      type="text"
+                      value={tch.semester}
+                      placeholder="e.g., 1/2025"
+                      onChange={e => {
+                        const updated = [...formData.teachingExperiences];
+                        updated[idx].semester = e.target.value;
+                        setFormData({ ...formData, teachingExperiences: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-mono"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Course Name / Topic</label>
+                    <input
+                      type="text"
+                      value={tch.course}
+                      placeholder="e.g., Fundamentals of Nursing"
+                      onChange={e => {
+                        const updated = [...formData.teachingExperiences];
+                        updated[idx].course = e.target.value;
+                        setFormData({ ...formData, teachingExperiences: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Role & Student Level</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={tch.role}
+                        placeholder="e.g., Assist Lecturer"
+                        onChange={e => {
+                          const updated = [...formData.teachingExperiences];
+                          updated[idx].role = e.target.value;
+                          setFormData({ ...formData, teachingExperiences: updated });
+                        }}
+                        className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded text-xs"
+                      />
+                      <select
+                        value={tch.studentLevel}
+                        onChange={e => {
+                          const updated = [...formData.teachingExperiences];
+                          updated[idx].studentLevel = e.target.value;
+                          setFormData({ ...formData, teachingExperiences: updated });
+                        }}
+                        className="px-2 py-1.5 bg-white border border-gray-200 rounded text-xs cursor-pointer"
+                      >
+                        <option value="Undergraduate">Undergraduate</option>
+                        <option value="Master">Master</option>
+                        <option value="Doctoral">Doctoral</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Task Description</label>
+                    <input
+                      type="text"
+                      value={tch.description}
+                      placeholder="e.g., Prepared lesson plans & graded quizzes"
+                      onChange={e => {
+                        const updated = [...formData.teachingExperiences];
+                        updated[idx].description = e.target.value;
+                        setFormData({ ...formData, teachingExperiences: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 8.2 Student Supervision or Mentoring */}
+            <div className="space-y-4 border-t border-gray-100 pt-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-gray-700">8.2 Student Supervision or Mentoring</h3>
+                <button
+                  onClick={addSupervision}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 hover:bg-red-50 hover:text-tu-red text-gray-600 rounded-lg text-xs font-semibold transition cursor-pointer"
+                >
+                  <Plus size={12} />
+                  Add Supervision
+                </button>
+              </div>
+
+              {(formData.supervisions || []).map((sup, idx) => (
+                <div key={idx} className="p-4 bg-gray-50 rounded-xl border border-gray-100 relative grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  <button
+                    onClick={() => {
+                      const updated = formData.supervisions.filter((_, i) => i !== idx);
+                      setFormData({ ...formData, supervisions: updated });
+                    }}
+                    className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition cursor-pointer"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Date</label>
+                    <DatePickerField
+                      value={sup.date}
+                      onChange={val => {
+                        const updated = [...formData.supervisions];
+                        updated[idx].date = val;
+                        setFormData({ ...formData, supervisions: updated });
+                      }}
+                      className="!py-1.5"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Type of Mentoring</label>
+                    <input
+                      type="text"
+                      value={sup.type}
+                      placeholder="e.g., Thesis Co-Advising"
+                      onChange={e => {
+                        const updated = [...formData.supervisions];
+                        updated[idx].type = e.target.value;
+                        setFormData({ ...formData, supervisions: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Student Level</label>
+                    <select
+                      value={sup.studentLevel}
+                      onChange={e => {
+                        const updated = [...formData.supervisions];
+                        updated[idx].studentLevel = e.target.value;
+                        setFormData({ ...formData, supervisions: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs cursor-pointer"
+                    >
+                      <option value="Undergraduate">Undergraduate</option>
+                      <option value="Master">Master</option>
+                      <option value="Doctoral">Doctoral</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Description / Details</label>
+                    <input
+                      type="text"
+                      value={sup.description}
+                      placeholder="e.g., Mentored 3 students on research tools"
+                      onChange={e => {
+                        const updated = [...formData.supervisions];
+                        updated[idx].description = e.target.value;
+                        setFormData({ ...formData, supervisions: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 8.3 Academic and Professional Service */}
+            <div className="space-y-4 border-t border-gray-100 pt-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-gray-700">8.3 Academic and Professional Service</h3>
+                <button
+                  onClick={addAcademicService}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 hover:bg-red-50 hover:text-tu-red text-gray-600 rounded-lg text-xs font-semibold transition cursor-pointer"
+                >
+                  <Plus size={12} />
+                  Add Service
+                </button>
+              </div>
+
+              {(formData.academicServices || []).map((srv, idx) => (
+                <div key={idx} className="p-4 bg-gray-50 rounded-xl border border-gray-100 relative grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  <button
+                    onClick={() => {
+                      const updated = formData.academicServices.filter((_, i) => i !== idx);
+                      setFormData({ ...formData, academicServices: updated });
+                    }}
+                    className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition cursor-pointer"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Date</label>
+                    <DatePickerField
+                      value={srv.date}
+                      onChange={val => {
+                        const updated = [...formData.academicServices];
+                        updated[idx].date = val;
+                        setFormData({ ...formData, academicServices: updated });
+                      }}
+                      className="!py-1.5"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Service Activity</label>
+                    <input
+                      type="text"
+                      value={srv.activity}
+                      placeholder="e.g., Peer review for TU Journal of Nursing"
+                      onChange={e => {
+                        const updated = [...formData.academicServices];
+                        updated[idx].activity = e.target.value;
+                        setFormData({ ...formData, academicServices: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Role / Organization</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={srv.role}
+                        placeholder="e.g., Reviewer"
+                        onChange={e => {
+                          const updated = [...formData.academicServices];
+                          updated[idx].role = e.target.value;
+                          setFormData({ ...formData, academicServices: updated });
+                        }}
+                        className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded text-xs"
+                      />
+                      <input
+                        type="text"
+                        value={srv.organization}
+                        placeholder="e.g., Thammasat Univ."
+                        onChange={e => {
+                          const updated = [...formData.academicServices];
+                          updated[idx].organization = e.target.value;
+                          setFormData({ ...formData, academicServices: updated });
+                        }}
+                        className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ------------------------------------------------------------- */}
+        {/* SECTION 9: Leadership & Networking */}
+        {/* ------------------------------------------------------------- */}
+        {activeSection === 9 && (
+          <div className="space-y-6 text-xs text-gray-700">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-gray-700">9.1 Leadership & Professional Networking</h3>
+              <button
+                onClick={addLeadership}
+                className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 hover:bg-red-50 hover:text-tu-red text-gray-600 rounded-lg text-xs font-semibold transition cursor-pointer"
+              >
+                <Plus size={12} />
+                Add Leadership Activity
+              </button>
+            </div>
+
+            {(formData.leaderships || []).map((ldr, idx) => (
+              <div key={idx} className="p-4 bg-gray-50 rounded-xl border border-gray-100 relative grid grid-cols-1 sm:grid-cols-4 gap-4">
+                <button
+                  onClick={() => {
+                    const updated = formData.leaderships.filter((_, i) => i !== idx);
+                    setFormData({ ...formData, leaderships: updated });
+                  }}
+                  className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition cursor-pointer"
+                >
+                  <Trash2 size={14} />
+                </button>
+
+                <div>
+                  <label className="text-[10px] font-bold text-gray-400 block mb-1">Date</label>
+                  <DatePickerField
+                    value={ldr.date}
+                    onChange={val => {
+                      const updated = [...formData.leaderships];
+                      updated[idx].date = val;
+                      setFormData({ ...formData, leaderships: updated });
+                    }}
+                    className="!py-1.5"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-400 block mb-1">Role / Position</label>
+                  <input
+                    type="text"
+                    value={ldr.role}
+                    placeholder="e.g., President of Nursing PhD Student Association"
+                    onChange={e => {
+                      const updated = [...formData.leaderships];
+                      updated[idx].role = e.target.value;
+                      setFormData({ ...formData, leaderships: updated });
+                    }}
+                    className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-400 block mb-1">Organization / Context</label>
+                  <input
+                    type="text"
+                    value={ldr.organization}
+                    placeholder="e.g., Faculty of Nursing, TU"
+                    onChange={e => {
+                      const updated = [...formData.leaderships];
+                      updated[idx].organization = e.target.value;
+                      setFormData({ ...formData, leaderships: updated });
+                    }}
+                    className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-400 block mb-1">Key Responsibilities / Outcomes</label>
+                  <input
+                    type="text"
+                    value={ldr.responsibilities}
+                    placeholder="e.g., Managed international research symposium with 120 attendees"
+                    onChange={e => {
+                      const updated = [...formData.leaderships];
+                      updated[idx].responsibilities = e.target.value;
+                      setFormData({ ...formData, leaderships: updated });
+                    }}
+                    className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ------------------------------------------------------------- */}
+        {/* SECTION 10: Reflective Practice */}
+        {/* ------------------------------------------------------------- */}
+        {activeSection === 10 && (
+          <div className="space-y-8 text-xs text-gray-700">
+            {/* 10.1 Key Learnings and Reflections from Coursework */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-gray-700">Coursework Key Learnings</h3>
+                <button
+                  onClick={addKeyLearning}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 hover:bg-red-50 hover:text-tu-red text-gray-600 rounded-lg text-xs font-semibold transition cursor-pointer"
+                >
+                  <Plus size={12} />
+                  Add Course Reflection
+                </button>
+              </div>
+
+              {(formData.keyLearnings || []).map((kl, idx) => (
+                <div key={idx} className="p-4 bg-gray-50 rounded-xl border border-gray-100 relative grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <button
+                    onClick={() => {
+                      const updated = formData.keyLearnings.filter((_, i) => i !== idx);
+                      setFormData({ ...formData, keyLearnings: updated });
+                    }}
+                    className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition cursor-pointer"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Course Code & Name</label>
+                    <input
+                      type="text"
+                      value={kl.course}
+                      placeholder="e.g., NS811 Theory Development"
+                      onChange={e => {
+                        const updated = [...formData.keyLearnings];
+                        updated[idx].course = e.target.value;
+                        setFormData({ ...formData, keyLearnings: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-800"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Key Learning Takeaway</label>
+                    <textarea
+                      rows={2}
+                      value={kl.keyLearning}
+                      placeholder="Discuss advanced paradigms, structural theories..."
+                      onChange={e => {
+                        const updated = [...formData.keyLearnings];
+                        updated[idx].keyLearning = e.target.value;
+                        setFormData({ ...formData, keyLearnings: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Practical Application in Dissertation</label>
+                    <textarea
+                      rows={2}
+                      value={kl.application}
+                      placeholder="How this applies directly to your theoretical framework..."
+                      onChange={e => {
+                        const updated = [...formData.keyLearnings];
+                        updated[idx].application = e.target.value;
+                        setFormData({ ...formData, keyLearnings: updated });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* General Reflections */}
+            <div className="space-y-6 border-t border-gray-100 pt-6">
+              <h3 className="text-sm font-bold text-gray-700">General Reflective Growth</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-gray-700 block mb-1">10.1 Reflection on Academic Growth</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Discuss your transformation as an academic, new concepts mastered..."
+                    value={formData.reflectionAcademicGrowth}
+                    onChange={e => setFormData({ ...formData, reflectionAcademicGrowth: e.target.value })}
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-700 block mb-1">10.2 Reflection on Research Identity</label>
+                  <textarea
+                    rows={3}
+                    placeholder="How do you view your role as a researcher in your specialized nursing field..."
+                    value={formData.reflectionResearchIdentity}
+                    onChange={e => setFormData({ ...formData, reflectionResearchIdentity: e.target.value })}
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-700 block mb-1">10.3 Reflection on Challenges and Resilience</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Detail obstacles faced during coursework, research or qualifying exams, and how you overcame them..."
+                    value={formData.reflectionChallengesResilience}
+                    onChange={e => setFormData({ ...formData, reflectionChallengesResilience: e.target.value })}
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-700 block mb-1">10.4 Reflection on Professional and Personal Transformation</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Reflect on your development of leadership, empathy, ethical perspective, and global nursing standards..."
+                    value={formData.reflectionTransformation}
+                    onChange={e => setFormData({ ...formData, reflectionTransformation: e.target.value })}
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ------------------------------------------------------------- */}
+        {/* SECTION 13: Annual Review Summary */}
+        {/* ------------------------------------------------------------- */}
+        {activeSection === 13 && (
+          <div className="space-y-8 text-xs text-gray-700">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-bold text-gray-700 block mb-1">13.1 Key Achievements during the Past Year</label>
+                <textarea
+                  rows={4}
+                  placeholder="Summarize milestones achieved, publications accepted, English cleared, etc..."
+                  value={formData.annualReview?.achievements || ''}
+                  onChange={e => setFormData({
+                    ...formData,
+                    annualReview: {
+                      ...(formData.annualReview || { achievements: '', improvements: '', actionPlans: [] }),
+                      achievements: e.target.value
+                    }
+                  })}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-700 block mb-1">13.2 Areas Needing Development or Improvement</label>
+                <textarea
+                  rows={4}
+                  placeholder="Identify competencies, writing speed, statistical skills needing more practice..."
+                  value={formData.annualReview?.improvements || ''}
+                  onChange={e => setFormData({
+                    ...formData,
+                    annualReview: {
+                      ...(formData.annualReview || { achievements: '', improvements: '', actionPlans: [] }),
+                      improvements: e.target.value
+                    }
+                  })}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4 border-t border-gray-100 pt-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-gray-700">13.3 Action Plan for the Upcoming Academic Year</h3>
+                <button
+                  onClick={addActionPlan}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 hover:bg-red-50 hover:text-tu-red text-gray-600 rounded-lg text-xs font-semibold transition cursor-pointer"
+                >
+                  <Plus size={12} />
+                  Add Plan Row
+                </button>
+              </div>
+
+              {(formData.annualReview?.actionPlans || []).map((plan, idx) => (
+                <div key={idx} className="p-4 bg-gray-50 rounded-xl border border-gray-100 relative grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  <button
+                    onClick={() => {
+                      const updatedPlans = (formData.annualReview.actionPlans || []).filter((_, i) => i !== idx);
+                      setFormData({
+                        ...formData,
+                        annualReview: {
+                          ...formData.annualReview,
+                          actionPlans: updatedPlans
+                        }
+                      });
+                    }}
+                    className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition cursor-pointer"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Development Goal</label>
+                    <input
+                      type="text"
+                      value={plan.goal}
+                      placeholder="e.g., Submit Scopus Manuscript"
+                      onChange={e => {
+                        const updated = [...(formData.annualReview.actionPlans || [])];
+                        updated[idx].goal = e.target.value;
+                        setFormData({
+                          ...formData,
+                          annualReview: {
+                            ...formData.annualReview,
+                            actionPlans: updated
+                          }
+                        });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Action Steps</label>
+                    <input
+                      type="text"
+                      value={plan.steps}
+                      placeholder="e.g., Run stats, draft discussion, edit language"
+                      onChange={e => {
+                        const updated = [...(formData.annualReview.actionPlans || [])];
+                        updated[idx].steps = e.target.value;
+                        setFormData({
+                          ...formData,
+                          annualReview: {
+                            ...formData.annualReview,
+                            actionPlans: updated
+                          }
+                        });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Timeline</label>
+                    <input
+                      type="text"
+                      value={plan.timeline}
+                      placeholder="e.g., Oct 2025 - Dec 2025"
+                      onChange={e => {
+                        const updated = [...(formData.annualReview.actionPlans || [])];
+                        updated[idx].timeline = e.target.value;
+                        setFormData({
+                          ...formData,
+                          annualReview: {
+                            ...formData.annualReview,
+                            actionPlans: updated
+                          }
+                        });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 block mb-1">Required Support / Resources</label>
+                    <input
+                      type="text"
+                      value={plan.support}
+                      placeholder="e.g., Advisor feedback, stats software license"
+                      onChange={e => {
+                        const updated = [...(formData.annualReview.actionPlans || [])];
+                        updated[idx].support = e.target.value;
+                        setFormData({
+                          ...formData,
+                          annualReview: {
+                            ...formData.annualReview,
+                            actionPlans: updated
+                          }
+                        });
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ------------------------------------------------------------- */}
+        {/* SECTION 14: Future Career Plan */}
+        {/* ------------------------------------------------------------- */}
+        {activeSection === 14 && (
+          <div className="space-y-6 text-xs text-gray-700">
+            <h3 className="text-sm font-bold text-gray-700">Future Career Plan After Graduation</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-gray-700 block mb-1">14.1 Short-Term Career Goals (1-2 Years Post-Graduation)</label>
+                <textarea
+                  rows={3}
+                  placeholder="e.g., Apply for assistant professor position, publish final dissertation papers..."
+                  value={formData.futureCareer?.shortTerm || ''}
+                  onChange={e => setFormData({
+                    ...formData,
+                    futureCareer: {
+                      ...(formData.futureCareer || { shortTerm: '', longTerm: '', preparation: '' }),
+                      shortTerm: e.target.value
+                    }
+                  })}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-700 block mb-1">14.2 Long-Term Career Aspirations (3-5 Years Post-Graduation)</label>
+                <textarea
+                  rows={3}
+                  placeholder="e.g., Lead an independent nurse-led clinic research group, establish international collaboration..."
+                  value={formData.futureCareer?.longTerm || ''}
+                  onChange={e => setFormData({
+                    ...formData,
+                    futureCareer: {
+                      ...(formData.futureCareer || { shortTerm: '', longTerm: '', preparation: '' }),
+                      longTerm: e.target.value
+                    }
+                  })}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-700 block mb-1">14.3 Preparation Needed to Achieve Future Goals</label>
+                <textarea
+                  rows={3}
+                  placeholder="Detail skills, postdoctoral training, professional credentials, or network expansions required..."
+                  value={formData.futureCareer?.preparation || ''}
+                  onChange={e => setFormData({
+                    ...formData,
+                    futureCareer: {
+                      ...(formData.futureCareer || { shortTerm: '', longTerm: '', preparation: '' }),
+                      preparation: e.target.value
+                    }
+                  })}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ------------------------------------------------------------- */}
         {/* SECTION 15 & 16: Advisor Comments & Sign-off */}
         {/* ------------------------------------------------------------- */}
         {activeSection === 15 && (
@@ -2004,20 +3141,122 @@ export default function EditPortfolio({
             </div>
 
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs space-y-4">
-              <label className="text-xs font-semibold text-gray-500 block">Attach Supporting Files</label>
-              <FileUploader
-                studentId={currentUser.StudentID || '6601010024'}
-                studentName={currentUser.FullName || 'Student'}
-                uploaderId={currentUser.StudentID || '6601010024'}
-                uploaderRole="student"
-                files={formData.supportingFiles || []}
-                onChange={(files) => {
-                  setFormData({
-                    ...formData,
-                    supportingFiles: files
-                  });
-                }}
-              />
+              <h4 className="font-bold text-xs text-gray-800">Add New Supporting Document</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-400 block mb-1 uppercase">Document Title</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Thesis Proposal Draft"
+                    value={newFileMeta.title}
+                    onChange={e => setNewFileMeta({ ...newFileMeta, title: e.target.value })}
+                    className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-400 block mb-1 uppercase">Date</label>
+                  <DatePickerField
+                    value={newFileMeta.date}
+                    onChange={val => setNewFileMeta({ ...newFileMeta, date: val })}
+                    className="!py-1.5"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="text-[10px] font-bold text-gray-400 block mb-1 uppercase">Description</label>
+                  <textarea
+                    placeholder="Provide a brief description of the document..."
+                    value={newFileMeta.description}
+                    onChange={e => setNewFileMeta({ ...newFileMeta, description: e.target.value })}
+                    rows={2}
+                    className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-2">
+                <label className="text-[10px] font-bold text-gray-400 block uppercase">Upload Document File</label>
+                <FileUploader
+                  studentId={currentUser.StudentID || '6601010024'}
+                  studentName={currentUser.FullName || 'Student'}
+                  uploaderId={currentUser.StudentID || '6601010024'}
+                  uploaderRole="student"
+                  maxFiles={1}
+                  files={[]}
+                  onChange={(uploadedFiles) => {
+                    if (uploadedFiles.length > 0) {
+                      const uploaded = uploadedFiles[0];
+                      const updatedFiles = [...(formData.supportingFiles || [])];
+                      updatedFiles.push({
+                        name: uploaded.name,
+                        url: uploaded.url,
+                        title: newFileMeta.title || uploaded.name,
+                        date: newFileMeta.date || new Date().toISOString().split('T')[0],
+                        description: newFileMeta.description || ''
+                      });
+                      setFormData({
+                        ...formData,
+                        supportingFiles: updatedFiles
+                      });
+                      setNewFileMeta({ title: '', date: '', description: '' });
+                    }
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Uploaded Files Table */}
+            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs space-y-4">
+              <h4 className="font-bold text-xs text-gray-800">Uploaded Supporting Documents</h4>
+              {(!formData.supportingFiles || formData.supportingFiles.length === 0) ? (
+                <p className="text-xs text-gray-400 italic">No supporting documents uploaded yet.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                        <th className="py-2 px-3">Title</th>
+                        <th className="py-2 px-3">Date</th>
+                        <th className="py-2 px-3">Description</th>
+                        <th className="py-2 px-3">File Link</th>
+                        <th className="py-2 px-3 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {formData.supportingFiles.map((file, idx) => (
+                        <tr key={idx} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
+                          <td className="py-3 px-3 font-semibold text-gray-700">{file.title || file.name}</td>
+                          <td className="py-3 px-3 text-gray-500 font-mono whitespace-nowrap">{file.date || '-'}</td>
+                          <td className="py-3 px-3 text-gray-500 max-w-xs truncate" title={file.description}>{file.description || '-'}</td>
+                          <td className="py-3 px-3 text-tu-red">
+                            <a
+                              href={file.url}
+                              target="_blank"
+                              rel="noreferrer referrer"
+                              className="inline-flex items-center gap-1 hover:underline font-semibold"
+                            >
+                              <Paperclip size={12} />
+                              Open File
+                            </a>
+                          </td>
+                          <td className="py-3 px-3 text-right">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = formData.supportingFiles.filter((_, i) => i !== idx);
+                                setFormData({ ...formData, supportingFiles: updated });
+                              }}
+                              className="p-1 text-gray-400 hover:text-red-500 transition cursor-pointer"
+                              title="Delete file"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -2047,7 +3286,7 @@ export default function EditPortfolio({
         )}
 
         {/* Default edit fallbacks for simplicity in navigation */}
-        {![1, 2, 3, 4, 5, 6, 7, 11, 12, 15, 16].includes(activeSection) && (
+        {![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].includes(activeSection) && (
           <div className="space-y-4 text-xs text-gray-700">
             <p className="text-sm text-gray-600 leading-relaxed">
               Section {activeSection} fields are automatically completed with compliant reference profiles. You can review advisor remarks or download your complete portfolio in the Print Report PDF section immediately.

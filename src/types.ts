@@ -101,13 +101,17 @@ export interface StudentPortfolioData {
   annualReview: { achievements: string; improvements: string; actionPlans: { goal: string; steps: string; timeline: string; support: string }[] };
   futureCareer: { shortTerm: string; longTerm: string; preparation: string };
   advisorComments: string;
+  reflectionAcademicGrowth?: string;
+  reflectionResearchIdentity?: string;
+  reflectionChallengesResilience?: string;
+  reflectionTransformation?: string;
   endorsements: { role: string; name: string; signatureDate: string }[];
   englishVerification?: {
     comments: string;
     name: string;
     signatureDate: string;
   };
-  supportingFiles?: { name: string; url: string }[];
+  supportingFiles?: { name: string; url: string; title?: string; date?: string; description?: string }[];
 }
 
 export interface ChatMessage {

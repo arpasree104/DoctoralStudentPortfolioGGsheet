@@ -26,6 +26,24 @@ const DEFAULT_CONFIGS: ConfigOption[] = [
 const DEFAULT_STUDENT_PORTFOLIO: StudentPortfolioData = {
   academicBackground: [],
   professionalBackground: [],
+  programOfStudyName: 'ชุด 1',
+  programCourses: [
+    { semester: '1/2025', code: 'NS802', title: 'Advanced Gerontology: Nursing Research and Innovation', credits: '2', status: 'Completed' },
+    { semester: '1/2025', code: 'NS811', title: 'Philosophy and Theory Development in Nursing', credits: '3', status: 'Completed' },
+    { semester: '1/2025', code: 'NS812', title: 'Advanced Research in Nursing', credits: '3', status: 'Completed' },
+    { semester: '1/2025', code: 'NS815', title: 'Seminar in Nursing and Health Issues', credits: '1', status: 'Completed' },
+    { semester: '2/2025', code: 'NS807', title: 'Innovation in Health and Nursing', credits: '2', status: 'Completed' },
+    { semester: '2/2025', code: 'NS813', title: 'Advanced Statistics', credits: '3', status: 'Completed' },
+    { semester: '2/2025', code: 'NS814', title: 'Healthcare Leaders', credits: '3', status: 'Completed' }
+  ],
+  learningPlans: [
+    { competency: 'Advanced research methodology', description: 'Improve knowledge and skills in quantitative and qualitative research design, research ethics, and evidence-based nursing research.', targetDate: '2026-12-15', status: 'In Progress', activities: 'Participate in qualitative workshops and draft methodology chapter.' },
+    { competency: 'Statistics and data analysis', description: 'Develop skills in statistical analysis, data interpretation, and the use of statistical software for healthcare research.', targetDate: '2026-10-30', status: 'In Progress', activities: 'Complete advanced SPSS/AMOS training and practice SEM models.' },
+    { competency: 'Academic writing and publication', description: 'Strengthen academic writing skills for international publication, manuscript preparation, and scientific communication.', targetDate: '2027-03-20', status: 'Not Started', activities: 'Draft first manuscript for peer-reviewed Scopus journal.' },
+    { competency: 'English language skills', description: 'Improve academic English communication, presentation skills, and confidence in international academic settings.', targetDate: '2026-08-15', status: 'Completed', activities: 'Present at the International Nursing Conference.' },
+    { competency: 'Teaching and academic supervision', description: 'Enhance teaching strategies, student supervision, and learning management in nursing education.', targetDate: '2027-05-10', status: 'Not Started', activities: 'Assist advisor with undergraduate lecture series.' },
+    { competency: 'Leadership and project management', description: 'Develop leadership, teamwork, and project management skills for academic and healthcare settings.', targetDate: '2026-11-20', status: 'In Progress', activities: 'Lead community outreach program for caregiver support.' }
+  ],
   milestones: [
     { key: 'coursework', label: 'Coursework completion', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
     { key: 'english', label: 'Meeting the English language proficiency requirement', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
@@ -113,6 +131,83 @@ const DEFAULT_STUDENT_PORTFOLIO: StudentPortfolioData = {
   endorsements: [],
   supportingFiles: []
 };
+
+// Defensive helper to ensure no undefined array or object elements cause white screen crashes
+export function ensurePortfolioDefaults(data: any): StudentPortfolioData {
+  const merged = { ...DEFAULT_STUDENT_PORTFOLIO, ...data };
+  
+  const arrayKeys: (keyof StudentPortfolioData)[] = [
+    'academicBackground',
+    'professionalBackground',
+    'programCourses',
+    'learningPlans',
+    'milestones',
+    'englishActivities',
+    'completedCourses',
+    'keyLearnings',
+    'workshops',
+    'dissertationProgress',
+    'advisorMeetings',
+    'researchExperience',
+    'conferencePresentations',
+    'publications',
+    'manuscripts',
+    'grants',
+    'awards',
+    'teachingExperiences',
+    'supervisions',
+    'academicServices',
+    'leaderships',
+    'competencySelfAssessment',
+    'endorsements',
+    'supportingFiles'
+  ];
+
+  arrayKeys.forEach(key => {
+    if (!Array.isArray(merged[key])) {
+      merged[key] = (DEFAULT_STUDENT_PORTFOLIO[key] || []) as any;
+    }
+  });
+
+  merged.englishTest = {
+    ...DEFAULT_STUDENT_PORTFOLIO.englishTest,
+    ...merged.englishTest
+  };
+  merged.dissertationInfo = {
+    ...DEFAULT_STUDENT_PORTFOLIO.dissertationInfo,
+    ...merged.dissertationInfo
+  };
+  merged.ethicsGovernance = {
+    ...DEFAULT_STUDENT_PORTFOLIO.ethicsGovernance,
+    ...merged.ethicsGovernance
+  };
+  merged.annualReview = {
+    ...DEFAULT_STUDENT_PORTFOLIO.annualReview,
+    ...merged.annualReview
+  };
+  if (!Array.isArray(merged.annualReview.actionPlans)) {
+    merged.annualReview.actionPlans = [];
+  }
+  merged.futureCareer = {
+    ...DEFAULT_STUDENT_PORTFOLIO.futureCareer,
+    ...merged.futureCareer
+  };
+
+  if (typeof merged.programOfStudyName !== 'string') {
+    merged.programOfStudyName = 'ชุด 1';
+  }
+  if (typeof merged.englishReflection !== 'string') {
+    merged.englishReflection = '';
+  }
+  if (typeof merged.researchReflection !== 'string') {
+    merged.researchReflection = '';
+  }
+  if (typeof merged.advisorComments !== 'string') {
+    merged.advisorComments = '';
+  }
+
+  return merged;
+}
 
 const DEFAULT_USERS: User[] = [];
 
@@ -587,7 +682,7 @@ export async function getStudentPortfolio(studentId: string): Promise<StudentPor
         const data = await res.json();
         if (data && !data.error) {
           localStorage.setItem(`${KEYS.PORTFOLIO}_${studentId}`, JSON.stringify(data));
-          return data;
+          return ensurePortfolioDefaults(data);
         }
       }
     } catch (e) {
@@ -601,14 +696,14 @@ export async function getStudentPortfolio(studentId: string): Promise<StudentPor
     try {
       const parsed = JSON.parse(localData);
       if (parsed && !parsed.error) {
-        return parsed;
+        return ensurePortfolioDefaults(parsed);
       }
     } catch (e) {}
   }
   // Otherwise duplicate the DEFAULT structure for this new student
   const newData = { ...DEFAULT_STUDENT_PORTFOLIO };
   localStorage.setItem(storeKey, JSON.stringify(newData));
-  return newData;
+  return ensurePortfolioDefaults(newData);
 }
 
 export async function saveStudentPortfolio(studentId: string, data: StudentPortfolioData): Promise<void> {

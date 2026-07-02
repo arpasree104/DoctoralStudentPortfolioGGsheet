@@ -25,6 +25,12 @@ export default function Dashboard({
   onNavigate
 }: DashboardProps) {
   
+  // Safe fallbacks for portfolioData arrays and objects to prevent white screen crashes
+  const researchExperience = Array.isArray(portfolioData?.researchExperience) ? portfolioData.researchExperience : [];
+  const milestones = Array.isArray(portfolioData?.milestones) ? portfolioData.milestones : [];
+  const englishTest = portfolioData?.englishTest || { testName: '', dateTaken: '', scoreAchieved: '', requiredScore: '', status: 'Not Started', evidence: '' };
+  const englishReflection = portfolioData?.englishReflection || '';
+
   // Calculate statistics for STUDENT
   const totalCerts = certificates.filter(c => c.StudentID === currentUser.StudentID || currentUser.Role !== 'STUDENT');
   const approvedCerts = totalCerts.filter(c => c.Status === 'APPROVED');
@@ -34,13 +40,13 @@ export default function Dashboard({
   const approvedActivities = totalActivities.filter(a => a.Status === 'APPROVED');
 
   // Sum of research experience hours (from portfolioData)
-  const completedHours = portfolioData.researchExperience.reduce((sum, item) => sum + item.hours, 0);
+  const completedHours = researchExperience.reduce((sum, item) => sum + (item?.hours || 0), 0);
   const targetHours = 180;
   const hoursPercent = Math.min(100, Math.round((completedHours / targetHours) * 100));
 
   // Count completed milestones
-  const totalMilestones = portfolioData.milestones.length;
-  const completedMilestones = portfolioData.milestones.filter(m => m.status === 'Completed').length;
+  const totalMilestones = milestones.length;
+  const completedMilestones = milestones.filter(m => m?.status === 'Completed').length;
   const milestonesPercent = totalMilestones > 0 ? Math.round((completedMilestones / totalMilestones) * 100) : 0;
 
   if (currentUser.Role === 'ADMIN') {
@@ -279,7 +285,7 @@ export default function Dashboard({
           </div>
           
           <div className="mt-4 pt-3 border-t border-gray-50 flex justify-between items-center text-xs text-gray-500">
-            <span>Logged Research Entries: {portfolioData.researchExperience.length}</span>
+            <span>Logged Research Entries: {researchExperience.length}</span>
             <button onClick={() => onNavigate('edit')} className="text-tu-red font-semibold hover:underline cursor-pointer">
               View Details
             </button>
@@ -316,7 +322,7 @@ export default function Dashboard({
           </div>
 
           <div className="mt-4 pt-3 border-t border-gray-50 flex justify-between items-center text-xs text-gray-500">
-            <span>Not Started Milestones: {portfolioData.milestones.filter(m => m.status === 'Not Started').length}</span>
+            <span>Not Started Milestones: {milestones.filter(m => m?.status === 'Not Started').length}</span>
             <button onClick={() => onNavigate('edit')} className="text-tu-gold font-semibold hover:underline cursor-pointer">
               Milestone Map
             </button>
@@ -373,8 +379,8 @@ export default function Dashboard({
           </div>
 
           <div className="space-y-3">
-            {portfolioData.milestones
-              .filter(m => m.status === 'In Progress')
+            {milestones
+              .filter(m => m?.status === 'In Progress')
               .map((milestone) => (
                 <div key={milestone.key} className="flex items-start gap-3 p-3.5 bg-amber-50/40 border border-amber-100 rounded-xl">
                   <div className="p-1 bg-amber-100 text-tu-gold rounded-full mt-0.5">
@@ -395,7 +401,7 @@ export default function Dashboard({
                 </div>
               ))}
 
-            {portfolioData.milestones.filter(m => m.status === 'In Progress').length === 0 && (
+            {milestones.filter(m => m?.status === 'In Progress').length === 0 && (
               <p className="text-sm text-gray-500 text-center py-6">No current active milestones in progress. You can update milestone stages in Section 2.</p>
             )}
           </div>
@@ -414,19 +420,19 @@ export default function Dashboard({
             <div className="space-y-2.5">
               <div className="flex justify-between text-xs">
                 <span className="text-gray-500">Test Standard:</span>
-                <span className="font-semibold text-gray-800 font-mono">{portfolioData.englishTest.testName}</span>
+                <span className="font-semibold text-gray-800 font-mono">{englishTest.testName}</span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-gray-500">Your Score:</span>
-                <span className="font-bold text-emerald-600 font-mono text-sm">{portfolioData.englishTest.scoreAchieved}</span>
+                <span className="font-bold text-emerald-600 font-mono text-sm">{englishTest.scoreAchieved}</span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-gray-500">Required Minimum:</span>
-                <span className="font-semibold text-gray-600 font-mono">{portfolioData.englishTest.requiredScore}</span>
+                <span className="font-semibold text-gray-600 font-mono">{englishTest.requiredScore}</span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-gray-500">Date Met:</span>
-                <span className="font-semibold text-gray-700">{portfolioData.englishTest.dateTaken}</span>
+                <span className="font-semibold text-gray-700">{englishTest.dateTaken}</span>
               </div>
             </div>
           </div>
@@ -434,7 +440,7 @@ export default function Dashboard({
           <div className="pt-3 border-t border-gray-50 text-xs text-gray-500">
             <span className="font-medium block mb-1">English Learning Journey Reflection:</span>
             <p className="line-clamp-2 text-[11px] leading-normal italic text-gray-600">
-              "{portfolioData.englishReflection || 'No reflection logged yet.'}"
+              "{englishReflection || 'No reflection logged yet.'}"
             </p>
           </div>
         </div>

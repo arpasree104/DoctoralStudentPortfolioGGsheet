@@ -743,21 +743,36 @@ export default function App() {
           <div className="flex items-center gap-4">
             {/* Database status icon & tiny config */}
             <div className="relative flex items-center">
-              <button
-                onClick={() => setShowUrlConfig(prev => !prev)}
-                className={`p-2 rounded-xl transition flex items-center gap-1.5 text-xs cursor-pointer ${
-                  apiUrl ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100' : 'text-amber-600 bg-amber-50 hover:bg-amber-100'
-                }`}
-                title={apiUrl ? 'Connected to Google Sheets (Click to edit URL)' : 'Offline Local Mode (Click to set URL)'}
-              >
-                <div className={`w-1.5 h-1.5 rounded-full ${apiUrl ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
-                <Database size={13} />
-                <span className="hidden sm:inline font-semibold">
-                  {apiUrl ? 'Connected' : 'Local Mode'}
-                </span>
-              </button>
+              {currentUser.Role === 'ADMIN' ? (
+                <button
+                  onClick={() => setShowUrlConfig(prev => !prev)}
+                  className={`p-2 rounded-xl transition flex items-center gap-1.5 text-xs cursor-pointer ${
+                    apiUrl ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100' : 'text-amber-600 bg-amber-50 hover:bg-amber-100'
+                  }`}
+                  title={apiUrl ? 'Connected to Google Sheets (Click to edit URL)' : 'Offline Local Mode (Click to set URL)'}
+                >
+                  <div className={`w-1.5 h-1.5 rounded-full ${apiUrl ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                  <Database size={13} />
+                  <span className="hidden sm:inline font-semibold">
+                    {apiUrl ? 'Connected' : 'Local Mode'}
+                  </span>
+                </button>
+              ) : (
+                <div
+                  className={`p-2 rounded-xl flex items-center gap-1.5 text-xs ${
+                    apiUrl ? 'text-emerald-600 bg-emerald-50' : 'text-amber-600 bg-amber-50'
+                  }`}
+                  title={apiUrl ? 'Connected to Google Sheets' : 'Offline Local Mode'}
+                >
+                  <div className={`w-1.5 h-1.5 rounded-full ${apiUrl ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                  <Database size={13} />
+                  <span className="hidden sm:inline font-semibold">
+                    {apiUrl ? 'Connected' : 'Local Mode'}
+                  </span>
+                </div>
+              )}
               
-              {showUrlConfig && (
+              {currentUser.Role === 'ADMIN' && showUrlConfig && (
                 <div className="absolute right-0 top-11 bg-white border border-gray-100 rounded-2xl shadow-xl p-4 w-72 z-50 space-y-2 animate-fade-in text-left">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-gray-800 flex items-center gap-1">

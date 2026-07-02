@@ -8,6 +8,7 @@ import { User, Certificate, Activity, ConfigOption } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { User as UserIcon, Award, Image as ImageIcon, Plus, Edit2, CheckCircle2, AlertCircle, Trash2, ExternalLink, Calendar, PlusCircle, Check, Loader2, HeartHandshake, Paperclip, X } from 'lucide-react';
 import FileUploader, { AttachedFile } from './FileUploader';
+import DatePickerField from './DatePickerField';
 import { getAppsScriptUrl, uploadFileToDrive, resolvePhotoUrl, resolveFileUrl } from '../lib/googleSheets';
 
 interface StudentInformationProps {
@@ -643,13 +644,11 @@ export default function StudentInformation({
 
                   <div>
                     <label className="text-xs font-semibold text-gray-500 block mb-1">Date of Submission</label>
-                    <input
-                      type="text"
+                    <DatePickerField
                       disabled={!isEditingProfile}
                       value={profileForm.DateOfSubmission || ''}
-                      onChange={e => setProfileForm({ ...profileForm, DateOfSubmission: e.target.value })}
+                      onChange={val => setProfileForm({ ...profileForm, DateOfSubmission: val })}
                       placeholder="e.g., May 16, 2026"
-                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm disabled:opacity-75 focus:outline-tu-red"
                     />
                   </div>
                 </div>
@@ -750,12 +749,11 @@ export default function StudentInformation({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs font-semibold text-gray-500 block mb-1">Date Received</label>
-                      <input
-                        type="date"
+                      <DatePickerField
                         required
                         value={newCertForm.date}
-                        onChange={e => setNewCertForm({ ...newCertForm, date: e.target.value })}
-                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-tu-red"
+                        onChange={val => setNewCertForm({ ...newCertForm, date: val })}
+                        placeholder="e.g., May 16, 2026"
                       />
                     </div>
 
@@ -916,12 +914,11 @@ export default function StudentInformation({
 
                   <div>
                     <label className="text-xs font-semibold text-gray-500 block mb-1">Activity Date</label>
-                    <input
-                      type="date"
+                    <DatePickerField
                       required
                       value={newActForm.date}
-                      onChange={e => setNewActForm({ ...newActForm, date: e.target.value })}
-                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-tu-red"
+                      onChange={val => setNewActForm({ ...newActForm, date: val })}
+                      placeholder="e.g., May 16, 2026"
                     />
                   </div>
                 </div>

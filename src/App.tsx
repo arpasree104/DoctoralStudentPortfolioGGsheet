@@ -51,6 +51,7 @@ export default function App() {
   const [loginPassword, setLoginPassword] = useState(''); // dummy for login simulation
   const [loginError, setLoginError] = useState('');
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'failed'>('idle');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'failed'>('idle');
 
   // Hidden mockup and registration states
   const [logoClicks, setLogoClicks] = useState(0);
@@ -246,23 +247,41 @@ export default function App() {
 
   // Profile update handler
   const handleUpdateProfile = async (updatedProfile: User) => {
-    saveUser(updatedProfile); // Background Sync
-    setUsers(prev => prev.map(u => u.UserID === updatedProfile.UserID ? updatedProfile : u));
-    if (currentUser && currentUser.UserID === updatedProfile.UserID) {
-      setCurrentUser(updatedProfile);
+    setSaveStatus('saving');
+    try {
+      await saveUser(updatedProfile); // Background Sync
+      setUsers(prev => prev.map(u => u.UserID === updatedProfile.UserID ? updatedProfile : u));
+      if (currentUser && currentUser.UserID === updatedProfile.UserID) {
+        setCurrentUser(updatedProfile);
+      }
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (e) {
+      console.error(e);
+      setSaveStatus('failed');
+      setTimeout(() => setSaveStatus('idle'), 2000);
     }
   };
 
   // Add Certificate
   const handleAddCertificate = async (cert: Certificate) => {
-    saveCertificate(cert); // Background Sync
-    setCertificates(prev => {
-      const exists = prev.some(c => c.CertID === cert.CertID);
-      if (exists) {
-        return prev.map(c => c.CertID === cert.CertID ? cert : c);
-      }
-      return [cert, ...prev];
-    });
+    setSaveStatus('saving');
+    try {
+      await saveCertificate(cert); // Background Sync
+      setCertificates(prev => {
+        const exists = prev.some(c => c.CertID === cert.CertID);
+        if (exists) {
+          return prev.map(c => c.CertID === cert.CertID ? cert : c);
+        }
+        return [cert, ...prev];
+      });
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (e) {
+      console.error(e);
+      setSaveStatus('failed');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    }
   };
 
   // Verify Certificate
@@ -275,22 +294,40 @@ export default function App() {
         Feedback: feedback,
         ApprovedBy: currentUser.FullName
       };
-      saveCertificate(updated); // Background Sync
-      logActivity(currentUser.UserID, 'VERIFY_CERTIFICATE', `Advisor verified Certificate ${certId} with status ${status}`);
-      setCertificates(prev => prev.map(c => c.CertID === certId ? updated : c));
+      setSaveStatus('saving');
+      try {
+        await saveCertificate(updated); // Background Sync
+        logActivity(currentUser.UserID, 'VERIFY_CERTIFICATE', `Advisor verified Certificate ${certId} with status ${status}`);
+        setCertificates(prev => prev.map(c => c.CertID === certId ? updated : c));
+        setSaveStatus('success');
+        setTimeout(() => setSaveStatus('idle'), 2000);
+      } catch (e) {
+        console.error(e);
+        setSaveStatus('failed');
+        setTimeout(() => setSaveStatus('idle'), 2000);
+      }
     }
   };
 
   // Add Activity
   const handleAddActivity = async (act: Activity) => {
-    saveActivity(act); // Background Sync
-    setActivities(prev => {
-      const exists = prev.some(a => a.ActivityID === act.ActivityID);
-      if (exists) {
-        return prev.map(a => a.ActivityID === act.ActivityID ? act : a);
-      }
-      return [act, ...prev];
-    });
+    setSaveStatus('saving');
+    try {
+      await saveActivity(act); // Background Sync
+      setActivities(prev => {
+        const exists = prev.some(a => a.ActivityID === act.ActivityID);
+        if (exists) {
+          return prev.map(a => a.ActivityID === act.ActivityID ? act : a);
+        }
+        return [act, ...prev];
+      });
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (e) {
+      console.error(e);
+      setSaveStatus('failed');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    }
   };
 
   // Verify Activity
@@ -303,54 +340,108 @@ export default function App() {
         Feedback: feedback,
         ApprovedBy: currentUser.FullName
       };
-      saveActivity(updated); // Background Sync
-      logActivity(currentUser.UserID, 'VERIFY_ACTIVITY', `Advisor verified Activity Progress ${actId} with status ${status}`);
-      setActivities(prev => prev.map(a => a.ActivityID === actId ? updated : a));
+      setSaveStatus('saving');
+      try {
+        await saveActivity(updated); // Background Sync
+        logActivity(currentUser.UserID, 'VERIFY_ACTIVITY', `Advisor verified Activity Progress ${actId} with status ${status}`);
+        setActivities(prev => prev.map(a => a.ActivityID === actId ? updated : a));
+        setSaveStatus('success');
+        setTimeout(() => setSaveStatus('idle'), 2000);
+      } catch (e) {
+        console.error(e);
+        setSaveStatus('failed');
+        setTimeout(() => setSaveStatus('idle'), 2000);
+      }
     }
   };
 
   // Save Portfolio
   const handleSavePortfolio = async (data: StudentPortfolioData) => {
     if (currentUser && currentUser.StudentID) {
-      saveStudentPortfolio(currentUser.StudentID, data); // Background Sync
-      setStudentPortfolio(data);
+      setSaveStatus('saving');
+      try {
+        await saveStudentPortfolio(currentUser.StudentID, data); // Background Sync
+        setStudentPortfolio(data);
+        setSaveStatus('success');
+        setTimeout(() => setSaveStatus('idle'), 2000);
+      } catch (e) {
+        console.error(e);
+        setSaveStatus('failed');
+        setTimeout(() => setSaveStatus('idle'), 2000);
+      }
     }
   };
 
   // Save config option
   const handleSaveConfig = async (opt: ConfigOption) => {
-    saveConfigOption(opt); // Background Sync
-    setConfigOptions(prev => {
-      const exists = prev.some(c => c.id === opt.id);
-      if (exists) {
-        return prev.map(c => c.id === opt.id ? opt : c);
-      }
-      return [...prev, opt];
-    });
+    setSaveStatus('saving');
+    try {
+      await saveConfigOption(opt); // Background Sync
+      setConfigOptions(prev => {
+        const exists = prev.some(c => c.id === opt.id);
+        if (exists) {
+          return prev.map(c => c.id === opt.id ? opt : c);
+        }
+        return [...prev, opt];
+      });
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (e) {
+      console.error(e);
+      setSaveStatus('failed');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    }
   };
 
   const handleDeleteConfig = async (id: string) => {
-    deleteConfigOption(id); // Background Sync
-    setConfigOptions(prev => prev.filter(c => c.id !== id));
+    setSaveStatus('saving');
+    try {
+      await deleteConfigOption(id); // Background Sync
+      setConfigOptions(prev => prev.filter(c => c.id !== id));
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (e) {
+      console.error(e);
+      setSaveStatus('failed');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    }
   };
 
   const handleSaveUser = async (u: User) => {
-    saveUser(u); // Background Sync
-    setUsers(prev => {
-      const exists = prev.some(x => x.UserID === u.UserID);
-      if (exists) {
-        return prev.map(x => x.UserID === u.UserID ? u : x);
+    setSaveStatus('saving');
+    try {
+      await saveUser(u); // Background Sync
+      setUsers(prev => {
+        const exists = prev.some(x => x.UserID === u.UserID);
+        if (exists) {
+          return prev.map(x => x.UserID === u.UserID ? u : x);
+        }
+        return [...prev, u];
+      });
+      if (currentUser && currentUser.UserID === u.UserID) {
+        setCurrentUser(u);
       }
-      return [...prev, u];
-    });
-    if (currentUser && currentUser.UserID === u.UserID) {
-      setCurrentUser(u);
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (e) {
+      console.error(e);
+      setSaveStatus('failed');
+      setTimeout(() => setSaveStatus('idle'), 2000);
     }
   };
 
   const handleDeleteUserAccount = async (id: string) => {
-    deleteUser(id); // Background Sync
-    setUsers(prev => prev.filter(u => u.UserID !== id));
+    setSaveStatus('saving');
+    try {
+      await deleteUser(id); // Background Sync
+      setUsers(prev => prev.filter(u => u.UserID !== id));
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (e) {
+      console.error(e);
+      setSaveStatus('failed');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    }
   };
 
   const handleSaveApiUrl = (url: string) => {
@@ -1148,6 +1239,61 @@ export default function App() {
           <p className="mt-1 font-mono text-[10px]">The system is fully responsive and synced with Google Sheets Database securely.</p>
         </div>
       </footer>
+
+      {/* Floating Progress Indicators */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 no-print">
+        {syncStatus !== 'idle' && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+            className={`px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-bold border transition duration-250 ${
+              syncStatus === 'syncing' ? 'bg-[#FAF6EC] text-amber-700 border-amber-200' :
+              syncStatus === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+              'bg-red-50 text-red-700 border-red-200'
+            }`}
+          >
+            {syncStatus === 'syncing' ? (
+              <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+            ) : syncStatus === 'success' ? (
+              <span className="text-base text-emerald-600">✓</span>
+            ) : (
+              <span className="text-base text-red-600">⚠️</span>
+            )}
+            <span>
+              {syncStatus === 'syncing' ? 'กำลังดึงข้อมูล...' :
+               syncStatus === 'success' ? 'ดึงข้อมูลสำเร็จ' :
+               'ดึงข้อมูลล้มเหลว'}
+            </span>
+          </motion.div>
+        )}
+
+        {saveStatus !== 'idle' && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+            className={`px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-bold border transition duration-250 ${
+              saveStatus === 'saving' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+              saveStatus === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+              'bg-red-50 text-red-700 border-red-200'
+            }`}
+          >
+            {saveStatus === 'saving' ? (
+              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            ) : saveStatus === 'success' ? (
+              <span className="text-base text-emerald-600">✓</span>
+            ) : (
+              <span className="text-base text-red-600">⚠️</span>
+            )}
+            <span>
+              {saveStatus === 'saving' ? 'กำลังบันทึกข้อมูล...' :
+               saveStatus === 'success' ? 'บันทึกข้อมูลสำเร็จ' :
+               'บันทึกข้อมูลล้มเหลว'}
+            </span>
+          </motion.div>
+        )}
+      </div>
 
     </div>
   );

@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { StudentPortfolioData, User } from '../types';
 import { motion } from 'motion/react';
 import FileUploader from './FileUploader';
+import DatePickerField from './DatePickerField';
 import {
   BookOpen, Award, CheckCircle, Clock, Save, Plus, Trash2, Calendar,
   ChevronRight, Compass, HelpCircle, Star, Heart, FileText, Check, AlertCircle, Sparkles
@@ -374,21 +375,20 @@ export default function EditPortfolio({
                   </div>
                   
                   <div className="flex flex-wrap items-center gap-3">
-                    <div className="w-32">
+                    <div className="w-40">
                       <label className="text-[9px] font-bold text-gray-400 block mb-0.5">Planned/Actual Date</label>
-                      <input
-                        type="date"
+                      <DatePickerField
                         value={milestone.actualDate || milestone.plannedDate}
-                        onChange={e => {
+                        onChange={val => {
                           const updated = [...formData.milestones];
                           if (milestone.status === 'Completed') {
-                            updated[idx].actualDate = e.target.value;
+                            updated[idx].actualDate = val;
                           } else {
-                            updated[idx].plannedDate = e.target.value;
+                            updated[idx].plannedDate = val;
                           }
                           setFormData({ ...formData, milestones: updated });
                         }}
-                        className="w-full px-2 py-1 bg-white border border-gray-200 rounded text-xs"
+                        className="!py-1 !px-2 text-xs !rounded-lg"
                       />
                     </div>
 
@@ -506,15 +506,14 @@ export default function EditPortfolio({
 
                   <div>
                     <label className="text-[10px] font-bold text-gray-400 block mb-1">Activity Date</label>
-                    <input
-                      type="date"
+                    <DatePickerField
                       value={act.date}
-                      onChange={e => {
+                      onChange={val => {
                         const updated = [...formData.englishActivities];
-                        updated[idx].date = e.target.value;
+                        updated[idx].date = val;
                         setFormData({ ...formData, englishActivities: updated });
                       }}
-                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                      className="!py-1.5"
                     />
                   </div>
                   <div>
@@ -769,15 +768,14 @@ export default function EditPortfolio({
 
                   <div>
                     <label className="text-[10px] font-bold text-gray-400 block mb-1">Meeting Date</label>
-                    <input
-                      type="date"
+                    <DatePickerField
                       value={meet.date}
-                      onChange={e => {
+                      onChange={val => {
                         const updated = [...formData.advisorMeetings];
-                        updated[idx].date = e.target.value;
+                        updated[idx].date = val;
                         setFormData({ ...formData, advisorMeetings: updated });
                       }}
-                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                      className="!py-1.5"
                     />
                   </div>
                   <div>
@@ -861,15 +859,14 @@ export default function EditPortfolio({
 
                 <div>
                   <label className="text-[10px] font-bold text-gray-400 block mb-1">Task Date</label>
-                  <input
-                    type="date"
+                  <DatePickerField
                     value={item.date}
-                    onChange={e => {
+                    onChange={val => {
                       const updated = [...formData.researchExperience];
-                      updated[idx].date = e.target.value;
+                      updated[idx].date = val;
                       setFormData({ ...formData, researchExperience: updated });
                     }}
-                    className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    className="!py-1.5"
                   />
                 </div>
                 <div className="sm:col-span-2">

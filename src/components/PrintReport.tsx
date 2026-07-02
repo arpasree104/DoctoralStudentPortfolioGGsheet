@@ -120,8 +120,12 @@ export default function PrintReport({
                   <td className="py-2.5 text-gray-800">{currentUser.Major || 'Doctor of Philosophy Program in Nursing Science'}</td>
                 </tr>
                 <tr>
-                  <td className="py-2.5 font-bold text-gray-500">Faculty / University</td>
+                  <td className="py-2.5 font-bold text-gray-500">Faculty / School / University</td>
                   <td className="py-2.5 text-gray-800">Faculty of Nursing, Thammasat University</td>
+                </tr>
+                <tr>
+                  <td className="py-2.5 font-bold text-gray-500">Year of Admission</td>
+                  <td className="py-2.5 font-semibold text-gray-800">{currentUser.YearOfAdmission || 'Not specified'}</td>
                 </tr>
                 <tr>
                   <td className="py-2.5 font-bold text-gray-500">Expected Graduation Year</td>
@@ -133,7 +137,7 @@ export default function PrintReport({
                 </tr>
                 <tr>
                   <td className="py-2.5 font-bold text-gray-500">Date of Submission</td>
-                  <td className="py-2.5 text-gray-800">{new Date().toLocaleDateString('en-US')}</td>
+                  <td className="py-2.5 text-gray-800">{currentUser.DateOfSubmission || 'Not specified'}</td>
                 </tr>
               </tbody>
             </table>
@@ -209,8 +213,12 @@ export default function PrintReport({
                 <span className="font-semibold font-mono text-gray-800">{currentUser.StudentID}</span>
               </div>
               <div>
-                <span className="text-gray-400 block font-medium">ORCID ID</span>
-                <span className="font-semibold font-mono text-gray-800">{currentUser.ORCID || 'N/A'}</span>
+                <span className="text-gray-400 block font-medium">Year of Admission</span>
+                <span className="font-semibold text-gray-800">{currentUser.YearOfAdmission || 'N/A'}</span>
+              </div>
+              <div>
+                <span className="text-gray-400 block font-medium">Date of Submission</span>
+                <span className="font-semibold text-gray-800">{currentUser.DateOfSubmission || 'N/A'}</span>
               </div>
               <div>
                 <span className="text-gray-400 block font-medium">Line ID</span>

@@ -17,6 +17,8 @@ export interface User {
   ThesisTitle?: string;
   LineID?: string;
   ORCID?: string;
+  DateOfSubmission?: string;
+  YearOfAdmission?: string;
   ResearchInterests?: string;
   ExpectedGraduationYear?: string;
   PhotoURL?: string;

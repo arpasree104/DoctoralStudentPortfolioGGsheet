@@ -270,14 +270,12 @@ export default function StudentInformation({
                   <span className="text-gray-800 font-medium font-mono">{currentUser.Email}</span>
                 </div>
                 <div className="text-xs">
-                  <span className="text-gray-400 font-medium block">ORCID iD URL</span>
-                  {currentUser.ORCID ? (
-                    <a href={currentUser.ORCID} target="_blank" rel="noreferrer" className="text-tu-red font-semibold hover:underline flex items-center gap-1">
-                      {currentUser.ORCID} <ExternalLink size={10} />
-                    </a>
-                  ) : (
-                    <span className="text-gray-400 italic">Not specified</span>
-                  )}
+                  <span className="text-gray-400 font-medium block">Year of Admission</span>
+                  <span className="text-gray-800 font-medium font-mono">{currentUser.YearOfAdmission || 'Not specified'}</span>
+                </div>
+                <div className="text-xs">
+                  <span className="text-gray-400 font-medium block">Date of Submission</span>
+                  <span className="text-gray-800 font-medium font-mono">{currentUser.DateOfSubmission || 'Not specified'}</span>
                 </div>
               </div>
             </div>
@@ -367,13 +365,25 @@ export default function StudentInformation({
                   </div>
 
                   <div>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">Year of Admission</label>
+                    <input
+                      type="text"
+                      disabled={!isEditingProfile}
+                      value={profileForm.YearOfAdmission || ''}
+                      onChange={e => setProfileForm({ ...profileForm, YearOfAdmission: e.target.value })}
+                      placeholder="e.g., 2025"
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm disabled:opacity-75 focus:outline-tu-red"
+                    />
+                  </div>
+
+                  <div>
                     <label className="text-xs font-semibold text-gray-500 block mb-1">Expected Graduation Year</label>
                     <input
                       type="text"
                       disabled={!isEditingProfile}
                       value={profileForm.ExpectedGraduationYear || ''}
                       onChange={e => setProfileForm({ ...profileForm, ExpectedGraduationYear: e.target.value })}
-                      placeholder="e.g., 2027"
+                      placeholder="e.g., 2029"
                       className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm disabled:opacity-75 focus:outline-tu-red"
                     />
                   </div>
@@ -434,14 +444,14 @@ export default function StudentInformation({
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">ORCID iD URL Link</label>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">Date of Submission</label>
                     <input
                       type="text"
                       disabled={!isEditingProfile}
-                      value={profileForm.ORCID || ''}
-                      onChange={e => setProfileForm({ ...profileForm, ORCID: e.target.value })}
-                      placeholder="https://orcid.org/0000-0002..."
-                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm disabled:opacity-75 focus:outline-tu-red font-mono"
+                      value={profileForm.DateOfSubmission || ''}
+                      onChange={e => setProfileForm({ ...profileForm, DateOfSubmission: e.target.value })}
+                      placeholder="e.g., May 16, 2026"
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm disabled:opacity-75 focus:outline-tu-red"
                     />
                   </div>
                 </div>

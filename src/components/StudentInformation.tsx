@@ -92,7 +92,18 @@ export default function StudentInformation({
   const [uploadError, setUploadError] = useState<string | null>(null);
   
   // Additional Photos states
-  const [additionalPhotos, setAdditionalPhotos] = useState<string[]>(currentUser.AdditionalPhotos || []);
+  const safeParsePhotos = (photos: any): string[] => {
+    if (Array.isArray(photos)) return photos;
+    if (typeof photos === 'string' && photos.trim()) {
+      try {
+        const parsed = JSON.parse(photos);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {}
+    }
+    return [];
+  };
+
+  const [additionalPhotos, setAdditionalPhotos] = useState<string[]>(safeParsePhotos(currentUser.AdditionalPhotos));
   const [isUploadingAdditional, setIsUploadingAdditional] = useState(false);
   const [selectedFullImage, setSelectedFullImage] = useState<string | null>(null);
   
@@ -116,7 +127,7 @@ export default function StudentInformation({
 
   React.useEffect(() => {
     setProfileForm({ ...currentUser });
-    setAdditionalPhotos(currentUser.AdditionalPhotos || []);
+    setAdditionalPhotos(safeParsePhotos(currentUser.AdditionalPhotos));
   }, [currentUser]);
 
   // Filter dynamic dropdown list options from dynamic ConfigOptions

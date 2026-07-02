@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { User, Certificate, Activity, ConfigOption } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { User as UserIcon, Award, Image as ImageIcon, Plus, Edit2, CheckCircle2, AlertCircle, Trash2, ExternalLink, Calendar, PlusCircle, Check, Loader2, HeartHandshake, Paperclip } from 'lucide-react';
+import { User as UserIcon, Award, Image as ImageIcon, Plus, Edit2, CheckCircle2, AlertCircle, Trash2, ExternalLink, Calendar, PlusCircle, Check, Loader2, HeartHandshake, Paperclip, X } from 'lucide-react';
 import FileUploader, { AttachedFile } from './FileUploader';
 import { getAppsScriptUrl, uploadFileToDrive, resolvePhotoUrl, resolveFileUrl } from '../lib/googleSheets';
 
@@ -19,6 +19,62 @@ interface StudentInformationProps {
   onAddCertificate: (cert: Certificate) => Promise<void>;
   onAddActivity: (act: Activity) => Promise<void>;
 }
+
+// Helper to compress image down to max 800px width/height and JPEG format with 0.75 quality for space saving
+const compressImage = (file: File, maxWidth = 800, maxHeight = 800, quality = 0.75): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(file);
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              });
+              resolve(compressedFile);
+            } else {
+              resolve(file);
+            }
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+};
 
 export default function StudentInformation({
   currentUser,
@@ -33,6 +89,11 @@ export default function StudentInformation({
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  
+  // Additional Photos states
+  const [additionalPhotos, setAdditionalPhotos] = useState<string[]>(currentUser.AdditionalPhotos || []);
+  const [isUploadingAdditional, setIsUploadingAdditional] = useState(false);
+  const [selectedFullImage, setSelectedFullImage] = useState<string | null>(null);
   
   // Forms state
   const [profileForm, setProfileForm] = useState<User>({ ...currentUser });
@@ -54,6 +115,7 @@ export default function StudentInformation({
 
   React.useEffect(() => {
     setProfileForm({ ...currentUser });
+    setAdditionalPhotos(currentUser.AdditionalPhotos || []);
   }, [currentUser]);
 
   // Filter dynamic dropdown list options from dynamic ConfigOptions
@@ -79,12 +141,15 @@ export default function StudentInformation({
     const file = e.target.files[0];
 
     try {
+      // Compress the image before uploading to save tons of storage space!
+      const compressedFile = await compressImage(file, 800, 800, 0.75);
+
       // Read local file as Data URL first
       const localUrl = await new Promise<string>((resolve) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result as string);
         reader.onerror = () => resolve('');
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(compressedFile);
       });
 
       // Update local state instantly with base64 first to keep it super responsive
@@ -94,7 +159,7 @@ export default function StudentInformation({
       const scriptUrl = getAppsScriptUrl();
       if (scriptUrl) {
         const result = await uploadFileToDrive(
-          file,
+          compressedFile,
           currentUser.StudentID || '6601010024',
           currentUser.FullName || 'Student',
           currentUser.UserID,
@@ -120,6 +185,77 @@ export default function StudentInformation({
     } finally {
       setIsUploading(false);
     }
+  };
+
+  // Handle upload of additional photos
+  const handleAdditionalPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    if (additionalPhotos.length >= 4) {
+      setUploadError('⚠️ สามารถอัปโหลดรูปภาพได้สูงสุด 4 รูปเท่านั้น');
+      return;
+    }
+
+    setIsUploadingAdditional(true);
+    setUploadError(null);
+    const file = e.target.files[0];
+
+    try {
+      // Compress the image before uploading to save tons of storage space!
+      const compressedFile = await compressImage(file, 800, 800, 0.75);
+
+      // Read local file as Data URL first
+      const localUrl = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => resolve('');
+        reader.readAsDataURL(compressedFile);
+      });
+
+      // Update local state instantly with base64 first to keep it super responsive
+      const updatedPhotos = [...additionalPhotos, localUrl];
+      setAdditionalPhotos(updatedPhotos);
+      setProfileForm(prev => ({ ...prev, AdditionalPhotos: updatedPhotos }));
+
+      // Attempt to upload to Drive if Apps Script is configured
+      const scriptUrl = getAppsScriptUrl();
+      if (scriptUrl) {
+        const result = await uploadFileToDrive(
+          compressedFile,
+          currentUser.StudentID || '6601010024',
+          currentUser.FullName || 'Student',
+          currentUser.UserID,
+          currentUser.Role
+        );
+        if (result.success && result.fileUrl) {
+          // Replace base64 URL with final Google Drive URL
+          setAdditionalPhotos(prev => {
+            const index = prev.indexOf(localUrl);
+            const nextPhotos = [...prev];
+            if (index !== -1) {
+              nextPhotos[index] = result.fileUrl!;
+            } else {
+              nextPhotos.push(result.fileUrl!);
+            }
+            setProfileForm(p => ({ ...p, AdditionalPhotos: nextPhotos }));
+            return nextPhotos;
+          });
+        } else {
+          setUploadError('⚠️ การอัปโหลดไฟล์เพิ่มเติมขัดข้อง รูปที่อัปโหลดจะเก็บชั่วคราวในเครื่องนี้');
+        }
+      }
+    } catch (err: any) {
+      console.error('Failed uploading additional photo:', err);
+      setUploadError(`⚠️ เกิดข้อผิดพลาดในการอัปโหลดรูปเพิ่มเติม: ${err.message || err}`);
+    } finally {
+      setIsUploadingAdditional(false);
+    }
+  };
+
+  // Handle remove of additional photos
+  const handleRemoveAdditionalPhoto = (idx: number) => {
+    const nextPhotos = additionalPhotos.filter((_, i) => i !== idx);
+    setAdditionalPhotos(nextPhotos);
+    setProfileForm(prev => ({ ...prev, AdditionalPhotos: nextPhotos }));
   };
 
   // Add Certificate
@@ -278,6 +414,67 @@ export default function StudentInformation({
                   <span className="text-gray-800 font-medium font-mono">{currentUser.DateOfSubmission || 'Not specified'}</span>
                 </div>
               </div>
+
+              {/* Additional Photos Section */}
+              <div className="w-full border-t border-gray-100 pt-4 text-left">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-gray-700 block">รูปภาพประกอบเพิ่มเติม (สูงสุด 4 รูป)</span>
+                  {isEditingProfile && additionalPhotos.length < 4 && (
+                    <label className="text-[11px] font-semibold text-tu-red hover:text-tu-red-hover flex items-center gap-1 cursor-pointer">
+                      <Plus size={12} />
+                      <span>เพิ่มรูป</span>
+                      <input
+                        type="file"
+                        onChange={handleAdditionalPhotoUpload}
+                        className="hidden"
+                        accept="image/*"
+                        disabled={isUploadingAdditional}
+                      />
+                    </label>
+                  )}
+                </div>
+
+                {/* Grid of photos */}
+                <div className="grid grid-cols-2 gap-2">
+                  {additionalPhotos.map((url, idx) => (
+                    <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden border border-gray-150 bg-gray-50">
+                      <img
+                        src={resolvePhotoUrl(url)}
+                        alt={`Additional ${idx + 1}`}
+                        className="w-full h-full object-cover cursor-pointer hover:scale-105 transition duration-300"
+                        onClick={() => setSelectedFullImage(url)}
+                      />
+                      {isEditingProfile && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAdditionalPhoto(idx)}
+                          className="absolute top-1 right-1 p-1 bg-black/60 hover:bg-black/80 text-white rounded-full transition cursor-pointer"
+                        >
+                          <X size={10} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Empty placeholders */}
+                  {Array.from({ length: 4 - additionalPhotos.length }).map((_, idx) => (
+                    <div
+                      key={idx}
+                      className="aspect-square rounded-lg border border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 bg-gray-50/50"
+                    >
+                      <ImageIcon size={16} className="opacity-60 mb-1" />
+                      <span className="text-[9px] opacity-75 font-medium font-mono">ว่าง</span>
+                    </div>
+                  ))}
+                </div>
+
+                {isUploadingAdditional && (
+                  <div className="flex items-center gap-1.5 mt-2 text-[10px] text-gray-500 font-medium">
+                    <Loader2 size={12} className="animate-spin text-tu-red" />
+                    <span>กำลังอัปโหลดและบีบอัดรูปภาพ...</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Right Side: Demographics Form / Detail view */}
@@ -297,6 +494,7 @@ export default function StudentInformation({
                     <button
                       onClick={() => {
                         setProfileForm({ ...currentUser });
+                        setAdditionalPhotos(currentUser.AdditionalPhotos || []);
                         setIsEditingProfile(false);
                       }}
                       className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold transition cursor-pointer"
@@ -891,6 +1089,29 @@ export default function StudentInformation({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Fullscreen Photo Preview Overlay */}
+      {selectedFullImage && (
+        <div 
+          className="fixed inset-0 bg-black/85 backdrop-blur-xs flex items-center justify-center z-[9999] p-4 cursor-zoom-out" 
+          onClick={() => setSelectedFullImage(null)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <img
+              src={resolvePhotoUrl(selectedFullImage)}
+              alt="Preview full"
+              className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl border border-white/10"
+              referrerPolicy="no-referrer"
+            />
+            <button
+              onClick={() => setSelectedFullImage(null)}
+              className="absolute -top-10 right-0 text-white hover:text-gray-300 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider cursor-pointer bg-white/10 px-3 py-1.5 rounded-lg hover:bg-white/20 transition"
+            >
+              <X size={14} /> ปิดหน้าต่าง
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

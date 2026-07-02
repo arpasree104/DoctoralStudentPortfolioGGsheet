@@ -327,6 +327,7 @@ export function logActivity(userId: string, action: string, details: string) {
 export async function getUsers(): Promise<User[]> {
   initializeDatabase();
   const scriptUrl = getAppsScriptUrl();
+  let rawUsers: any[] = [];
   if (scriptUrl) {
     try {
       const res = await fetch(`${scriptUrl}?type=users`);
@@ -334,16 +335,36 @@ export async function getUsers(): Promise<User[]> {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           localStorage.setItem(KEYS.USERS, JSON.stringify(data));
-          return data;
+          rawUsers = data;
         } else {
           console.warn('Sync users: Succeeded but returned empty or invalid array. Keeping local cache.');
+          rawUsers = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
         }
+      } else {
+        rawUsers = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
       }
     } catch (e) {
       console.warn('Sync users failed, falling back to LocalStorage:', e);
+      rawUsers = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
     }
+  } else {
+    rawUsers = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
   }
-  return JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
+
+  return rawUsers.map((u: any) => {
+    if (u.AdditionalPhotos) {
+      if (typeof u.AdditionalPhotos === 'string') {
+        try {
+          u.AdditionalPhotos = JSON.parse(u.AdditionalPhotos);
+        } catch (e) {
+          u.AdditionalPhotos = [];
+        }
+      }
+    } else {
+      u.AdditionalPhotos = [];
+    }
+    return u as User;
+  });
 }
 
 export async function saveUser(user: User): Promise<void> {
@@ -361,9 +382,13 @@ export async function saveUser(user: User): Promise<void> {
   const scriptUrl = getAppsScriptUrl();
   if (scriptUrl) {
     try {
+      const userToSave = { ...user };
+      if (Array.isArray(userToSave.AdditionalPhotos)) {
+        (userToSave as any).AdditionalPhotos = JSON.stringify(userToSave.AdditionalPhotos);
+      }
       await fetch(scriptUrl, {
         method: 'POST',
-        body: JSON.stringify({ action: 'saveUser', user })
+        body: JSON.stringify({ action: 'saveUser', user: userToSave })
       });
     } catch (e) {
       console.error('Apps Script Sync failed:', e);
@@ -750,7 +775,19 @@ function doGet(e) {
   try {
     if (type === 'users') {
       sheet = getOrCreateSheet('Users');
-      data = getSheetDataAsJson(sheet);
+      var rawUsers = getSheetDataAsJson(sheet);
+      data = rawUsers.map(function(u) {
+        if (u.AdditionalPhotos) {
+          try {
+            u.AdditionalPhotos = JSON.parse(u.AdditionalPhotos);
+          } catch(e) {
+            u.AdditionalPhotos = [];
+          }
+        } else {
+          u.AdditionalPhotos = [];
+        }
+        return u;
+      });
     } else if (type === 'certificates') {
       sheet = getOrCreateSheet('Certificates');
       data = getSheetDataAsJson(sheet);
@@ -808,7 +845,11 @@ function doPost(e) {
     
     if (action === 'saveUser') {
       var sheet = getOrCreateSheet('Users');
-      upsertRow(sheet, 'UserID', postData.user);
+      var usr = postData.user;
+      if (usr && Array.isArray(usr.AdditionalPhotos)) {
+        usr.AdditionalPhotos = JSON.stringify(usr.AdditionalPhotos);
+      }
+      upsertRow(sheet, 'UserID', usr);
       response.success = true;
     } else if (action === 'deleteUser') {
       var sheet = getOrCreateSheet('Users');
@@ -938,7 +979,7 @@ function getOrCreateSheet(sheetName) {
   if (!sheet) {
     sheet = ss.insertSheet(sheetName);
     var schemas = {
-      "Users": ["UserID", "Email", "FullName", "Role", "StudentID", "Major", "Advisor", "CoAdvisor", "ThesisTitle", "LineID", "DateOfSubmission", "ResearchInterests", "ExpectedGraduationYear", "YearOfAdmission", "PhotoURL", "Password"],
+      "Users": ["UserID", "Email", "FullName", "Role", "StudentID", "Major", "Advisor", "CoAdvisor", "ThesisTitle", "LineID", "DateOfSubmission", "ResearchInterests", "ExpectedGraduationYear", "YearOfAdmission", "PhotoURL", "AdditionalPhotos", "Password"],
       "Certificates": ["CertID", "StudentID", "Name", "Date", "Category", "ImageURL", "Status", "ApprovedBy", "Feedback"],
       "Activities": ["ActivityID", "StudentID", "Title", "Date", "Description", "ImagesURL", "Status", "ApprovedBy", "Feedback"],
       "ConfigOptions": ["id", "OptionType", "OptionValue"],
@@ -975,7 +1016,7 @@ function setupDatabase() {
   var ss = getSpreadsheet();
   
   var schemas = {
-    "Users": ["UserID", "Email", "FullName", "Role", "StudentID", "Major", "Advisor", "CoAdvisor", "ThesisTitle", "LineID", "DateOfSubmission", "ResearchInterests", "ExpectedGraduationYear", "YearOfAdmission", "PhotoURL", "Password"],
+    "Users": ["UserID", "Email", "FullName", "Role", "StudentID", "Major", "Advisor", "CoAdvisor", "ThesisTitle", "LineID", "DateOfSubmission", "ResearchInterests", "ExpectedGraduationYear", "YearOfAdmission", "PhotoURL", "AdditionalPhotos", "Password"],
     "Certificates": ["CertID", "StudentID", "Name", "Date", "Category", "ImageURL", "Status", "ApprovedBy", "Feedback"],
     "Activities": ["ActivityID", "StudentID", "Title", "Date", "Description", "ImagesURL", "Status", "ApprovedBy", "Feedback"],
     "ConfigOptions": ["id", "OptionType", "OptionValue"],
@@ -1016,7 +1057,7 @@ function setupDatabase() {
 function insertExampleData() {
   var ss = getSpreadsheet();
   var headersMap = {
-    "Users": ["UserID", "Email", "FullName", "Role", "StudentID", "Major", "Advisor", "CoAdvisor", "ThesisTitle", "LineID", "DateOfSubmission", "ResearchInterests", "ExpectedGraduationYear", "YearOfAdmission", "PhotoURL", "Password"],
+    "Users": ["UserID", "Email", "FullName", "Role", "StudentID", "Major", "Advisor", "CoAdvisor", "ThesisTitle", "LineID", "DateOfSubmission", "ResearchInterests", "ExpectedGraduationYear", "YearOfAdmission", "PhotoURL", "AdditionalPhotos", "Password"],
     "Certificates": ["CertID", "StudentID", "Name", "Date", "Category", "ImageURL", "Status", "ApprovedBy", "Feedback"],
     "Activities": ["ActivityID", "StudentID", "Title", "Date", "Description", "ImagesURL", "Status", "ApprovedBy", "Feedback"],
     "ConfigOptions": ["id", "OptionType", "OptionValue"],
@@ -1028,12 +1069,12 @@ function insertExampleData() {
   var usersSheet = ss.getSheetByName("Users");
   if (usersSheet.getLastRow() <= 1) {
     var sampleUsers = [
-      {"UserID": "STUDENT-1", "Email": "student@tu.ac.th", "FullName": "นางสาวอรพรรณ แก้วดี (Miss Orapan Kaewdee)", "Role": "STUDENT", "StudentID": "6601010024", "Major": "Doctor of Philosophy Program in Nursing Science (International Program)", "Advisor": "รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)", "CoAdvisor": "รศ.ดร. วิภา ชัยชาญ (Assoc. Prof. Dr. Wipa Chaichan)", "ThesisTitle": "Efficacy of Mindfulness-Based Tele-Nursing Intervention on Quality of Life and Coping Strategies in Thai Post-Stroke Caregivers: A Randomized Controlled Trial", "LineID": "orapan.k", "DateOfSubmission": "May 10, 2026", "ResearchInterests": "Gerontological Nursing, Mindfulness-Based Therapy, Tele-rehabilitation", "ExpectedGraduationYear": "2027", "YearOfAdmission": "2024", "PhotoURL": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80", "Password": "1234"},
-      {"UserID": "STUDENT-2", "Email": "ananya.s@tu.ac.th", "FullName": "นางสาวอนัญญา สมใจ (Miss Ananya Somjai)", "Role": "STUDENT", "StudentID": "6601010032", "Major": "หลักสูตรปรัชญาดุษฎีบัณฑิต สาขาวิชาพยาบาลศาสตร์ (PhD in Nursing Science - Thai Program)", "Advisor": "รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)", "CoAdvisor": "ดร. กิตติศักดิ์ รัตนวิทย์ (Dr. Kittisak Rattanawit)", "ThesisTitle": "ปัจจัยที่มีอิทธิพลต่อความพร้อมในการดูแลตนเองของผู้ป่วยภาวะหัวใจล้มเหลวเฉียบพลันในชุมชน", "LineID": "ananya.sj", "DateOfSubmission": "June 1, 2026", "ResearchInterests": "Cardiology Nursing, Self-Care, Chronic Care", "ExpectedGraduationYear": "2027", "YearOfAdmission": "2024", "PhotoURL": "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=300&q=80", "Password": "1234"},
-      {"UserID": "STUDENT-3", "Email": "natthapon.p@tu.ac.th", "FullName": "นายณัฐพล พูนทรัพย์ (Mr. Natthapon Poonsap)", "Role": "STUDENT", "StudentID": "6501010011", "Major": "Doctor of Philosophy Program in Nursing Science (International Program)", "Advisor": "ศ.ดร. สร้อยอนุสาสน์ สุขดี (Prof. Dr. Soianusat Sukdee)", "CoAdvisor": "ผศ.ดร. รพีพรรณ เลิศสมบูรณ์ (Asst. Prof. Dr. Rapeepan Lertsomboon)", "ThesisTitle": "Interactive Mobile-Health Guided Pulmonary Rehabilitation for Elderly COPD Patients", "LineID": "natthapon.p", "DateOfSubmission": "April 15, 2026", "ResearchInterests": "COPD Care, Mobile Health, Respiratory Care", "ExpectedGraduationYear": "2026", "YearOfAdmission": "2023", "PhotoURL": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=300&q=80", "Password": "1234"},
-      {"UserID": "ADVISOR-1", "Email": "advisor@tu.ac.th", "FullName": "รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)", "Role": "ADVISOR", "StudentID": "", "Major": "", "Advisor": "", "CoAdvisor": "", "ThesisTitle": "", "LineID": "", "DateOfSubmission": "", "ResearchInterests": "", "ExpectedGraduationYear": "", "YearOfAdmission": "", "PhotoURL": "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=300&q=80", "Password": "1234"},
-      {"UserID": "CO_ADVISOR-1", "Email": "peach@tu.ac.th", "FullName": "ผศ.ดร. พิชญ์ อรุณแสง (Asst. Prof. Dr. Peach Arunsang)", "Role": "ADVISOR", "StudentID": "", "Major": "", "Advisor": "", "CoAdvisor": "", "ThesisTitle": "", "LineID": "", "DateOfSubmission": "", "ResearchInterests": "", "ExpectedGraduationYear": "", "YearOfAdmission": "", "PhotoURL": "https://images.unsplash.com/photo-1594744803329-e58b31de215f?auto=format&fit=crop&w=300&q=80", "Password": "1234"},
-      {"UserID": "ADMIN-1", "Email": "admin@tu.ac.th", "FullName": "ผศ.ดร. สุขุม พิพัฒน์โชติ (Asst. Prof. Dr. Sukhum Pipatchot) - แอดมินระบบ", "Role": "ADMIN", "StudentID": "", "Major": "", "Advisor": "", "CoAdvisor": "", "ThesisTitle": "", "LineID": "", "DateOfSubmission": "", "ResearchInterests": "", "ExpectedGraduationYear": "", "YearOfAdmission": "", "PhotoURL": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=300&q=80", "Password": "1234"}
+      {"UserID": "STUDENT-1", "Email": "student@tu.ac.th", "FullName": "นางสาวอรพรรณ แก้วดี (Miss Orapan Kaewdee)", "Role": "STUDENT", "StudentID": "6601010024", "Major": "Doctor of Philosophy Program in Nursing Science (International Program)", "Advisor": "รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)", "CoAdvisor": "รศ.ดร. วิภา ชัยชาญ (Assoc. Prof. Dr. Wipa Chaichan)", "ThesisTitle": "Efficacy of Mindfulness-Based Tele-Nursing Intervention on Quality of Life and Coping Strategies in Thai Post-Stroke Caregivers: A Randomized Controlled Trial", "LineID": "orapan.k", "DateOfSubmission": "May 10, 2026", "ResearchInterests": "Gerontological Nursing, Mindfulness-Based Therapy, Tele-rehabilitation", "ExpectedGraduationYear": "2027", "YearOfAdmission": "2024", "PhotoURL": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80", "AdditionalPhotos": "[]", "Password": "1234"},
+      {"UserID": "STUDENT-2", "Email": "ananya.s@tu.ac.th", "FullName": "นางสาวอนัญญา สมใจ (Miss Ananya Somjai)", "Role": "STUDENT", "StudentID": "6601010032", "Major": "หลักสูตรปรัชญาดุษฎีบัณฑิต สาขาวิชาพยาบาลศาสตร์ (PhD in Nursing Science - Thai Program)", "Advisor": "รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)", "CoAdvisor": "ดร. กิตติศักดิ์ รัตนวิทย์ (Dr. Kittisak Rattanawit)", "ThesisTitle": "ปัจจัยที่มีอิทธิพลต่อความพร้อมในการดูแลตนเองของผู้ป่วยภาวะหัวใจล้มเหลวเฉียบพลันในชุมชน", "LineID": "ananya.sj", "DateOfSubmission": "June 1, 2026", "ResearchInterests": "Cardiology Nursing, Self-Care, Chronic Care", "ExpectedGraduationYear": "2027", "YearOfAdmission": "2024", "PhotoURL": "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=300&q=80", "AdditionalPhotos": "[]", "Password": "1234"},
+      {"UserID": "STUDENT-3", "Email": "natthapon.p@tu.ac.th", "FullName": "นายณัฐพล พูนทรัพย์ (Mr. Natthapon Poonsap)", "Role": "STUDENT", "StudentID": "6501010011", "Major": "Doctor of Philosophy Program in Nursing Science (International Program)", "Advisor": "ศ.ดร. สร้อยอนุสาสน์ สุขดี (Prof. Dr. Soianusat Sukdee)", "CoAdvisor": "ผศ.ดร. รพีพรรณ เลิศสมบูรณ์ (Asst. Prof. Dr. Rapeepan Lertsomboon)", "ThesisTitle": "Interactive Mobile-Health Guided Pulmonary Rehabilitation for Elderly COPD Patients", "LineID": "natthapon.p", "DateOfSubmission": "April 15, 2026", "ResearchInterests": "COPD Care, Mobile Health, Respiratory Care", "ExpectedGraduationYear": "2026", "YearOfAdmission": "2023", "PhotoURL": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=300&q=80", "AdditionalPhotos": "[]", "Password": "1234"},
+      {"UserID": "ADVISOR-1", "Email": "advisor@tu.ac.th", "FullName": "รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)", "Role": "ADVISOR", "StudentID": "", "Major": "", "Advisor": "", "CoAdvisor": "", "ThesisTitle": "", "LineID": "", "DateOfSubmission": "", "ResearchInterests": "", "ExpectedGraduationYear": "", "YearOfAdmission": "", "PhotoURL": "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=300&q=80", "AdditionalPhotos": "[]", "Password": "1234"},
+      {"UserID": "CO_ADVISOR-1", "Email": "peach@tu.ac.th", "FullName": "ผศ.ดร. พิชญ์ อรุณแสง (Asst. Prof. Dr. Peach Arunsang)", "Role": "ADVISOR", "StudentID": "", "Major": "", "Advisor": "", "CoAdvisor": "", "ThesisTitle": "", "LineID": "", "DateOfSubmission": "", "ResearchInterests": "", "ExpectedGraduationYear": "", "YearOfAdmission": "", "PhotoURL": "https://images.unsplash.com/photo-1594744803329-e58b31de215f?auto=format&fit=crop&w=300&q=80", "AdditionalPhotos": "[]", "Password": "1234"},
+      {"UserID": "ADMIN-1", "Email": "admin@tu.ac.th", "FullName": "ผศ.ดร. สุขุม พิพัฒน์โชติ (Asst. Prof. Dr. Sukhum Pipatchot) - แอดมินระบบ", "Role": "ADMIN", "StudentID": "", "Major": "", "Advisor": "", "CoAdvisor": "", "ThesisTitle": "", "LineID": "", "DateOfSubmission": "", "ResearchInterests": "", "ExpectedGraduationYear": "", "YearOfAdmission": "", "PhotoURL": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=300&q=80", "AdditionalPhotos": "[]", "Password": "1234"}
     ];
     for (var i = 0; i < sampleUsers.length; i++) {
       appendObjectAsRow(usersSheet, headersMap["Users"], sampleUsers[i]);

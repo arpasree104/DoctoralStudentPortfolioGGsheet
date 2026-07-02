@@ -22,6 +22,7 @@ export interface User {
   ResearchInterests?: string;
   ExpectedGraduationYear?: string;
   PhotoURL?: string;
+  AdditionalPhotos?: string[];
   Password?: string;
 }
 

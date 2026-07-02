@@ -8,6 +8,7 @@ import { StudentPortfolioData, User, ConfigOption, Certificate } from '../types'
 import { motion } from 'motion/react';
 import FileUploader from './FileUploader';
 import DatePickerField from './DatePickerField';
+import { resolveFileUrl } from '../lib/googleSheets';
 import {
   BookOpen, Award, CheckCircle, Clock, Save, Plus, Trash2, Calendar,
   ChevronRight, Compass, HelpCircle, Star, Heart, FileText, Check, AlertCircle, Sparkles, Info, Paperclip
@@ -1388,33 +1389,63 @@ export default function EditPortfolio({
 
                 return (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {myCerts.map((cert) => (
-                      <div key={cert.CertID} className="p-4 bg-white rounded-xl border border-gray-200 shadow-xs flex gap-4 items-start">
-                        {cert.ImageURL && (
+                    {myCerts.map((cert) => {
+                      let files: { name: string; url: string }[] = [];
+                      if (cert.ImageURL) {
+                        const trimmed = cert.ImageURL.trim();
+                        if (trimmed.startsWith('[')) {
+                          try {
+                            files = JSON.parse(trimmed);
+                          } catch(e) {
+                            files = [{ name: cert.Name || 'Attachment', url: cert.ImageURL }];
+                          }
+                        } else {
+                          files = [{ name: cert.Name || 'Attachment', url: cert.ImageURL }];
+                        }
+                      }
+                      
+                      const firstFile = files[0];
+                      let coverUrl = 'https://images.unsplash.com/photo-1589330694653-ded6df03f754?auto=format&fit=crop&w=800&q=80';
+                      if (firstFile && firstFile.url) {
+                        const url = firstFile.url;
+                        const name = firstFile.name || '';
+                        const isImg = /\.(png|jpe?g|gif|webp)$/i.test(name) ||
+                                      /\.(png|jpe?g|gif|webp)$/i.test(url.split('?')[0]) ||
+                                      url.includes('images.unsplash.com') ||
+                                      url.startsWith('LOCAL_FILE_') ||
+                                      url.startsWith('data:image/') ||
+                                      url.includes('lh3.googleusercontent.com');
+                        if (isImg) {
+                          coverUrl = resolveFileUrl(url);
+                        }
+                      }
+
+                      return (
+                        <div key={cert.CertID} className="p-4 bg-white rounded-xl border border-gray-200 shadow-xs flex gap-4 items-start">
                           <img
-                            src={cert.ImageURL}
+                            src={coverUrl}
                             alt={cert.Name}
                             referrerPolicy="no-referrer"
                             className="w-14 h-14 rounded-lg object-cover bg-gray-50 border border-gray-100 shrink-0"
                           />
-                        )}
-                        <div className="space-y-1 min-w-0">
-                          <h4 className="font-bold text-xs text-gray-800 line-clamp-2">{cert.Name}</h4>
-                          <div className="flex flex-wrap items-center gap-2 text-[10px]">
-                            <span className="text-gray-400 font-mono">{cert.Date}</span>
-                            <span className="text-gray-300">•</span>
-                            <span className="text-tu-red italic truncate max-w-[150px]">{cert.Category}</span>
+                          <div className="space-y-1 min-w-0">
+                            <h4 className="font-bold text-xs text-gray-800 line-clamp-2">{cert.Name}</h4>
+                            <div className="flex flex-wrap items-center gap-2 text-[10px]">
+                              <span className="text-gray-400 font-mono">{cert.Date}</span>
+                              <span className="text-gray-300">•</span>
+                              <span className="text-tu-red italic truncate max-w-[150px]">{cert.Category}</span>
+                            </div>
+                            <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase mt-1 ${
+                              cert.Status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                              cert.Status === 'PENDING' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
+                              'bg-red-50 text-red-600 border border-red-100'
+                            }`}>
+                              {cert.Status}
+                            </span>
                           </div>
-                          <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase mt-1 ${
-                            cert.Status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
-                            cert.Status === 'PENDING' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
-                            'bg-red-50 text-red-600 border border-red-100'
-                          }`}>
-                            {cert.Status}
-                          </span>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 );
               })()}

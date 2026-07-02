@@ -800,18 +800,25 @@ export async function uploadFileToDrive(
     const reader = new FileReader();
     reader.onload = async () => {
       const localDataUrl = reader.result as string;
+      const fileKey = `LOCAL_FILE_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       let finalFileName = "";
-      if (uploaderRole === 'STUDENT' || uploaderRole.toLowerCase() === 'student') {
+      const roleUpper = (uploaderRole || "").toUpperCase();
+      if (roleUpper === 'STUDENT') {
         finalFileName = `${studentId}_${file.name}`;
       } else {
         finalFileName = `${uploaderId}_${studentId}_${file.name}`;
       }
 
       if (!scriptUrl) {
-        // Simulated Mode: Use local Base64 URL to show the EXACT selected image
+        // Simulated Mode: Save to local storage to protect sheets from heavy base64 strings
+        try {
+          localStorage.setItem(fileKey, localDataUrl);
+        } catch (e) {
+          console.warn('LocalStorage limit exceeded during local file save:', e);
+        }
         resolve({
           success: true,
-          fileUrl: localDataUrl,
+          fileUrl: fileKey,
           fileName: finalFileName
         });
         return;
@@ -826,7 +833,7 @@ export async function uploadFileToDrive(
             studentId,
             studentName,
             uploaderId,
-            uploaderRole,
+            uploaderRole: roleUpper,
             filename: file.name,
             mimeType: file.type,
             base64Data
@@ -836,20 +843,28 @@ export async function uploadFileToDrive(
         if (result && result.success && result.fileUrl) {
           resolve(result);
         } else {
-          // Fallback to local Base64 URL so it still displays and works offline
-          console.warn('Apps Script file upload succeeded but returned unsuccessful status. Falling back to local Base64.');
+          console.warn('Apps Script file upload succeeded but returned unsuccessful status. Falling back to local Base64 pointer.');
+          try {
+            localStorage.setItem(fileKey, localDataUrl);
+          } catch (e) {
+            console.warn('LocalStorage limit exceeded during fallback:', e);
+          }
           resolve({
             success: true,
-            fileUrl: localDataUrl,
+            fileUrl: fileKey,
             fileName: finalFileName
           });
         }
       } catch (err: any) {
         console.error('Apps Script file upload error:', err);
-        // Fallback to local Base64 URL so it still displays and works offline
+        try {
+          localStorage.setItem(fileKey, localDataUrl);
+        } catch (e) {
+          console.warn('LocalStorage limit exceeded during fallback:', e);
+        }
         resolve({
           success: true,
-          fileUrl: localDataUrl,
+          fileUrl: fileKey,
           fileName: finalFileName
         });
       }
@@ -859,6 +874,24 @@ export async function uploadFileToDrive(
     };
     reader.readAsDataURL(file);
   });
+}
+
+export function resolveFileUrl(url: string | null | undefined): string {
+  if (!url) return '';
+  if (url.startsWith('LOCAL_FILE_')) {
+    const cached = localStorage.getItem(url);
+    return cached || '';
+  }
+  return url;
+}
+
+export function resolvePhotoUrl(url: string | null | undefined, defaultUrl: string = 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80'): string {
+  if (!url) return defaultUrl;
+  if (url.startsWith('LOCAL_FILE_')) {
+    const cached = localStorage.getItem(url);
+    return cached || defaultUrl;
+  }
+  return url;
 }
 
 export function getLogs(): ActivityLog[] {
@@ -890,13 +923,13 @@ function doGet(e) {
   
   try {
     if (type === 'users') {
-      sheet = ss.getSheetByName('Users');
+      sheet = getOrCreateSheet('Users');
       data = getSheetDataAsJson(sheet);
     } else if (type === 'certificates') {
-      sheet = ss.getSheetByName('Certificates');
+      sheet = getOrCreateSheet('Certificates');
       data = getSheetDataAsJson(sheet);
     } else if (type === 'activities') {
-      sheet = ss.getSheetByName('Activities');
+      sheet = getOrCreateSheet('Activities');
       var raw = getSheetDataAsJson(sheet);
       data = raw.map(function(item) {
         if (item.ImagesURL) {
@@ -911,13 +944,13 @@ function doGet(e) {
         return item;
       });
     } else if (type === 'configOptions') {
-      sheet = ss.getSheetByName('ConfigOptions');
+      sheet = getOrCreateSheet('ConfigOptions');
       data = getSheetDataAsJson(sheet);
     } else if (type === 'chats') {
-      sheet = ss.getSheetByName('Chats');
+      sheet = getOrCreateSheet('Chats');
       data = getSheetDataAsJson(sheet);
     } else if (type === 'notifications') {
-      sheet = ss.getSheetByName('Notifications');
+      sheet = getOrCreateSheet('Notifications');
       var raw = getSheetDataAsJson(sheet);
       data = raw.map(function(item) {
         item.IsRead = item.IsRead === 'true' || item.IsRead === true;
@@ -948,19 +981,19 @@ function doPost(e) {
     var action = postData.action;
     
     if (action === 'saveUser') {
-      var sheet = ss.getSheetByName('Users');
+      var sheet = getOrCreateSheet('Users');
       upsertRow(sheet, 'UserID', postData.user);
       response.success = true;
     } else if (action === 'deleteUser') {
-      var sheet = ss.getSheetByName('Users');
+      var sheet = getOrCreateSheet('Users');
       deleteRow(sheet, 'UserID', postData.userId);
       response.success = true;
     } else if (action === 'saveCertificate') {
-      var sheet = ss.getSheetByName('Certificates');
+      var sheet = getOrCreateSheet('Certificates');
       upsertRow(sheet, 'CertID', postData.certificate);
       response.success = true;
     } else if (action === 'saveActivity') {
-      var sheet = ss.getSheetByName('Activities');
+      var sheet = getOrCreateSheet('Activities');
       var act = postData.activity;
       if (Array.isArray(act.ImagesURL)) {
         act.ImagesURL = JSON.stringify(act.ImagesURL);
@@ -968,28 +1001,28 @@ function doPost(e) {
       upsertRow(sheet, 'ActivityID', act);
       response.success = true;
     } else if (action === 'saveConfigOption') {
-      var sheet = ss.getSheetByName('ConfigOptions');
+      var sheet = getOrCreateSheet('ConfigOptions');
       upsertRow(sheet, 'id', postData.config);
       response.success = true;
     } else if (action === 'deleteConfigOption') {
-      var sheet = ss.getSheetByName('ConfigOptions');
+      var sheet = getOrCreateSheet('ConfigOptions');
       deleteRow(sheet, 'id', postData.id);
       response.success = true;
     } else if (action === 'savePortfolio') {
       savePortfolioToSheets(postData.studentId, postData.portfolio);
       response.success = true;
     } else if (action === 'saveChat') {
-      var sheet = ss.getSheetByName('Chats');
+      var sheet = getOrCreateSheet('Chats');
       upsertRow(sheet, 'MessageID', postData.message);
       response.success = true;
     } else if (action === 'saveNotification') {
-      var sheet = ss.getSheetByName('Notifications');
+      var sheet = getOrCreateSheet('Notifications');
       var notif = postData.notification;
       notif.IsRead = String(notif.IsRead);
       upsertRow(sheet, 'NotificationID', notif);
       response.success = true;
     } else if (action === 'logActivity') {
-      var sheet = ss.getSheetByName('ActivityLogs');
+      var sheet = getOrCreateSheet('ActivityLogs');
       sheet.appendRow([
         postData.log.LogID,
         postData.log.Timestamp,
@@ -999,13 +1032,17 @@ function doPost(e) {
       ]);
       response.success = true;
     } else if (action === 'uploadFile') {
-      var studentId = postData.studentId;
+      var studentId = postData.studentId || "";
       var studentName = postData.studentName || "Student";
-      var uploaderId = postData.uploaderId;
-      var uploaderRole = postData.uploaderRole;
-      var filename = postData.filename;
-      var mimeType = postData.mimeType;
-      var base64Data = postData.base64Data;
+      var uploaderId = postData.uploaderId || "";
+      var uploaderRole = (postData.uploaderRole || "").toUpperCase();
+      var filename = postData.filename || postData.fileName || "file";
+      var mimeType = postData.mimeType || "application/octet-stream";
+      var base64Data = postData.base64Data || postData.fileData;
+      
+      if (!base64Data) {
+        throw new Error("Missing file data (base64Data)");
+      }
       
       // 1. Get or create root "Bird" folder
       var rootFolders = DriveApp.getFoldersByName("Bird");
@@ -1018,7 +1055,7 @@ function doPost(e) {
       }
       
       // 2. Get or create student subfolder: "StudentID_StudentName"
-      var folderName = studentId + "_" + studentName;
+      var folderName = (studentId ? studentId : "Unknown") + "_" + studentName;
       var studentFolder = getOrCreateFolder(birdFolder, folderName);
       
       // 3. Compute final filename based on specified uploader role rules
@@ -1063,6 +1100,44 @@ function getOrCreateFolder(parent, folderName) {
     folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
     return folder;
   }
+}
+
+function getOrCreateSheet(sheetName) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    sheet = ss.insertSheet(sheetName);
+    var schemas = {
+      "Users": ["UserID", "Email", "FullName", "Role", "StudentID", "Major", "Advisor", "CoAdvisor", "ThesisTitle", "LineID", "ORCID", "ResearchInterests", "ExpectedGraduationYear", "PhotoURL", "Password"],
+      "Certificates": ["CertID", "StudentID", "Name", "Date", "Category", "ImageURL", "Status", "ApprovedBy", "Feedback"],
+      "Activities": ["ActivityID", "StudentID", "Title", "Date", "Description", "ImagesURL", "Status", "ApprovedBy", "Feedback"],
+      "ConfigOptions": ["id", "OptionType", "OptionValue"],
+      "ActivityLogs": ["LogID", "Timestamp", "Action", "UserID", "Details"],
+      "Chats": ["MessageID", "SenderID", "SenderName", "ReceiverID", "MessageText", "Timestamp"],
+      "Notifications": ["NotificationID", "SenderID", "SenderName", "ReceiverID", "Title", "MessageText", "Timestamp", "IsRead"],
+      "P1_StudentProfile": ["StudentID", "RecordType", "Degree", "Field", "Institution", "Year", "Period", "Role", "Remarks", "LastUpdated"],
+      "P2_Milestones": ["StudentID", "MilestoneKey", "MilestoneLabel", "PlannedDate", "ActualDate", "Remarks", "Status", "LastUpdated"],
+      "P3_EnglishLanguage": ["StudentID", "RecordType", "TestName", "DateTaken", "ScoreAchieved", "RequiredScore", "TestStatus", "TestEvidence", "ActivityDate", "ActivityName", "ActivityOrganizer", "ActivityDescription", "ActivityEvidence", "EnglishReflection", "LastUpdated"],
+      "P4_Coursework": ["StudentID", "RecordType", "CourseCode", "CourseTitle", "Semester", "Credits", "Grade", "WorkshopDate", "WorkshopTitle", "WorkshopOrganizer", "WorkshopRole", "WorkshopKeyLearning", "LastUpdated"],
+      "P5_Dissertation": ["StudentID", "RecordType", "InfoTitle", "InfoBackground", "InfoProblem", "InfoObjectives", "InfoHypotheses", "InfoConceptualFramework", "InfoMethodology", "ProgressActivity", "ProgressDate", "ProgressDetails", "ProgressEvidence", "MeetingDate", "MeetingPersons", "MeetingIssues", "MeetingActionPoints", "LastUpdated"],
+      "P6_ResearchExperience": ["StudentID", "RecordType", "EthicsDateApplied", "EthicsDateApproved", "EthicsApprovalNumber", "EthicsAmendments", "EthicsConfidentiality", "ExperienceDate", "ExperienceActivity", "ExperienceDescription", "ExperienceHours", "ExperienceSupervisor", "ExperienceEvidence", "ResearchReflection", "LastUpdated"],
+      "P7_ScholarlyOutput": ["StudentID", "RecordType", "ConfDate", "ConfTitle", "ConfName", "ConfType", "ConfVenue", "PubYear", "PubTitle", "PubJournal", "PubStatus", "PubDoi", "MscTitle", "MscJournal", "MscStage", "MscPlannedSubmission", "GrantTitle", "GrantSource", "GrantRole", "GrantAmount", "GrantPeriod", "AwardDate", "AwardName", "AwardOrganizer", "AwardDescription", "LastUpdated"],
+      "P8_TeachingService": ["StudentID", "RecordType", "TeachSemester", "TeachCourse", "TeachRole", "TeachStudentLevel", "TeachDescription", "SupervisionDate", "SupervisionType", "SupervisionStudentLevel", "SupervisionDescription", "ServiceDate", "ServiceActivity", "ServiceRole", "ServiceOrganization", "LastUpdated"],
+      "P9_LeadershipNetworking": ["StudentID", "LeadershipDate", "LeadershipRole", "LeadershipOrganization", "LeadershipResponsibilities", "LastUpdated"],
+      "P10_ReflectivePractice": ["StudentID", "ReflectionCourse", "ReflectionKeyLearning", "ReflectionApplication", "LastUpdated"],
+      "P11_SupportingEvidence": ["StudentID", "FileName", "FileUrl", "LastUpdated"],
+      "P12_CompetencySelfAssessment": ["StudentID", "CompetencyName", "CompetencyRating", "CompetencyRemarks", "LastUpdated"],
+      "P13_AnnualReview": ["StudentID", "RecordType", "ReviewAchievements", "ReviewImprovements", "Goal", "Steps", "Timeline", "Support", "LastUpdated"],
+      "P14_FutureCareerPlan": ["StudentID", "ShortTermGoal", "LongTermGoal", "Preparation", "LastUpdated"],
+      "P15_AdvisorFeedback": ["StudentID", "AdvisorComments", "LastUpdated"],
+      "P16_AdvisorEndorsement": ["StudentID", "EndorsementRole", "EndorsementName", "EndorsementSignatureDate", "LastUpdated"]
+    };
+    var headers = schemas[sheetName] || ["StudentID", "LastUpdated"];
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#e0f2fe");
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
 }
 
 // SETUP DATABASE AND SEED ALL 16 SECTIONS WITH SCHEMA HEADERS

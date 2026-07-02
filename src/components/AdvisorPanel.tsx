@@ -6,7 +6,8 @@
 import React, { useState } from 'react';
 import { User, Certificate, Activity } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { Users, Award, Clock, CheckCircle2, XCircle, MessageSquare, GraduationCap, ChevronRight, FileText, Check, AlertTriangle } from 'lucide-react';
+import { Users, Award, Clock, CheckCircle2, XCircle, MessageSquare, GraduationCap, ChevronRight, FileText, Check, AlertTriangle, Paperclip, ExternalLink } from 'lucide-react';
+import { resolvePhotoUrl, resolveFileUrl } from '../lib/googleSheets';
 
 interface AdvisorPanelProps {
   currentUser: User;
@@ -86,7 +87,7 @@ export default function AdvisorPanel({
                 }`}
               >
                 <img
-                  src={stud.PhotoURL || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80'}
+                  src={resolvePhotoUrl(stud.PhotoURL)}
                   alt={stud.FullName}
                   className="w-8 h-8 rounded-full object-cover"
                 />
@@ -111,7 +112,7 @@ export default function AdvisorPanel({
             {/* Student Brief Demographics Header */}
             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs flex flex-col sm:flex-row items-center gap-5">
               <img
-                src={activeStudent.PhotoURL || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80'}
+                src={resolvePhotoUrl(activeStudent.PhotoURL)}
                 alt={activeStudent.FullName}
                 className="w-16 h-16 rounded-2xl object-cover ring-4 ring-red-50"
               />
@@ -170,72 +171,112 @@ export default function AdvisorPanel({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {certificates
                       .filter(c => c.StudentID === activeStudent.StudentID)
-                      .map((cert) => (
-                        <div key={cert.CertID} className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-xs flex flex-col justify-between">
-                          <div className="relative h-44 bg-gray-50">
-                            <img src={cert.ImageURL} alt={cert.Name} className="w-full h-full object-cover" />
-                            <div className="absolute top-3 right-3">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                cert.Status === 'APPROVED'
-                                  ? 'bg-emerald-500 text-white'
-                                  : cert.Status === 'REJECTED'
-                                  ? 'bg-red-500 text-white'
-                                  : 'bg-amber-500 text-white'
-                              }`}>
-                                {cert.Status}
-                              </span>
+                      .map((cert) => {
+                        let files: { name: string; url: string }[] = [];
+                        if (cert.ImageURL) {
+                          if (cert.ImageURL.trim().startsWith('[')) {
+                            try {
+                              files = JSON.parse(cert.ImageURL);
+                            } catch(e) {
+                              files = [{ name: cert.Name || 'Attachment', url: cert.ImageURL }];
+                            }
+                          } else {
+                            files = [{ name: cert.Name || 'Attachment', url: cert.ImageURL }];
+                          }
+                        }
+                        
+                        const firstFile = files[0];
+                        const isImg = firstFile && (/\.(png|jpe?g|gif|webp)$/i.test(firstFile.name) || firstFile.url.includes('images.unsplash.com') || firstFile.url.startsWith('LOCAL_FILE_'));
+                        const coverUrl = isImg ? resolveFileUrl(firstFile.url) : 'https://images.unsplash.com/photo-1589330694653-ded6df03f754?auto=format&fit=crop&w=800&q=80';
+
+                        return (
+                          <div key={cert.CertID} className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-xs flex flex-col justify-between">
+                            <div className="relative h-44 bg-gray-50">
+                              <img src={coverUrl} alt={cert.Name} className="w-full h-full object-cover" />
+                              <div className="absolute top-3 right-3">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  cert.Status === 'APPROVED'
+                                    ? 'bg-emerald-500 text-white'
+                                    : cert.Status === 'REJECTED'
+                                    ? 'bg-red-500 text-white'
+                                    : 'bg-amber-500 text-white'
+                                }`}>
+                                  {cert.Status}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="p-4 space-y-4">
+                              <div className="space-y-1">
+                                <span className="text-[9px] uppercase font-bold text-tu-red tracking-wider font-mono">
+                                  {cert.Category}
+                                </span>
+                                <h4 className="font-semibold text-xs text-gray-800 leading-snug">{cert.Name}</h4>
+                                <p className="text-[10px] text-gray-400 font-mono">Date Received: {cert.Date}</p>
+
+                                {files.length > 0 && (
+                                  <div className="pt-2 mt-2 border-t border-gray-100 space-y-1">
+                                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Student Attachments ({files.length})</span>
+                                    <div className="space-y-1">
+                                      {files.map((file, i) => (
+                                        <a
+                                          key={i}
+                                          href={resolveFileUrl(file.url)}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center gap-1.5 text-[11px] text-tu-red hover:underline break-all"
+                                        >
+                                          <Paperclip size={11} className="shrink-0 text-gray-400" />
+                                          <span className="truncate max-w-[180px]">{file.name}</span>
+                                          <ExternalLink size={9} className="shrink-0" />
+                                        </a>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              {cert.Status === 'PENDING' ? (
+                                <div className="space-y-3 pt-3 border-t border-gray-50">
+                                  <div>
+                                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Advisor Feedback & Remarks</label>
+                                    <input
+                                      type="text"
+                                      placeholder="e.g., Excellent credentials, approved."
+                                      value={actingId === cert.CertID ? feedbackText : ''}
+                                      onChange={e => {
+                                        setActingId(cert.CertID);
+                                        setFeedbackText(e.target.value);
+                                      }}
+                                      className="w-full px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs"
+                                    />
+                                  </div>
+
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => handleVerifyCert(cert.CertID, 'APPROVED')}
+                                      className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition cursor-pointer"
+                                    >
+                                      Approve Certificate
+                                    </button>
+                                    <button
+                                      onClick={() => handleVerifyCert(cert.CertID, 'REJECTED')}
+                                      className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs rounded-lg transition cursor-pointer"
+                                    >
+                                      Request Revision
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="p-2.5 bg-gray-50 rounded-xl text-[11px] text-gray-600 border border-gray-100">
+                                  <span className="font-bold text-gray-800">Submitted Feedback: </span>
+                                  <p className="italic">"{cert.Feedback || 'No further feedback provided.'}"</p>
+                                </div>
+                              )}
                             </div>
                           </div>
-
-                          <div className="p-4 space-y-4">
-                            <div className="space-y-1">
-                              <span className="text-[9px] uppercase font-bold text-tu-red tracking-wider font-mono">
-                                {cert.Category}
-                              </span>
-                              <h4 className="font-semibold text-xs text-gray-800 leading-snug">{cert.Name}</h4>
-                              <p className="text-[10px] text-gray-400 font-mono">Date Received: {cert.Date}</p>
-                            </div>
-
-                            {cert.Status === 'PENDING' ? (
-                              <div className="space-y-3 pt-3 border-t border-gray-50">
-                                <div>
-                                  <label className="text-[10px] font-semibold text-gray-500 block mb-1">Advisor Feedback & Remarks</label>
-                                  <input
-                                    type="text"
-                                    placeholder="e.g., Excellent credentials, approved."
-                                    value={actingId === cert.CertID ? feedbackText : ''}
-                                    onChange={e => {
-                                      setActingId(cert.CertID);
-                                      setFeedbackText(e.target.value);
-                                    }}
-                                    className="w-full px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs"
-                                  />
-                                </div>
-
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={() => handleVerifyCert(cert.CertID, 'APPROVED')}
-                                    className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition cursor-pointer"
-                                  >
-                                    Approve Certificate
-                                  </button>
-                                  <button
-                                    onClick={() => handleVerifyCert(cert.CertID, 'REJECTED')}
-                                    className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs rounded-lg transition cursor-pointer"
-                                  >
-                                    Request Revision
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="p-2.5 bg-gray-50 rounded-xl text-[11px] text-gray-600 border border-gray-100">
-                                <span className="font-bold text-gray-800">Submitted Feedback: </span>
-                                <p className="italic">"{cert.Feedback || 'No further feedback provided.'}"</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
 
                     {certificates.filter(c => c.StudentID === activeStudent.StudentID).length === 0 && (
                       <div className="col-span-2 text-center py-12 bg-white rounded-2xl border border-gray-100">
@@ -258,73 +299,121 @@ export default function AdvisorPanel({
                   <div className="space-y-5">
                     {activities
                       .filter(a => a.StudentID === activeStudent.StudentID)
-                      .map((act) => (
-                        <div key={act.ActivityID} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs grid grid-cols-1 md:grid-cols-3 gap-6">
-                          {/* Collage side */}
-                          <div>
-                            <span className="text-[9px] uppercase font-bold text-tu-red tracking-wider block mb-2 font-mono">Collage Evidence</span>
-                            <div className="grid grid-cols-2 gap-1.5">
-                              {act.ImagesURL.map((url, i) => (
-                                <img key={i} src={url} alt="act" className="w-full h-16 object-cover rounded-lg" />
-                              ))}
+                      .map((act) => {
+                        let files: { name: string; url: string }[] = [];
+                        if (Array.isArray(act.ImagesURL)) {
+                          files = act.ImagesURL.map((u, i) => typeof u === 'string' ? { name: `File ${i + 1}`, url: u } : u);
+                        } else if (typeof act.ImagesURL === 'string') {
+                          if ((act.ImagesURL as string).trim().startsWith('[')) {
+                            try {
+                              files = JSON.parse(act.ImagesURL);
+                            } catch(e) {
+                              files = [{ name: 'Attachment', url: act.ImagesURL }];
+                            }
+                          } else {
+                            files = [{ name: 'Attachment', url: act.ImagesURL }];
+                          }
+                        }
+
+                        const imageFiles = files.filter(f => f.url && (/\.(png|jpe?g|gif|webp)$/i.test(f.name) || f.url.includes('images.unsplash.com') || f.url.startsWith('LOCAL_FILE_')));
+                        const otherFiles = files.filter(f => f.url && !(/\.(png|jpe?g|gif|webp)$/i.test(f.name) || f.url.includes('images.unsplash.com') || f.url.startsWith('LOCAL_FILE_')));
+
+                        return (
+                          <div key={act.ActivityID} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {/* Collage side */}
+                            <div>
+                              <span className="text-[9px] uppercase font-bold text-tu-red tracking-wider block mb-2 font-mono">Collage Evidence</span>
+                              {imageFiles.length > 0 ? (
+                                <div className="grid grid-cols-2 gap-1.5">
+                                  {imageFiles.map((f, i) => (
+                                    <img key={i} src={resolveFileUrl(f.url)} alt="act" className="w-full h-16 object-cover rounded-lg" />
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="h-16 bg-gray-50 border border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-400 p-2">
+                                  <Paperclip size={16} className="mb-0.5" />
+                                  <span className="text-[10px]">No image attachments</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* details side */}
+                            <div className="md:col-span-2 flex flex-col justify-between space-y-4">
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="font-bold text-sm text-gray-900">{act.Title}</h4>
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                    act.Status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                                  }`}>
+                                    {act.Status}
+                                  </span>
+                                </div>
+                                <p className="text-[10px] text-gray-400 font-mono">Date Submitted: {act.Date}</p>
+                                <p className="text-xs text-gray-600 leading-relaxed">{act.Description}</p>
+
+                                {files.length > 0 && (
+                                  <div className="pt-2 mt-2 border-t border-gray-100 space-y-1">
+                                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Attached Files ({files.length})</span>
+                                    <div className="flex flex-wrap gap-2">
+                                      {files.map((file, i) => (
+                                        <a
+                                          key={i}
+                                          href={resolveFileUrl(file.url)}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-50 border border-gray-200 rounded-md text-[11px] text-tu-red hover:bg-gray-100 transition max-w-[200px]"
+                                        >
+                                          <Paperclip size={10} className="shrink-0 text-gray-400" />
+                                          <span className="truncate">{file.name}</span>
+                                          <ExternalLink size={8} className="shrink-0 text-gray-400" />
+                                        </a>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              {act.Status === 'PENDING' ? (
+                                <div className="space-y-3 pt-3 border-t border-gray-50">
+                                  <div>
+                                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Advisor Activity Feedback</label>
+                                    <input
+                                      type="text"
+                                      placeholder="e.g., Great community presentation, approved."
+                                      value={actingId === act.ActivityID ? feedbackText : ''}
+                                      onChange={e => {
+                                        setActingId(act.ActivityID);
+                                        setFeedbackText(e.target.value);
+                                      }}
+                                      className="w-full px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs"
+                                    />
+                                  </div>
+
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => handleVerifyAct(act.ActivityID, 'APPROVED')}
+                                      className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition cursor-pointer"
+                                    >
+                                      Approve Activity
+                                    </button>
+                                    <button
+                                      onClick={() => handleVerifyAct(act.ActivityID, 'REJECTED')}
+                                      className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs rounded-lg transition cursor-pointer"
+                                    >
+                                      Request Revision
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="p-2.5 bg-gray-50 rounded-xl text-[11px] text-gray-600 border border-gray-100">
+                                  <span className="font-bold text-gray-800 font-mono">Advisor Recommendation: </span>
+                                  <p className="italic">"{act.Feedback || 'Approved successfully.'}"</p>
+                                </div>
+                              )}
                             </div>
                           </div>
-
-                          {/* details side */}
-                          <div className="md:col-span-2 flex flex-col justify-between space-y-4">
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between">
-                                <h4 className="font-bold text-sm text-gray-900">{act.Title}</h4>
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                  act.Status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                                }`}>
-                                  {act.Status}
-                                </span>
-                              </div>
-                              <p className="text-[10px] text-gray-400 font-mono">Date Submitted: {act.Date}</p>
-                              <p className="text-xs text-gray-600 leading-relaxed">{act.Description}</p>
-                            </div>
-
-                            {act.Status === 'PENDING' ? (
-                              <div className="space-y-3 pt-3 border-t border-gray-50">
-                                <div>
-                                  <label className="text-[10px] font-semibold text-gray-500 block mb-1">Advisor Activity Feedback</label>
-                                  <input
-                                    type="text"
-                                    placeholder="e.g., Great community presentation, approved."
-                                    value={actingId === act.ActivityID ? feedbackText : ''}
-                                    onChange={e => {
-                                      setActingId(act.ActivityID);
-                                      setFeedbackText(e.target.value);
-                                    }}
-                                    className="w-full px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs"
-                                  />
-                                </div>
-
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={() => handleVerifyAct(act.ActivityID, 'APPROVED')}
-                                    className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition cursor-pointer"
-                                  >
-                                    Approve Activity
-                                  </button>
-                                  <button
-                                    onClick={() => handleVerifyAct(act.ActivityID, 'REJECTED')}
-                                    className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs rounded-lg transition cursor-pointer"
-                                  >
-                                    Request Revision
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="p-2.5 bg-gray-50 rounded-xl text-[11px] text-gray-600 border border-gray-100">
-                                <span className="font-bold text-gray-800 font-mono">Advisor Recommendation: </span>
-                                <p className="italic">"{act.Feedback || 'Approved successfully.'}"</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
 
                     {activities.filter(a => a.StudentID === activeStudent.StudentID).length === 0 && (
                       <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">

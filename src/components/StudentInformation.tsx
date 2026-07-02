@@ -8,7 +8,7 @@ import { User, Certificate, Activity, ConfigOption } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { User as UserIcon, Award, Image as ImageIcon, Plus, Edit2, CheckCircle2, AlertCircle, Trash2, ExternalLink, Calendar, PlusCircle, Check, Loader2, HeartHandshake, Paperclip } from 'lucide-react';
 import FileUploader, { AttachedFile } from './FileUploader';
-import { getAppsScriptUrl, uploadFileToDrive } from '../lib/googleSheets';
+import { getAppsScriptUrl, uploadFileToDrive, resolvePhotoUrl, resolveFileUrl } from '../lib/googleSheets';
 
 interface StudentInformationProps {
   currentUser: User;
@@ -219,7 +219,7 @@ export default function StudentInformation({
             <div className="bg-white p-6 rounded-2xl shadow-xs border border-gray-100 flex flex-col items-center text-center space-y-4">
               <div className="relative group">
                 <img
-                  src={profileForm.PhotoURL || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80'}
+                  src={resolvePhotoUrl(profileForm.PhotoURL)}
                   alt="Profile Photo"
                   className="w-36 h-36 rounded-2xl object-cover ring-4 ring-red-50"
                 />
@@ -578,8 +578,8 @@ export default function StudentInformation({
                         }
                         
                         const firstFile = files[0];
-                        const isImg = firstFile && (/\.(png|jpe?g|gif|webp)$/i.test(firstFile.name) || firstFile.url.includes('images.unsplash.com'));
-                        const coverUrl = isImg ? firstFile.url : 'https://images.unsplash.com/photo-1589330694653-ded6df03f754?auto=format&fit=crop&w=800&q=80';
+                        const isImg = firstFile && (/\.(png|jpe?g|gif|webp)$/i.test(firstFile.name) || firstFile.url.includes('images.unsplash.com') || firstFile.url.startsWith('LOCAL_FILE_'));
+                        const coverUrl = isImg ? resolveFileUrl(firstFile.url) : 'https://images.unsplash.com/photo-1589330694653-ded6df03f754?auto=format&fit=crop&w=800&q=80';
                         
                         return (
                           <>
@@ -620,7 +620,7 @@ export default function StudentInformation({
                                       {files.map((file, i) => (
                                         <a
                                           key={i}
-                                          href={file.url}
+                                          href={resolveFileUrl(file.url)}
                                           target="_blank"
                                           rel="noopener noreferrer"
                                           className="flex items-center gap-1.5 text-xs text-tu-red hover:underline break-all"
@@ -756,8 +756,8 @@ export default function StudentInformation({
                           }
                         }
 
-                        const imageFiles = files.filter(f => f.url && (/\.(png|jpe?g|gif|webp)$/i.test(f.name) || f.url.includes('images.unsplash.com')));
-                        const otherFiles = files.filter(f => f.url && !(/\.(png|jpe?g|gif|webp)$/i.test(f.name) || f.url.includes('images.unsplash.com')));
+                        const imageFiles = files.filter(f => f.url && (/\.(png|jpe?g|gif|webp)$/i.test(f.name) || f.url.includes('images.unsplash.com') || f.url.startsWith('LOCAL_FILE_')));
+                        const otherFiles = files.filter(f => f.url && !(/\.(png|jpe?g|gif|webp)$/i.test(f.name) || f.url.includes('images.unsplash.com') || f.url.startsWith('LOCAL_FILE_')));
 
                         return (
                           <>
@@ -768,19 +768,19 @@ export default function StudentInformation({
                               {imageFiles.length > 0 ? (
                                 <div className="grid grid-cols-2 gap-2">
                                   {imageFiles.length === 1 && (
-                                    <img src={imageFiles[0].url} alt="activity" className="w-full h-36 object-cover rounded-xl col-span-2" />
+                                    <img src={resolveFileUrl(imageFiles[0].url)} alt="activity" className="w-full h-36 object-cover rounded-xl col-span-2" />
                                   )}
                                   {imageFiles.length === 2 && (
                                     <>
-                                      <img src={imageFiles[0].url} alt="activity" className="w-full h-36 object-cover rounded-xl" />
-                                      <img src={imageFiles[1].url} alt="activity" className="w-full h-36 object-cover rounded-xl" />
+                                      <img src={resolveFileUrl(imageFiles[0].url)} alt="activity" className="w-full h-36 object-cover rounded-xl" />
+                                      <img src={resolveFileUrl(imageFiles[1].url)} alt="activity" className="w-full h-36 object-cover rounded-xl" />
                                     </>
                                   )}
                                   {imageFiles.length >= 3 && (
                                     <>
-                                      <img src={imageFiles[0].url} alt="activity" className="w-full h-36 object-cover rounded-xl col-span-2" />
-                                      <img src={imageFiles[1].url} alt="activity" className="w-full h-20 object-cover rounded-xl" />
-                                      <img src={imageFiles[2].url} alt="activity" className="w-full h-20 object-cover rounded-xl" />
+                                      <img src={resolveFileUrl(imageFiles[0].url)} alt="activity" className="w-full h-36 object-cover rounded-xl col-span-2" />
+                                      <img src={resolveFileUrl(imageFiles[1].url)} alt="activity" className="w-full h-20 object-cover rounded-xl" />
+                                      <img src={resolveFileUrl(imageFiles[2].url)} alt="activity" className="w-full h-20 object-cover rounded-xl" />
                                     </>
                                   )}
                                 </div>
@@ -823,7 +823,7 @@ export default function StudentInformation({
                                       {files.map((file, i) => (
                                         <a
                                           key={i}
-                                          href={file.url}
+                                          href={resolveFileUrl(file.url)}
                                           target="_blank"
                                           rel="noopener noreferrer"
                                           className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-50 border border-gray-200 rounded-lg text-xs text-tu-red hover:bg-gray-100 transition max-w-[200px]"

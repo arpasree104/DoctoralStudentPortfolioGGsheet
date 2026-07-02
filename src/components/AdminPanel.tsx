@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { User, ConfigOption, OptionType, ActivityLog } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { Users, Settings, FileSpreadsheet, Plus, Trash2, Edit2, ShieldAlert, Check, PlusCircle, Search, RefreshCw, KeyRound } from 'lucide-react';
-import { getLogs } from '../lib/googleSheets';
+import { getLogs, resolvePhotoUrl } from '../lib/googleSheets';
 
 interface AdminPanelProps {
   currentUser: User;
@@ -184,7 +184,7 @@ export default function AdminPanel({
                       <tr key={user.UserID} className="hover:bg-gray-50/50 transition duration-150">
                         <td className="p-4">
                           <img
-                            src={user.PhotoURL || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80'}
+                            src={resolvePhotoUrl(user.PhotoURL)}
                             alt={user.FullName}
                             className="w-9 h-9 rounded-full object-cover"
                           />

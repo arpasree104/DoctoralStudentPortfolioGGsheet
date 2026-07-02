@@ -870,14 +870,18 @@ function doPost(e) {
         throw new Error("Missing file data (base64Data)");
       }
       
-      // 1. Get or create root "Bird" folder
-      var rootFolders = DriveApp.getFoldersByName("Bird");
+      // 1. Get or create root folder (using the specific Google Drive ID)
       var birdFolder;
-      if (rootFolders.hasNext()) {
-        birdFolder = rootFolders.next();
-      } else {
-        birdFolder = DriveApp.createFolder("Bird");
-        birdFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      try {
+        birdFolder = DriveApp.getFolderById("1dScQeS37WRB0tn6zH5uM1zjZj4M0bTHA");
+      } catch (err) {
+        var rootFolders = DriveApp.getFoldersByName("Bird");
+        if (rootFolders.hasNext()) {
+          birdFolder = rootFolders.next();
+        } else {
+          birdFolder = DriveApp.createFolder("Bird");
+          birdFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        }
       }
       
       // 2. Get or create student subfolder: "StudentID_StudentName"

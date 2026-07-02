@@ -8,6 +8,7 @@ import { User, Certificate, Activity, ConfigOption } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { User as UserIcon, Award, Image as ImageIcon, Plus, Edit2, CheckCircle2, AlertCircle, Trash2, ExternalLink, Calendar, PlusCircle, Check, Loader2, HeartHandshake, Paperclip } from 'lucide-react';
 import FileUploader, { AttachedFile } from './FileUploader';
+import { getAppsScriptUrl, uploadFileToDrive } from '../lib/googleSheets';
 
 interface StudentInformationProps {
   currentUser: User;
@@ -69,38 +70,43 @@ export default function StudentInformation({
     setIsUploading(false);
   };
 
-  // Simulate Google Drive upload
-  const simulateImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isMulti = false) => {
+  // Actual Google Drive image upload with local base64 fallback
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     setIsUploading(true);
+    const file = e.target.files[0];
 
-    const randomSamples = [
-      'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1589330694653-ded6df03f754?auto=format&fit=crop&w=600&q=80'
-    ];
+    try {
+      // Read local file as Data URL first
+      const localUrl = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => resolve('');
+        reader.readAsDataURL(file);
+      });
 
-    setTimeout(() => {
-      if (isMulti) {
-        // Multi upload
-        const chosenUrls = [];
-        for (let i = 0; i < Math.min(e.target.files!.length, 3); i++) {
-          chosenUrls.push(randomSamples[(Math.floor(Math.random() * randomSamples.length))]);
+      // Update local state instantly with base64 first to keep it super responsive
+      setProfileForm(prev => ({ ...prev, PhotoURL: localUrl }));
+
+      // Attempt to upload to Drive if Apps Script is configured
+      const scriptUrl = getAppsScriptUrl();
+      if (scriptUrl) {
+        const result = await uploadFileToDrive(
+          file,
+          currentUser.StudentID || '6601010024',
+          currentUser.FullName || 'Student',
+          currentUser.UserID,
+          currentUser.Role
+        );
+        if (result.success && result.fileUrl) {
+          setProfileForm(prev => ({ ...prev, PhotoURL: result.fileUrl }));
         }
-        setNewActForm(prev => ({
-          ...prev,
-          images: [...prev.images, ...chosenUrls]
-        }));
-      } else {
-        // Single upload
-        const chosenUrl = randomSamples[Math.floor(Math.random() * randomSamples.length)];
-        setNewCertForm(prev => ({ ...prev, imageUrl: chosenUrl }));
-        setProfileForm(prev => ({ ...prev, PhotoURL: chosenUrl }));
       }
+    } catch (err) {
+      console.error('Failed uploading profile image:', err);
+    } finally {
       setIsUploading(false);
-    }, 1200);
+    }
   };
 
   // Add Certificate
@@ -222,7 +228,7 @@ export default function StudentInformation({
                     <ImageIcon size={20} className="mb-1" />
                     <span>Upload Photo</span>
                     <span className="text-[9px] opacity-75">Saves directly to Drive</span>
-                    <input type="file" onChange={simulateImageUpload} className="hidden" accept="image/*" />
+                    <input type="file" onChange={handleImageUpload} className="hidden" accept="image/*" />
                   </label>
                 )}
               </div>

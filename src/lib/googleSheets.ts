@@ -337,16 +337,20 @@ const KEYS = {
 
 // Initializer helper
 export function initializeDatabase() {
-  if (!localStorage.getItem(KEYS.USERS)) {
+  const localUsers = localStorage.getItem(KEYS.USERS);
+  if (!localUsers || localUsers === '[]') {
     localStorage.setItem(KEYS.USERS, JSON.stringify(DEFAULT_USERS));
   }
-  if (!localStorage.getItem(KEYS.CERTIFICATES)) {
+  const localCerts = localStorage.getItem(KEYS.CERTIFICATES);
+  if (!localCerts || localCerts === '[]') {
     localStorage.setItem(KEYS.CERTIFICATES, JSON.stringify(DEFAULT_CERTIFICATES));
   }
-  if (!localStorage.getItem(KEYS.ACTIVITIES)) {
+  const localActs = localStorage.getItem(KEYS.ACTIVITIES);
+  if (!localActs || localActs === '[]') {
     localStorage.setItem(KEYS.ACTIVITIES, JSON.stringify(DEFAULT_ACTIVITIES));
   }
-  if (!localStorage.getItem(KEYS.CONFIGS)) {
+  const localConfigs = localStorage.getItem(KEYS.CONFIGS);
+  if (!localConfigs || localConfigs === '[]') {
     localStorage.setItem(KEYS.CONFIGS, JSON.stringify(DEFAULT_CONFIGS));
   }
   if (!localStorage.getItem(KEYS.LOGS)) {
@@ -510,8 +514,12 @@ export async function getUsers(): Promise<User[]> {
       const res = await fetch(`${scriptUrl}?type=users`);
       if (res.ok) {
         const data = await res.json();
-        localStorage.setItem(KEYS.USERS, JSON.stringify(data));
-        return data;
+        if (Array.isArray(data) && data.length > 0) {
+          localStorage.setItem(KEYS.USERS, JSON.stringify(data));
+          return data;
+        } else {
+          console.warn('Sync users: Succeeded but returned empty or invalid array. Keeping local cache.');
+        }
       }
     } catch (e) {
       console.warn('Sync users failed, falling back to LocalStorage:', e);
@@ -537,8 +545,6 @@ export async function saveUser(user: User): Promise<void> {
     try {
       await fetch(scriptUrl, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'saveUser', user })
       });
     } catch (e) {
@@ -559,8 +565,6 @@ export async function deleteUser(userId: string): Promise<void> {
     try {
       await fetch(scriptUrl, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'deleteUser', userId })
       });
     } catch (e) {
@@ -577,8 +581,12 @@ export async function getCertificates(): Promise<Certificate[]> {
       const res = await fetch(`${scriptUrl}?type=certificates`);
       if (res.ok) {
         const data = await res.json();
-        localStorage.setItem(KEYS.CERTIFICATES, JSON.stringify(data));
-        return data;
+        if (Array.isArray(data) && data.length > 0) {
+          localStorage.setItem(KEYS.CERTIFICATES, JSON.stringify(data));
+          return data;
+        } else {
+          console.warn('Sync certificates: Succeeded but returned empty or invalid array. Keeping local cache.');
+        }
       }
     } catch (e) {
       console.warn('Sync certs failed, falling back to LocalStorage:', e);
@@ -604,8 +612,6 @@ export async function saveCertificate(cert: Certificate): Promise<void> {
     try {
       await fetch(scriptUrl, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'saveCertificate', certificate: cert })
       });
     } catch (e) {
@@ -622,8 +628,12 @@ export async function getActivities(): Promise<Activity[]> {
       const res = await fetch(`${scriptUrl}?type=activities`);
       if (res.ok) {
         const data = await res.json();
-        localStorage.setItem(KEYS.ACTIVITIES, JSON.stringify(data));
-        return data;
+        if (Array.isArray(data) && data.length > 0) {
+          localStorage.setItem(KEYS.ACTIVITIES, JSON.stringify(data));
+          return data;
+        } else {
+          console.warn('Sync activities: Succeeded but returned empty or invalid array. Keeping local cache.');
+        }
       }
     } catch (e) {
       console.warn('Sync activities failed, falling back to LocalStorage:', e);
@@ -649,8 +659,6 @@ export async function saveActivity(act: Activity): Promise<void> {
     try {
       await fetch(scriptUrl, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'saveActivity', activity: act })
       });
     } catch (e) {
@@ -667,8 +675,12 @@ export async function getConfigOptions(): Promise<ConfigOption[]> {
       const res = await fetch(`${scriptUrl}?type=configOptions`);
       if (res.ok) {
         const data = await res.json();
-        localStorage.setItem(KEYS.CONFIGS, JSON.stringify(data));
-        return data;
+        if (Array.isArray(data) && data.length > 0) {
+          localStorage.setItem(KEYS.CONFIGS, JSON.stringify(data));
+          return data;
+        } else {
+          console.warn('Sync configs: Succeeded but returned empty or invalid array. Keeping local cache.');
+        }
       }
     } catch (e) {
       console.warn('Sync configs failed, falling back to LocalStorage:', e);
@@ -694,8 +706,6 @@ export async function saveConfigOption(option: ConfigOption): Promise<void> {
     try {
       await fetch(scriptUrl, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'saveConfigOption', config: option })
       });
     } catch (e) {
@@ -716,8 +726,6 @@ export async function deleteConfigOption(id: string): Promise<void> {
     try {
       await fetch(scriptUrl, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'deleteConfigOption', id })
       });
     } catch (e) {
@@ -771,8 +779,6 @@ export async function saveStudentPortfolio(studentId: string, data: StudentPortf
     try {
       await fetch(scriptUrl, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'savePortfolio', studentId, portfolio: data })
       });
     } catch (e) {
@@ -790,30 +796,29 @@ export async function uploadFileToDrive(
 ): Promise<{ success: boolean; fileUrl?: string; fileName?: string; error?: string }> {
   const scriptUrl = getAppsScriptUrl();
   
-  if (!scriptUrl) {
-    // Simulated Upload Mode: Format file name correctly and simulate success
-    let finalFileName = "";
-    if (uploaderRole === 'STUDENT') {
-      finalFileName = `${studentId}_${file.name}`;
-    } else {
-      finalFileName = `${uploaderId}_${studentId}_${file.name}`;
-    }
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          success: true,
-          fileUrl: `https://images.unsplash.com/photo-1589330694653-ded6df03f754?auto=format&fit=crop&w=800&q=80`,
-          fileName: finalFileName
-        });
-      }, 800);
-    });
-  }
-
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = async () => {
+      const localDataUrl = reader.result as string;
+      let finalFileName = "";
+      if (uploaderRole === 'STUDENT' || uploaderRole.toLowerCase() === 'student') {
+        finalFileName = `${studentId}_${file.name}`;
+      } else {
+        finalFileName = `${uploaderId}_${studentId}_${file.name}`;
+      }
+
+      if (!scriptUrl) {
+        // Simulated Mode: Use local Base64 URL to show the EXACT selected image
+        resolve({
+          success: true,
+          fileUrl: localDataUrl,
+          fileName: finalFileName
+        });
+        return;
+      }
+
       try {
-        const base64Data = (reader.result as string).split(',')[1];
+        const base64Data = localDataUrl.split(',')[1];
         const response = await fetch(scriptUrl, {
           method: 'POST',
           body: JSON.stringify({
@@ -828,19 +833,23 @@ export async function uploadFileToDrive(
           })
         });
         const result = await response.json();
-        resolve(result);
+        if (result && result.success && result.fileUrl) {
+          resolve(result);
+        } else {
+          // Fallback to local Base64 URL so it still displays and works offline
+          console.warn('Apps Script file upload succeeded but returned unsuccessful status. Falling back to local Base64.');
+          resolve({
+            success: true,
+            fileUrl: localDataUrl,
+            fileName: finalFileName
+          });
+        }
       } catch (err: any) {
         console.error('Apps Script file upload error:', err);
-        // Fallback simulated success to keep experience smooth if CORS issues or networking errors
-        let finalFileName = "";
-        if (uploaderRole === 'STUDENT') {
-          finalFileName = `${studentId}_${file.name}`;
-        } else {
-          finalFileName = `${uploaderId}_${studentId}_${file.name}`;
-        }
+        // Fallback to local Base64 URL so it still displays and works offline
         resolve({
           success: true,
-          fileUrl: `https://images.unsplash.com/photo-1589330694653-ded6df03f754?auto=format&fit=crop&w=800&q=80`,
+          fileUrl: localDataUrl,
           fileName: finalFileName
         });
       }
@@ -1033,7 +1042,7 @@ function doPost(e) {
       file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
       
       response.success = true;
-      response.fileUrl = file.getUrl();
+      response.fileUrl = "https://lh3.googleusercontent.com/d/" + file.getId();
       response.fileName = finalFileName;
     }
     

@@ -22,305 +22,109 @@ const DEFAULT_CONFIGS: ConfigOption[] = [
   { id: 'cfg-13', OptionType: 'DEGREE', OptionValue: 'Doctor of Philosophy Program in Nursing Science (International Program)' }
 ];
 
-// Preloaded beautiful student data matching the screenshots
+// Preloaded empty student data structure
 const DEFAULT_STUDENT_PORTFOLIO: StudentPortfolioData = {
-  academicBackground: [
-    { degree: 'Master of Science (Nursing)', field: 'Adult Nursing', institution: 'Thammasat University', year: '2021' },
-    { degree: 'Bachelor of Science (Nursing)', field: 'Nursing Science', institution: 'Mahidol University', year: '2017' }
-  ],
-  professionalBackground: [
-    { period: '2021 - 2023', role: 'Registered Nurse, Gerontology Unit', remarks: 'Thammasat University Hospital' },
-    { period: '2017 - 2021', role: 'Clinical Nurse Practitioner, ICU', remarks: 'Siriraj Hospital' }
-  ],
+  academicBackground: [],
+  professionalBackground: [],
   milestones: [
-    { key: 'coursework', label: 'Coursework completion', plannedDate: '2024-03-15', actualDate: '2024-03-12', remarks: 'Completed with GPA 3.90', status: 'Completed' },
-    { key: 'english', label: 'Meeting the English language proficiency requirement', plannedDate: '2024-05-20', actualDate: '2024-05-18', remarks: 'IELTS Band 7.0 achieved', status: 'Completed' },
-    { key: 'research_hours', label: 'Completion of at least 180 research experience hours', plannedDate: '2025-06-30', actualDate: '2025-06-15', remarks: '185 hours completed under Dr. Nonglak', status: 'Completed' },
-    { key: 'qe', label: 'Qualifying examination', plannedDate: '2024-10-10', actualDate: '2024-10-12', remarks: 'Passed on first attempt', status: 'Completed' },
-    { key: 'study_abroad', label: 'Studying abroad', plannedDate: '2025-09-01', actualDate: '', remarks: 'Planned exchange at University of Michigan School of Nursing', status: 'In Progress' },
-    { key: 'proposal_dev', label: 'Dissertation proposal development', plannedDate: '2025-01-15', actualDate: '2025-01-10', remarks: 'Draft approved by committee', status: 'Completed' },
-    { key: 'proposal_defense', label: 'Proposal defense', plannedDate: '2025-03-20', actualDate: '2025-03-24', remarks: 'Passed with minor revisions', status: 'Completed' },
-    { key: 'ethics', label: 'Ethics approval', plannedDate: '2025-05-10', actualDate: '2025-05-29', remarks: 'COA No. MUPN-2025-084', status: 'Completed' },
-    { key: 'data_collection', label: 'Data collection', plannedDate: '2025-11-30', actualDate: '', remarks: 'Active recruiting post-stroke caregivers', status: 'In Progress' },
-    { key: 'data_analysis', label: 'Data analysis', plannedDate: '2026-03-15', actualDate: '', remarks: '', status: 'Not Started' },
-    { key: 'manuscript_prep', label: 'Manuscript preparation', plannedDate: '2026-06-30', actualDate: '', remarks: 'Targeting International Journal of Nursing Studies', status: 'Not Started' },
-    { key: 'dissertation_writing', label: 'Dissertation writing', plannedDate: '2026-10-31', actualDate: '', remarks: '', status: 'Not Started' },
-    { key: 'final_defense', label: 'Final defense', plannedDate: '2027-02-28', actualDate: '', remarks: '', status: 'Not Started' },
-    { key: 'graduation', label: 'Graduation', plannedDate: '2027-05-31', actualDate: '', remarks: '', status: 'Not Started' }
+    { key: 'coursework', label: 'Coursework completion', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+    { key: 'english', label: 'Meeting the English language proficiency requirement', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+    { key: 'research_hours', label: 'Completion of at least 180 research experience hours', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+    { key: 'qe', label: 'Qualifying examination', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+    { key: 'study_abroad', label: 'Studying abroad', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+    { key: 'proposal_dev', label: 'Dissertation proposal development', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+    { key: 'proposal_defense', label: 'Proposal defense', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+    { key: 'ethics', label: 'Ethics approval', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+    { key: 'data_collection', label: 'Data collection', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+    { key: 'data_analysis', label: 'Data analysis', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+    { key: 'manuscript_prep', label: 'Manuscript preparation', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+    { key: 'dissertation_writing', label: 'Dissertation writing', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+    { key: 'final_defense', label: 'Final defense', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+    { key: 'graduation', label: 'Graduation', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' }
   ],
   englishTest: {
-    testName: 'IELTS Academic',
-    dateTaken: '2024-05-18',
-    scoreAchieved: '7.0',
-    requiredScore: '6.5',
-    status: 'Passed Requirement',
-    evidence: 'IELTS Test Report Form No. 24TH008432KEA001'
+    testName: '',
+    dateTaken: '',
+    scoreAchieved: '',
+    requiredScore: '',
+    status: 'Not Started',
+    evidence: ''
   },
-  englishActivities: [
-    { date: '2024-01-10', activity: 'Academic English Writing Course', organizer: 'TU Language Institute', description: '60-hour intensive academic nursing manuscript writing', evidence: 'Certificate No. TULI-2024-09' },
-    { date: '2024-04-05', activity: 'International Thesis Presentation Practice', organizer: 'Faculty of Nursing, TU', description: 'Presented draft proposal in English with native advisors', evidence: 'Seminar Handout' }
-  ],
-  englishReflection: 'I have focused heavily on improving my vocabulary for health science research and post-stroke rehabilitation. The academic writing course helped me construct more concise research aims and methodology sections in English.',
-  completedCourses: [
-    { code: 'NS901', title: 'Advanced Philosophical Foundations of Nursing Science', semester: '1/2023', credits: '3', grade: 'A' },
-    { code: 'NS902', title: 'Theory Development and Nursing Knowledge Construction', semester: '1/2023', credits: '3', grade: 'A' },
-    { code: 'NS903', title: 'Advanced Quantitative Research Methodology', semester: '2/2023', credits: '3', grade: 'A' },
-    { code: 'NS904', title: 'Qualitative Research in Healthcare', semester: '2/2023', credits: '3', grade: 'A-' }
-  ],
-  keyLearnings: [
-    { course: 'NS903 Quantitative Methods', keyLearning: 'Learned multi-level linear regression, structural equation modeling, and G*Power calculations for clinical interventions.', application: 'Used to calculate caregiver sample size (N=120) for the PhD randomized clinical trial.' },
-    { course: 'NS902 Theory Development', keyLearning: 'Analyzed Middle-Range theories including Roy Adaptation Model and Bandura Social Cognitive Theory.', application: 'Integrated Bandura self-efficacy framework into the Tele-Nursing stroke caregiver intervention protocol.' }
-  ],
-  workshops: [
-    { date: '2024-07-12', title: 'Systematic Review and Meta-Analysis Workshop', organizer: 'Cochrane Thailand', role: 'Participant', keyLearning: 'Risk of bias assessment tools (RoB 2) and RevMan software execution.' },
-    { date: '2025-02-20', title: 'Innovative Digital Health & Telehealth Symposia', organizer: 'TU Faculty of Nursing', role: 'Presenter', keyLearning: 'Key challenges in remote clinical trial delivery and electronic consent.' }
-  ],
+  englishActivities: [],
+  englishReflection: '',
+  completedCourses: [],
+  keyLearnings: [],
+  workshops: [],
   dissertationInfo: {
-    title: 'Efficacy of Mindfulness-Based Tele-Nursing Intervention on Quality of Life and Coping Strategies in Thai Post-Stroke Caregivers: A Randomized Controlled Trial',
-    background: 'Post-stroke caregivers experience severe psychological strain, physical exhaustion, and burnout. Tele-health applications present a scalable, highly promising delivery mechanism in Thailand.',
-    problem: 'Traditional hospital care lacks consistent, continuous mindfulness-based coping coaching for family caregivers post-discharge.',
-    objectives: 'To evaluate the effectiveness of an 8-week mindfulness-based tele-nursing training module on caregiver burden, depressive symptoms, and overall quality of life.',
-    hypotheses: 'Caregivers receiving the mindfulness tele-nursing intervention will report significantly higher mindfulness scores and lower anxiety scores compared to the control group.',
-    conceptualFramework: 'Based on the Stress and Coping Model of Lazarus and Folkman and the Roy Adaptation Model.',
-    methodology: 'A double-blinded, parallel randomized controlled trial (N=120, 60 experimental, 60 standard care control) with follow-ups at 4, 8, and 12 weeks post-baseline.'
+    title: '',
+    background: '',
+    problem: '',
+    objectives: '',
+    hypotheses: '',
+    conceptualFramework: '',
+    methodology: ''
   },
-  dissertationProgress: [
-    { activity: 'Literature Review completed', date: '2024-11-15', progress: 'Wrote 45-page chapter outlining tele-health interventions and mindfulness in Southeast Asia.', evidence: 'Chapter 2 draft approved by Major Advisor' },
-    { activity: 'IRB Protocol Approval', date: '2025-05-29', progress: 'Ethical board approved the research protocol and consent forms.', evidence: 'COA Document No. MUPN-2025-084' }
-  ],
-  advisorMeetings: [
-    { date: '2025-04-10', persons: 'Dr. Nonglak, Dr. Wipa', issues: 'Sample recruitment pathways and clinical site selection.', actionPoints: 'To contact Pathum Thani Hospital and TU Hospital stroke rehabilitation clinics.' },
-    { date: '2025-06-05', persons: 'Dr. Nonglak', issues: 'Finalizing the mobile app mockups for the tele-nursing intervention.', actionPoints: 'Complete pilot run with 5 caregivers by early August.' }
-  ],
+  dissertationProgress: [],
+  advisorMeetings: [],
   ethicsGovernance: {
-    dateApplied: '2025-03-30',
-    dateApproved: '2025-05-29',
-    approvalNumber: 'MUPN-2025-084',
-    amendments: 'Minor amendment approved on June 10 for digital electronic signatures on consent.',
-    confidentiality: 'All patient and caregiver identifiers are replaced with randomized secure uuid hashes. Audio files are deleted post-transcription.'
+    dateApplied: '',
+    dateApproved: '',
+    approvalNumber: '',
+    amendments: '',
+    confidentiality: ''
   },
-  researchExperience: [
-    { date: '2024-08-01', activity: 'Research Assistant - Caregiver Burden Cohort Study', description: 'Assisted in quantitative phone interviews, database compilation, and cleaning of SPSS datasets (100 hours total).', hours: 100, supervisor: 'รศ.ดร. นงลักษณ์ วิเศษศิลป์', evidence: 'Logsheet signed' },
-    { date: '2024-12-10', activity: 'Systematic Review Coding Assistant', description: 'Screened titles/abstracts and extracted qualitative study characteristics for meta-synthesis on stroke caregiver interventions (85 hours).', hours: 85, supervisor: 'รศ.ดร. นงลักษณ์ วิเศษศิลป์', evidence: 'Signed confirmation certificate' }
-  ],
-  researchReflection: 'Completing 185 hours of active research experience deepened my understanding of research logistics. It taught me the crucial importance of participant retention strategies and data validation protocols.',
-  conferencePresentations: [
-    { date: '2024-11-20', title: 'Burden and Psychological Distress Among Primary Family Caregivers of Stroke Survivors in Central Thailand', conference: 'The 4th International Nursing and Health Sciences Conference', type: 'Oral Presentation', venue: 'Chiang Mai, Thailand' }
-  ],
-  publications: [
-    { year: '2025', title: 'Psychometric Evaluation of the Thai Zarit Burden Interview (ZBI-12) in Acute Stroke Caregivers', journal: 'Journal of Health Research', status: 'Published', doi: '10.11086/jhr-2025-0012' }
-  ],
-  manuscripts: [
-    { title: 'Tele-health interventions in Thai Nursing Practice: A Systematic Scoping Review', journal: 'Pacific Rim International Journal of Nursing Research', stage: 'Under Review', plannedSubmission: 'Submitted 2025-05-02' }
-  ],
-  grants: [
-    { title: 'Development and Evaluation of Mindfulness-Based Tele-Nursing Support System', source: 'Thammasat University Doctoral Research Fund', role: 'Principal Investigator', amount: '150,000 THB', period: '2025 - 2026' }
-  ],
-  awards: [
-    { date: '2024-11-21', award: 'Best Oral Presentation Award', organizer: 'International Nursing Conference Committee', description: 'Received outstanding presentation recognition among 45 international doctoral candidates.' }
-  ],
-  teachingExperiences: [
-    { semester: '1/2024', course: 'Adult and Gerontological Nursing Practicum', role: 'Teaching Assistant (clinical supervisor)', studentLevel: 'Undergraduate (Year 3)', description: 'Supervised clinical rotations of 8 senior students at TU Hospital medical ward.' }
-  ],
-  supervisions: [
-    { date: '2024-03-01', type: 'Clinical Skills Tutoring', studentLevel: 'Bachelor Year 2', description: 'Instructed basic stroke screening assessment, swallowing tests, and bedside mobility scales.' }
-  ],
-  academicServices: [
-    { date: '2025-01-15', activity: 'Volunteer Health Screening & Post-Stroke Community Assessment', role: 'Head Educator', organization: 'Phathum Thani Municipality Public Health Center' }
-  ],
-  leaderships: [
-    { date: '2024 - 2025', role: 'President of Doctoral Student Committee', organization: 'Faculty of Nursing, TU', responsibilities: 'Coordinated student academic forums, and organized the Dean-Student bilateral townhalls.' }
-  ],
+  researchExperience: [],
+  researchReflection: '',
+  conferencePresentations: [],
+  publications: [],
+  manuscripts: [],
+  grants: [],
+  awards: [],
+  teachingExperiences: [],
+  supervisions: [],
+  academicServices: [],
+  leaderships: [],
   competencySelfAssessment: [
-    { competency: 'Advanced disciplinary knowledge', rating: 'Proficient', remarks: 'Excellent grasp of nursing epistemology, gerontological theory, and cognitive support models.' },
-    { competency: 'Critical analysis and synthesis', rating: 'Proficient', remarks: 'Strong abilities validated by publishing first-author systematic evaluation.' },
-    { competency: 'Research design and methodology', rating: 'Competent', remarks: 'Highly skilled in RCT randomized trials, but refining skills in qualitative focus groups.' },
-    { competency: 'Data analysis', rating: 'Competent', remarks: 'Proficient in SPSS, learning AMOS for Structural Equation Modeling (SEM).' },
-    { competency: 'Academic writing', rating: 'Proficient', remarks: 'Successfully drafted and published peer-reviewed journal manuscript.' },
-    { competency: 'English communication for academic purposes', rating: 'Proficient', remarks: 'Scored 7.0 in IELTS, comfortable presenting at international symposiums.' },
-    { competency: 'Scholarly presentation', rating: 'Proficient', remarks: 'Awarded best oral presentation in Chiang Mai conference.' },
-    { competency: 'Teaching ability', rating: 'Competent', remarks: 'Supervised 3rd-year nursing students clinical cohort.' },
-    { competency: 'Leadership', rating: 'Proficient', remarks: 'Acted as PhD Student Council President with successful forum delivery.' },
-    { competency: 'Ethical conduct in research', rating: 'Proficient', remarks: 'Certified in CITI Programme biomedical ethics, passed TU IRB approval smoothly.' },
-    { competency: 'Professionalism', rating: 'Proficient', remarks: 'Maintained strict clinical standards and excellent communication skills.' },
-    { competency: 'Collaboration and networking', rating: 'Competent', remarks: 'Active engagement with national hospital clinics and overseas exchange hosts.' },
-    { competency: 'Lifelong learning and self-development', rating: 'Proficient', remarks: 'Constantly attending advanced statistics seminars and qualitative coding labs.' }
+    { competency: 'Advanced disciplinary knowledge', rating: 'Beginning', remarks: '' },
+    { competency: 'Critical analysis and synthesis', rating: 'Beginning', remarks: '' },
+    { competency: 'Research design and methodology', rating: 'Beginning', remarks: '' },
+    { competency: 'Data analysis', rating: 'Beginning', remarks: '' },
+    { competency: 'Academic writing', rating: 'Beginning', remarks: '' },
+    { competency: 'English communication for academic purposes', rating: 'Beginning', remarks: '' },
+    { competency: 'Scholarly presentation', rating: 'Beginning', remarks: '' },
+    { competency: 'Teaching ability', rating: 'Beginning', remarks: '' },
+    { competency: 'Leadership', rating: 'Beginning', remarks: '' },
+    { competency: 'Ethical conduct in research', rating: 'Beginning', remarks: '' },
+    { competency: 'Professionalism', rating: 'Beginning', remarks: '' },
+    { competency: 'Collaboration and networking', rating: 'Beginning', remarks: '' },
+    { competency: 'Lifelong learning and self-development', rating: 'Beginning', remarks: '' }
   ],
   annualReview: {
-    achievements: 'Passed qualifying examination, obtained IRB approval, completed 185 research experience hours, and published first research manuscript in JHR.',
-    improvements: 'Improve skills in qualitative research methodologies (specifically thematic analysis) and master structural equation modeling.',
-    actionPlans: [
-      { goal: 'Pilot trial completion', steps: 'Recruit and deliver mindfulness tele-nursing training to 5 pilot family caregivers, compile logs.', timeline: 'August 2025', support: 'Primary Advisor (Dr. Nonglak)' },
-      { goal: 'Studying Abroad exchange preparation', steps: 'Finalize study schedule and host arrangements with the University of Michigan mentor.', timeline: 'September - November 2025', support: 'Faculty Research Office Funding' }
-    ]
+    achievements: '',
+    improvements: '',
+    actionPlans: []
   },
   futureCareer: {
-    shortTerm: 'Secure a tenure-track Assistant Professor role in Gerontological Nursing department at Thammasat University.',
-    longTerm: 'Become an international leader in digital nursing interventions, and establish a cross-regional Caregiver Digital Coping Research Lab in Southeast Asia.',
-    preparation: 'Build relationships with international collaborators, pursue postdoctoral opportunities, and apply for government-funded research grants.'
+    shortTerm: '',
+    longTerm: '',
+    preparation: ''
   },
-  advisorComments: 'Orapan is an exceptionally dedicated doctoral student. She possesses stellar analytical abilities and clinical rigor. Her RCT study proposal is exceptionally well-conceived, and she has met every milestones ahead of schedule. She shows massive potential to become an outstanding nursing researcher.',
-  endorsements: [
-    { role: 'Major Advisor', name: 'รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)', signatureDate: '2025-06-15' },
-    { role: 'Co-Advisor / Committee Member', name: 'รศ.ดร. วิภา ชัยชาญ (Assoc. Prof. Dr. Wipa Chaichan)', signatureDate: '2025-06-16' },
-    { role: 'Committee Member', name: 'ผศ.ดร. สมศรี เกียรติพงษ์ (Asst. Prof. Dr. Somsri Kiatiphong)', signatureDate: '2025-06-18' }
-  ]
+  advisorComments: '',
+  endorsements: [],
+  supportingFiles: []
 };
 
-const DEFAULT_USERS: User[] = [
-  {
-    UserID: 'STUDENT-1',
-    Email: 'student@tu.ac.th',
-    FullName: 'นางสาวอรพรรณ แก้วดี (Miss Orapan Kaewdee)',
-    StudentID: '6601010024',
-    Major: 'Doctor of Philosophy Program in Nursing Science (International Program)',
-    Advisor: 'รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)',
-    CoAdvisor: 'รศ.ดร. วิภา ชัยชาญ (Assoc. Prof. Dr. Wipa Chaichan)',
-    ThesisTitle: 'Efficacy of Mindfulness-Based Tele-Nursing Intervention on Quality of Life and Coping Strategies in Thai Post-Stroke Caregivers: A Randomized Controlled Trial',
-    LineID: 'orapan.k',
-    ORCID: 'https://orcid.org/0000-0002-1234-5678',
-    ResearchInterests: 'Gerontological Nursing, Mindfulness-Based Therapy, Tele-rehabilitation, Stroke Caregiver Support',
-    ExpectedGraduationYear: '2027',
-    PhotoURL: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80',
-    Role: 'STUDENT',
-    Password: '1234'
-  },
-  {
-    UserID: 'ADVISOR-1',
-    Email: 'advisor@tu.ac.th',
-    FullName: 'รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)',
-    Role: 'ADVISOR',
-    PhotoURL: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=300&q=80',
-    Password: '1234'
-  },
-  {
-    UserID: 'ADMIN-1',
-    Email: 'admin@tu.ac.th',
-    FullName: 'ผศ.ดร. สุขุม พิพัฒน์โชติ (Asst. Prof. Dr. Sukhum Pipatchot) - แอดมินระบบ',
-    Role: 'ADMIN',
-    PhotoURL: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=300&q=80',
-    Password: '1234'
-  }
-];
+const DEFAULT_USERS: User[] = [];
 
-const DEFAULT_CERTIFICATES: Certificate[] = [
-  {
-    CertID: 'CERT-001',
-    StudentID: '6601010024',
-    Name: 'ใบประกาศนียบัตรผ่านการอบรมจริยธรรมการวิจัยในมนุษย์ (CITI Programme Course)',
-    Date: '2024-02-10',
-    Category: 'อบรมจริยธรรมการวิจัยในมนุษย์ (Human Research Ethics Training)',
-    ImageURL: 'https://images.unsplash.com/photo-1589330694653-ded6df03f754?auto=format&fit=crop&w=800&q=80',
-    Status: 'APPROVED',
-    ApprovedBy: 'รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)',
-    Feedback: 'เอกสารหลักฐานครบถ้วนและสมบูรณ์ ดีมาก'
-  },
-  {
-    CertID: 'CERT-002',
-    StudentID: '6601010024',
-    Name: 'เกียรติบัตรการนำเสนองานวิจัยดีเด่น Oral Presentation Award 2024 - Chiang Mai Nursing Forum',
-    Date: '2024-11-21',
-    Category: 'รางวัลระดับชาติ/นานาชาติ (National/International Award)',
-    ImageURL: 'https://images.unsplash.com/photo-1571171637578-41bc2dd4dcd2?auto=format&fit=crop&w=800&q=80',
-    Status: 'APPROVED',
-    ApprovedBy: 'รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)',
-    Feedback: 'ยินดีด้วยกับการนำเสนอที่ดีเยี่ยม'
-  },
-  {
-    CertID: 'CERT-003',
-    StudentID: '6601010024',
-    Name: 'ใบประกาศร่วมอบรม Clinical Trial Management in Remote Nursing Sites',
-    Date: '2025-03-05',
-    Category: 'อบรมวิชาการเฉพาะทาง (Specialized Training)',
-    ImageURL: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=800&q=80',
-    Status: 'PENDING'
-  }
-];
+const DEFAULT_CERTIFICATES: Certificate[] = [];
 
-const DEFAULT_ACTIVITIES: Activity[] = [
-  {
-    ActivityID: 'ACT-001',
-    StudentID: '6601010024',
-    Title: 'พรีเซนต์ความคืบหน้าหัวข้อวิทยานิพนธ์ประจำไตรมาสกับคณะที่ปรึกษา',
-    Date: '2025-04-10',
-    Description: 'รายงานแผนการรับสมัครกลุ่มตัวอย่างผู้ดูแลผู้ป่วยโรคหลอดเลือดสมอง และการติดตั้งระบบระบบพยาบาลทางไกล (Tele-Nursing App) บนสมาร์ทโฟน',
-    ImagesURL: [
-      'https://images.unsplash.com/photo-1531538606174-0f90ff5dce83?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1540317585620-17acb02221b2?auto=format&fit=crop&w=600&q=80'
-    ],
-    Status: 'APPROVED',
-    ApprovedBy: 'รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)',
-    Feedback: 'แนวทางการทำงานชัดเจน ติดตามกลุ่มผู้ดูแลอย่างใกล้ชิด'
-  },
-  {
-    ActivityID: 'ACT-002',
-    StudentID: '6601010024',
-    Title: 'จัดกิจกรรมกลุ่มแนะแนวพยาบาลวิชาชีพเพื่อเตรียมความพร้อมวิจัยในชุมชน',
-    Date: '2025-05-15',
-    Description: 'ลงพื้นที่จัดอบรมทักษะสติ (Mindfulness) ร่วมกับบุคลากรทางการแพทย์ ณ รพ.สต. ปทุมธานี เพื่อขยายฐานการคัดกรองกลุ่มตัวอย่างและอบรมขั้นตอนการใช้งาน',
-    ImagesURL: [
-      'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=600&q=80'
-    ],
-    Status: 'PENDING'
-  }
-];
+const DEFAULT_ACTIVITIES: Activity[] = [];
 
-const DEFAULT_LOGS: ActivityLog[] = [
-  { LogID: 'LOG-001', Timestamp: '2026-06-30T07:50:30-07:00', Action: 'LOGIN', UserID: 'STUDENT-1', Details: 'Student Orapan Kaewdee logged into the system' },
-  { LogID: 'LOG-002', Timestamp: '2026-06-30T07:51:15-07:00', Action: 'PORTFOLIO_UPDATE', UserID: 'STUDENT-1', Details: 'Saved Dissertation Information' }
-];
+const DEFAULT_LOGS: ActivityLog[] = [];
 
-const DEFAULT_CHAT_MESSAGES: ChatMessage[] = [
-  {
-    MessageID: 'MSG-001',
-    SenderID: 'ADVISOR-1',
-    SenderName: 'รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)',
-    ReceiverID: '6601010024',
-    MessageText: 'สวัสดีค่ะอรพรรณ บทความวิจัยสำหรับวารสารพยาบาลศาสตร์พัฒนาคืบหน้าอย่างไรบ้างคะ?',
-    Timestamp: '2026-06-29T10:00:00.000Z'
-  },
-  {
-    MessageID: 'MSG-002',
-    SenderID: '6601010024',
-    SenderName: 'นางสาวอรพรรณ แก้วดี (Orapan Kaewdee)',
-    ReceiverID: 'ADVISOR-1',
-    MessageText: 'กราบเรียนอาจารย์ค่ะ กำลังปรับแก้ส่วนระเบียบวิธีวิจัยตามคำแนะนำของอาจารย์อยู่ค่ะ คาดว่าจะส่งร่างแรกให้พิจารณาภายในสุดสัปดาห์นี้ค่ะ',
-    Timestamp: '2026-06-29T14:30:00.000Z'
-  },
-  {
-    MessageID: 'MSG-003',
-    SenderID: 'CO_ADVISOR-1',
-    SenderName: 'ผศ.ดร. พิชญ์ อรุณแสง (Asst. Prof. Dr. Peach Arunsang)',
-    ReceiverID: '6601010024',
-    MessageText: 'อย่าลืมเช็คเกณฑ์ชั่วโมงวิจัยด้วยนะ ต้องสะสมให้ครบ 180 ชั่วโมง ค่อยยื่นจบ',
-    Timestamp: '2026-06-30T09:00:00.000Z'
-  }
-];
+const DEFAULT_CHAT_MESSAGES: ChatMessage[] = [];
 
-const DEFAULT_NOTIFICATIONS: Notification[] = [
-  {
-    NotificationID: 'NOT-001',
-    SenderID: 'ADVISOR-1',
-    SenderName: 'รศ.ดร. นงลักษณ์ วิเศษศิลป์ (Assoc. Prof. Dr. Nonglak Wisetsilp)',
-    ReceiverID: '6601010024',
-    Title: 'แจ้งเตือนเรื่องการยื่นจริยธรรมการวิจัย',
-    MessageText: 'กรุณาดำเนินการเตรียมยื่นขออนุมัติคณะกรรมการจริยธรรมการวิจัยในมนุษย์ (IRB) ภายในสิ้นเดือนหน้าเพื่อรักษากรอบระยะเวลาของทุนวิจัย',
-    Timestamp: '2026-06-29T08:00:00.000Z',
-    IsRead: false
-  },
-  {
-    NotificationID: 'NOT-002',
-    SenderID: 'CO_ADVISOR-1',
-    SenderName: 'ผศ.ดร. พิชญ์ อรุณแสง (Asst. Prof. Dr. Peach Arunsang)',
-    ReceiverID: '6601010024',
-    Title: 'แจ้งเตือนการส่งรายงานความก้าวหน้า',
-    MessageText: 'กรุณาส่งรายงานความก้าวหน้าโครงการวิทยานิพนธ์ประจำปี ในพอร์ตโฟลิโอ และอัพเดทตาราง Milestones ด้วยค่ะ',
-    Timestamp: '2026-06-30T11:15:00.000Z',
-    IsRead: false
-  }
-];
+const DEFAULT_NOTIFICATIONS: Notification[] = [];
 
 // LocalStorage Persistence Keys
 const KEYS = {
@@ -337,33 +141,47 @@ const KEYS = {
 
 // Initializer helper
 export function initializeDatabase() {
+  let forceClear = false;
   const localUsers = localStorage.getItem(KEYS.USERS);
-  if (!localUsers || localUsers === '[]') {
-    localStorage.setItem(KEYS.USERS, JSON.stringify(DEFAULT_USERS));
+  // Detect if the user still has pre-loaded mock data
+  if (localUsers && (localUsers.includes('student@tu.ac.th') || localUsers.includes('6601010024'))) {
+    forceClear = true;
   }
-  const localCerts = localStorage.getItem(KEYS.CERTIFICATES);
-  if (!localCerts || localCerts === '[]') {
-    localStorage.setItem(KEYS.CERTIFICATES, JSON.stringify(DEFAULT_CERTIFICATES));
-  }
-  const localActs = localStorage.getItem(KEYS.ACTIVITIES);
-  if (!localActs || localActs === '[]') {
-    localStorage.setItem(KEYS.ACTIVITIES, JSON.stringify(DEFAULT_ACTIVITIES));
-  }
-  const localConfigs = localStorage.getItem(KEYS.CONFIGS);
-  if (!localConfigs || localConfigs === '[]') {
+
+  if (forceClear) {
+    localStorage.setItem(KEYS.USERS, JSON.stringify([]));
+    localStorage.setItem(KEYS.CERTIFICATES, JSON.stringify([]));
+    localStorage.setItem(KEYS.ACTIVITIES, JSON.stringify([]));
     localStorage.setItem(KEYS.CONFIGS, JSON.stringify(DEFAULT_CONFIGS));
-  }
-  if (!localStorage.getItem(KEYS.LOGS)) {
-    localStorage.setItem(KEYS.LOGS, JSON.stringify(DEFAULT_LOGS));
-  }
-  if (!localStorage.getItem(KEYS.PORTFOLIO)) {
+    localStorage.setItem(KEYS.LOGS, JSON.stringify([]));
     localStorage.setItem(KEYS.PORTFOLIO, JSON.stringify(DEFAULT_STUDENT_PORTFOLIO));
-  }
-  if (!localStorage.getItem(KEYS.CHATS)) {
-    localStorage.setItem(KEYS.CHATS, JSON.stringify(DEFAULT_CHAT_MESSAGES));
-  }
-  if (!localStorage.getItem(KEYS.NOTIFICATIONS)) {
-    localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify(DEFAULT_NOTIFICATIONS));
+    localStorage.setItem(KEYS.CHATS, JSON.stringify([]));
+    localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify([]));
+  } else {
+    if (!localStorage.getItem(KEYS.USERS)) {
+      localStorage.setItem(KEYS.USERS, JSON.stringify([]));
+    }
+    if (!localStorage.getItem(KEYS.CERTIFICATES)) {
+      localStorage.setItem(KEYS.CERTIFICATES, JSON.stringify([]));
+    }
+    if (!localStorage.getItem(KEYS.ACTIVITIES)) {
+      localStorage.setItem(KEYS.ACTIVITIES, JSON.stringify([]));
+    }
+    if (!localStorage.getItem(KEYS.CONFIGS)) {
+      localStorage.setItem(KEYS.CONFIGS, JSON.stringify(DEFAULT_CONFIGS));
+    }
+    if (!localStorage.getItem(KEYS.LOGS)) {
+      localStorage.setItem(KEYS.LOGS, JSON.stringify([]));
+    }
+    if (!localStorage.getItem(KEYS.PORTFOLIO)) {
+      localStorage.setItem(KEYS.PORTFOLIO, JSON.stringify(DEFAULT_STUDENT_PORTFOLIO));
+    }
+    if (!localStorage.getItem(KEYS.CHATS)) {
+      localStorage.setItem(KEYS.CHATS, JSON.stringify([]));
+    }
+    if (!localStorage.getItem(KEYS.NOTIFICATIONS)) {
+      localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify([]));
+    }
   }
 }
 
@@ -915,9 +733,17 @@ export const GOOGLE_APPS_SCRIPT_CODE = `/**
  * 5. Copy the generated Web App URL and paste it into System Settings panel.
  */
 
+function getSpreadsheet() {
+  try {
+    return SpreadsheetApp.openById("1Sa9C7gbImdq5B-g131S6IdM7ITW4cPNvpXrf_eOkcGA");
+  } catch (err) {
+    return SpreadsheetApp.getActiveSpreadsheet();
+  }
+}
+
 function doGet(e) {
   var type = e.parameter.type;
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet();
   var sheet;
   var data = [];
   
@@ -973,7 +799,7 @@ function doGet(e) {
 }
 
 function doPost(e) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet();
   var response = { success: false };
   
   try {
@@ -1103,7 +929,7 @@ function getOrCreateFolder(parent, folderName) {
 }
 
 function getOrCreateSheet(sheetName) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet();
   var sheet = ss.getSheetByName(sheetName);
   if (!sheet) {
     sheet = ss.insertSheet(sheetName);
@@ -1142,7 +968,7 @@ function getOrCreateSheet(sheetName) {
 
 // SETUP DATABASE AND SEED ALL 16 SECTIONS WITH SCHEMA HEADERS
 function setupDatabase() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet();
   
   var schemas = {
     "Users": ["UserID", "Email", "FullName", "Role", "StudentID", "Major", "Advisor", "CoAdvisor", "ThesisTitle", "LineID", "ORCID", "ResearchInterests", "ExpectedGraduationYear", "PhotoURL", "Password"],
@@ -1180,14 +1006,11 @@ function setupDatabase() {
     sheet.setFrozenRows(1);
   }
   
-  // Insert initial seeds
-  insertExampleData();
-  
   return "SUCCESS: Database schema created and 16 separate portfolio sheets initialized successfully with flat columns!";
 }
 
 function insertExampleData() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet();
   var headersMap = {
     "Users": ["UserID", "Email", "FullName", "Role", "StudentID", "Major", "Advisor", "CoAdvisor", "ThesisTitle", "LineID", "ORCID", "ResearchInterests", "ExpectedGraduationYear", "PhotoURL", "Password"],
     "Certificates": ["CertID", "StudentID", "Name", "Date", "Category", "ImageURL", "Status", "ApprovedBy", "Feedback"],
@@ -1276,7 +1099,7 @@ function appendObjectAsRow(sheet, headers, obj) {
 
 // HELPERS FOR SEPARATE PORTFOLIO SHEETS
 function loadPortfolioFromSheets(studentId) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet();
   var defaultPort = getDefaultPortfolio(studentId);
   var portfolio = JSON.parse(JSON.stringify(defaultPort)); // Clone default
 
@@ -1699,7 +1522,7 @@ function loadPortfolioFromSheets(studentId) {
 }
 
 function savePortfolioToSheets(studentId, portfolio) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet();
   var nowStr = new Date().toISOString();
 
   function formatDate(val) {
@@ -2059,119 +1882,75 @@ function deleteRow(sheet, keyColumnName, keyValue) {
 }
 
 function getDefaultPortfolio(studentId) {
-  var isOrapan = studentId === '6601010024';
-  var isAnanya = studentId === '6601010032';
   return {
-    academicBackground: [
-      { degree: 'Master of Science (Nursing)', field: 'Adult Nursing', institution: 'Thammasat University', year: '2021' },
-      { degree: 'Bachelor of Science (Nursing)', field: 'Nursing Science', institution: 'Mahidol University', year: '2017' }
-    ],
-    professionalBackground: [
-      { period: '2021 - 2023', role: 'Registered Nurse', remarks: 'Thammasat University Hospital' }
-    ],
+    academicBackground: [],
+    professionalBackground: [],
     milestones: [
-      { key: 'coursework', label: 'Coursework completion', plannedDate: '2024-03-15', actualDate: '2024-03-12', remarks: 'Completed GPA 3.90', status: 'Completed' },
-      { key: 'english', label: 'English language proficiency requirement', plannedDate: '2024-05-20', actualDate: '2024-05-18', remarks: 'IELTS Band 7.0 achieved', status: 'Completed' },
-      { key: 'research_hours', label: 'Completion of 180 research experience hours', plannedDate: '2025-06-30', actualDate: '2025-06-15', remarks: '185 hours completed', status: 'Completed' },
-      { key: 'qe', label: 'Qualifying examination', plannedDate: '2024-10-10', actualDate: '2024-10-12', remarks: 'Passed on first attempt', status: 'Completed' },
-      { key: 'study_abroad', label: 'Studying abroad', plannedDate: '2025-09-01', actualDate: '', remarks: 'University of Michigan', status: 'In Progress' },
-      { key: 'proposal_dev', label: 'Dissertation proposal development', plannedDate: '2025-01-15', actualDate: '2025-01-10', remarks: 'Draft approved', status: 'Completed' },
-      { key: 'proposal_defense', label: 'Proposal defense', plannedDate: '2025-03-20', actualDate: '2025-03-24', remarks: 'Passed with minor revisions', status: 'Completed' },
-      { key: 'ethics', label: 'Ethics approval', plannedDate: '2025-05-10', actualDate: '2025-05-29', remarks: 'COA No. MUPN-2025-084', status: 'Completed' },
-      { key: 'data_collection', label: 'Data collection', plannedDate: '2025-11-30', actualDate: '', remarks: 'Active recruitment', status: 'In Progress' },
-      { key: 'data_analysis', label: 'Data analysis', plannedDate: '2026-03-15', actualDate: '', remarks: '', status: 'Not Started' },
-      { key: 'manuscript_prep', label: 'Manuscript preparation', plannedDate: '2026-06-30', actualDate: '', remarks: '', status: 'Not Started' },
-      { key: 'dissertation_writing', label: 'Dissertation writing', plannedDate: '2026-10-31', actualDate: '', remarks: '', status: 'Not Started' },
-      { key: 'final_defense', label: 'Final defense', plannedDate: '2027-02-28', actualDate: '', remarks: '', status: 'Not Started' },
-      { key: 'graduation', label: 'Graduation', plannedDate: '2027-05-31', actualDate: '', remarks: '', status: 'Not Started' }
+      { key: 'coursework', label: 'Coursework completion', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+      { key: 'english', label: 'Meeting the English language proficiency requirement', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+      { key: 'research_hours', label: 'Completion of at least 180 research experience hours', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+      { key: 'qe', label: 'Qualifying examination', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+      { key: 'study_abroad', label: 'Studying abroad', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+      { key: 'proposal_dev', label: 'Dissertation proposal development', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+      { key: 'proposal_defense', label: 'Proposal defense', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+      { key: 'ethics', label: 'Ethics approval', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+      { key: 'data_collection', label: 'Data collection', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+      { key: 'data_analysis', label: 'Data analysis', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+      { key: 'manuscript_prep', label: 'Manuscript preparation', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+      { key: 'dissertation_writing', label: 'Dissertation writing', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+      { key: 'final_defense', label: 'Final defense', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
+      { key: 'graduation', label: 'Graduation', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' }
     ],
     englishTest: {
-      testName: 'IELTS Academic', dateTaken: '2024-05-18', scoreAchieved: '7.0', requiredScore: '6.5', status: 'Passed Requirement', evidence: 'IELTS TRF No. 24TH008432K'
+      testName: '', dateTaken: '', scoreAchieved: '', requiredScore: '', status: 'Not Started', evidence: ''
     },
-    englishActivities: [
-      { date: '2024-01-10', activity: 'Academic English Writing Course', organizer: 'TU Language Institute', description: '60-hour intensive writing', evidence: 'Certificate No. TULI-2024' }
-    ],
-    englishReflection: 'Focused on health science academic vocabulary and research methodology writing.',
-    completedCourses: [
-      { code: 'NS901', title: 'Advanced Philosophical Foundations of Nursing Science', semester: '1/2023', credits: '3', grade: 'A' },
-      { code: 'NS902', title: 'Theory Development and Nursing Knowledge Construction', semester: '1/2023', credits: '3', grade: 'A' },
-      { code: 'NS903', title: 'Advanced Quantitative Research Methodology', semester: '2/2023', credits: '3', grade: 'A' },
-      { code: 'NS904', title: 'Qualitative Research in Healthcare', semester: '2/2023', credits: '3', grade: 'A-' }
-    ],
-    keyLearnings: [
-      { course: 'NS903 Quantitative Methods', keyLearning: 'Learned multi-level linear regression and sample calculations.', application: 'Used to calculate caregiver sample size (N=120).' }
-    ],
-    workshops: [
-      { date: '2024-07-12', title: 'Systematic Review and Meta-Analysis Workshop', organizer: 'Cochrane Thailand', role: 'Participant', keyLearning: 'Risk of bias assessment tools' }
-    ],
+    englishActivities: [],
+    englishReflection: '',
+    completedCourses: [],
+    keyLearnings: [],
+    workshops: [],
     dissertationInfo: {
-      title: isOrapan ? 'Efficacy of Mindfulness-Based Tele-Nursing Intervention on Quality of Life and Coping Strategies in Thai Post-Stroke Caregivers' : (isAnanya ? 'ปัจจัยที่มีอิทธิพลต่อความพร้อมในการดูแลตนเองของผู้ป่วยภาวะหัวใจล้มเหลวเฉียบพลันในชุมชน' : 'Interactive Mobile-Health Guided Pulmonary Rehabilitation for Elderly COPD Patients'),
-      background: 'Caregivers or patients experience severe physical and psychological strain.',
-      problem: 'Traditional hospital care lacks consistent, continuous follow-up coaching.',
-      objectives: 'To evaluate the effectiveness of an 8-week intervention.',
-      hypotheses: 'Participants receiving the intervention will report significantly higher adaptation scores.',
-      conceptualFramework: 'Stress and Coping Model of Lazarus & Folkman.',
-      methodology: 'A double-blinded, parallel randomized controlled trial (N=120).'
+      title: '', background: '', problem: '', objectives: '', hypotheses: '', conceptualFramework: '', methodology: ''
     },
-    dissertationProgress: [
-      { activity: 'Literature Review completed', date: '2024-11-15', progress: 'Wrote 45-page chapter.', evidence: '[]' }
-    ],
-    advisorMeetings: [
-      { date: '2025-04-10', persons: 'Dr. Nonglak, Dr. Wipa', issues: 'Sample recruitment pathways.', actionPoints: 'Contact TU Hospital clinics.' }
-    ],
+    dissertationProgress: [],
+    advisorMeetings: [],
     ethicsGovernance: {
-      dateApplied: '2025-03-30', dateApproved: '2025-05-29', approvalNumber: isOrapan ? 'MUPN-2025-084' : 'MUPN-2025-091', amendments: 'None', confidentiality: 'All identifiers are replaced with randomized secure hashes.'
+      dateApplied: '', dateApproved: '', approvalNumber: '', amendments: '', confidentiality: ''
     },
-    researchExperience: [
-      { date: '2024-08-01', activity: 'Research Assistant', description: 'Assisted in quantitative phone interviews (100 hours total).', hours: 100, supervisor: 'รศ.ดร. นงลักษณ์ วิเศษศิลป์', evidence: '[]' }
-    ],
-    researchReflection: 'Completing active research experience deepened my understanding of clinical trial logistics.',
-    conferencePresentations: [
-      { date: '2024-11-20', title: 'Burden and Psychological Distress Among Primary Family Caregivers', conference: 'The 4th International Nursing Conference', type: 'Oral Presentation', venue: 'Chiang Mai, Thailand' }
-    ],
-    publications: [
-      { year: '2025', title: 'Psychometric Evaluation of the Thai Zarit Burden Interview (ZBI-12)', journal: 'Journal of Health Research', status: 'Published', doi: '10.11086/jhr-2025-0012' }
-    ],
-    manuscripts: [
-      { title: 'Tele-health interventions in Thai Nursing Practice', journal: 'Pacific Rim Journal of Nursing Research', stage: 'Under Review', plannedSubmission: 'Submitted 2025-05-02' }
-    ],
-    grants: [
-      { title: 'Development of Tele-Nursing Support System', source: 'TU Doctoral Research Fund', role: 'Principal Investigator', amount: '150,000 THB', period: '2025 - 2026' }
-    ],
-    awards: [
-      { date: '2024-11-21', award: 'Best Oral Presentation Award', organizer: 'Nursing Conference Committee', description: 'Received outstanding presentation recognition.' }
-    ],
-    teachingExperiences: [
-      { semester: '1/2024', course: 'Adult and Gerontological Nursing Practicum', role: 'Teaching Assistant', studentLevel: 'Undergraduate (Year 3)', description: 'Supervised clinical rotations of 8 students.' }
-    ],
-    supervisions: [
-      { date: '2024-03-01', type: 'Clinical Skills Tutoring', studentLevel: 'Bachelor Year 2', description: 'Instructed basic stroke screening.' }
-    ],
-    academicServices: [
-      { date: '2025-01-15', activity: 'Community Health Screening', role: 'Head Educator', organization: 'Pathum Thani Center' }
-    ],
-    leaderships: [
-      { date: '2024 - 2025', role: 'President of Doctoral Student Committee', organization: 'Faculty of Nursing, TU', responsibilities: 'Coordinated student academic forums.' }
-    ],
+    researchExperience: [],
+    researchReflection: '',
+    conferencePresentations: [],
+    publications: [],
+    manuscripts: [],
+    grants: [],
+    awards: [],
+    teachingExperiences: [],
+    supervisions: [],
+    academicServices: [],
+    leaderships: [],
     competencySelfAssessment: [
-      { competency: 'Advanced disciplinary knowledge', rating: 'Proficient', remarks: 'Excellent grasp of nursing epistemology.' },
-      { competency: 'Critical analysis and synthesis', rating: 'Proficient', remarks: 'Strong abilities validated by publishing.' },
-      { competency: 'Research design and methodology', rating: 'Competent', remarks: 'Highly skilled in RCT randomized trials.' }
+      { competency: 'Advanced disciplinary knowledge', rating: 'Beginning', remarks: '' },
+      { competency: 'Critical analysis and synthesis', rating: 'Beginning', remarks: '' },
+      { competency: 'Research design and methodology', rating: 'Beginning', remarks: '' },
+      { competency: 'Data analysis', rating: 'Beginning', remarks: '' },
+      { competency: 'Academic writing', rating: 'Beginning', remarks: '' },
+      { competency: 'English communication for academic purposes', rating: 'Beginning', remarks: '' },
+      { competency: 'Scholarly presentation', rating: 'Beginning', remarks: '' },
+      { competency: 'Teaching ability', rating: 'Beginning', remarks: '' },
+      { competency: 'Leadership', rating: 'Beginning', remarks: '' },
+      { competency: 'Ethical conduct in research', rating: 'Beginning', remarks: '' },
+      { competency: 'Professionalism', rating: 'Beginning', remarks: '' },
+      { competency: 'Collaboration and networking', rating: 'Beginning', remarks: '' },
+      { competency: 'Lifelong learning and self-development', rating: 'Beginning', remarks: '' }
     ],
     annualReview: {
-      achievements: 'Passed QE, obtained IRB, completed 185 research hours, and published first manuscript.',
-      improvements: 'Improve skills in qualitative research methodologies.',
-      actionPlans: [
-        { goal: 'Pilot trial completion', steps: 'Recruit and train 5 pilot caregivers.', timeline: 'August 2025', support: 'Advisor' }
-      ]
+      achievements: '', improvements: '', actionPlans: []
     },
     futureCareer: {
-      shortTerm: 'Secure a tenure-track Assistant Professor role.', longTerm: 'Become an international leader.', preparation: 'Build collaborator relationships.'
+      shortTerm: '', longTerm: '', preparation: ''
     },
-    advisorComments: 'Orapan is an exceptionally dedicated doctoral student.',
-    endorsements: [
-      { role: 'Major Advisor', name: isOrapan ? 'รศ.ดร. นงลักษณ์ วิเศษศิลป์' : 'ศ.ดร. สร้อยอนุสาสน์ สุขดี', signatureDate: '2025-06-15' }
-    ],
+    advisorComments: '',
+    endorsements: [],
     supportingFiles: []
   };
 }

@@ -72,6 +72,9 @@ export interface ActivityLog {
 export interface StudentPortfolioData {
   academicBackground: { degree: string; field: string; institution: string; year: string }[];
   professionalBackground: { period: string; role: string; remarks: string }[];
+  programOfStudyName?: string;
+  programCourses?: { semester: string; code: string; title: string; credits: string; status: 'Not Started' | 'In Progress' | 'Completed' }[];
+  learningPlans?: { competency: string; description: string; targetDate: string; status: 'Not Started' | 'In Progress' | 'Completed'; activities: string }[];
   milestones: { key: string; label: string; plannedDate: string; actualDate: string; remarks: string; status: 'Not Started' | 'In Progress' | 'Completed' }[];
   englishTest: { testName: string; dateTaken: string; scoreAchieved: string; requiredScore: string; status: string; evidence: string };
   englishActivities: { date: string; activity: string; organizer: string; description: string; evidence: string }[];

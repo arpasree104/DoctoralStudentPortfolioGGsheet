@@ -29,6 +29,10 @@ export default function EditPortfolio({
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  React.useEffect(() => {
+    setFormData({ ...portfolioData });
+  }, [portfolioData]);
+
   const sectionsList = [
     { id: 1, name: '1. Student Profile & Study Goals' },
     { id: 2, name: '2. Program of Study & Milestones' },
@@ -356,77 +360,339 @@ export default function EditPortfolio({
         {/* SECTION 2: Study Plan & Milestones Checklist */}
         {/* ------------------------------------------------------------- */}
         {activeSection === 2 && (
-          <div className="space-y-6 text-xs text-gray-700">
-            <h3 className="text-sm font-bold text-gray-700">2.2 Doctoral Milestones Timeline</h3>
-            
-            <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100 flex items-start gap-2.5 text-xs text-amber-800 leading-relaxed mb-4">
-              <Sparkles size={16} className="shrink-0 mt-0.5 text-tu-gold" />
-              <span>
-                Mark status as <strong>Completed</strong> once you fulfill milestones so the dashboard stats compute your progress dynamically.
-              </span>
-            </div>
-
-            <div className="space-y-3">
-              {formData.milestones.map((milestone, idx) => (
-                <div key={milestone.key} className="p-3.5 bg-gray-50 rounded-xl border border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <span className="text-[10px] font-mono font-bold text-tu-red block">MILESTONE {idx + 1}</span>
-                    <h4 className="text-sm font-semibold text-gray-800">{milestone.label}</h4>
+          <div className="space-y-8 text-xs text-gray-700">
+            {/* Sub-navigation for Section 2 */}
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-6">
+              
+              {/* 2.1 Program of Study */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-gray-200 pb-2">
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+                      <BookOpen size={16} className="text-tu-red" />
+                      <span>ข้อ 2.1 Program of Study (หลักสูตรการศึกษา)</span>
+                    </h4>
+                    <p className="text-[10px] text-gray-400">กรุณาระบุรายละเอียดชุดวิชา แผนการศึกษา และสถานะรายวิชาที่เรียน</p>
                   </div>
                   
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="w-40">
-                      <label className="text-[9px] font-bold text-gray-400 block mb-0.5">Planned/Actual Date</label>
-                      <DatePickerField
-                        value={milestone.actualDate || milestone.plannedDate}
-                        onChange={val => {
-                          const updated = [...formData.milestones];
-                          if (milestone.status === 'Completed') {
-                            updated[idx].actualDate = val;
-                          } else {
-                            updated[idx].plannedDate = val;
-                          }
-                          setFormData({ ...formData, milestones: updated });
-                        }}
-                        className="!py-1 !px-2 text-xs !rounded-lg"
-                      />
-                    </div>
-
-                    <div className="w-28">
-                      <label className="text-[9px] font-bold text-gray-400 block mb-0.5">Status</label>
-                      <select
-                        value={milestone.status}
-                        onChange={e => {
-                          const updated = [...formData.milestones];
-                          updated[idx].status = e.target.value as 'Not Started' | 'In Progress' | 'Completed';
-                          setFormData({ ...formData, milestones: updated });
-                        }}
-                        className="w-full px-2 py-1 bg-white border border-gray-200 rounded text-xs font-semibold text-gray-700"
-                      >
-                        <option value="Not Started">Not Started</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Completed">Completed</option>
-                      </select>
-                    </div>
-
-                    <div className="w-36">
-                      <label className="text-[9px] font-bold text-gray-400 block mb-0.5">Remarks</label>
-                      <input
-                        type="text"
-                        placeholder="e.g., Passed first trial"
-                        value={milestone.remarks}
-                        onChange={e => {
-                          const updated = [...formData.milestones];
-                          updated[idx].remarks = e.target.value;
-                          setFormData({ ...formData, milestones: updated });
-                        }}
-                        className="w-full px-2 py-1 bg-white border border-gray-200 rounded text-xs"
-                      />
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-[10px] font-bold text-gray-500">รูปแบบแผนการศึกษา:</label>
+                    <input
+                      type="text"
+                      value={formData.programOfStudyName || 'ชุด 1'}
+                      onChange={e => setFormData({ ...formData, programOfStudyName: e.target.value })}
+                      placeholder="e.g., ชุด 1 หรือ แผน 1.1"
+                      className="px-3 py-1 bg-white border border-gray-250 rounded-lg text-xs font-bold font-mono focus:outline-tu-red w-32"
+                    />
                   </div>
                 </div>
-              ))}
+
+                <div className="space-y-3">
+                  {(formData.programCourses || []).map((course, idx) => (
+                    <div key={idx} className="p-3 bg-white border border-gray-150 rounded-xl relative grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                      <button
+                        onClick={() => {
+                          const updated = (formData.programCourses || []).filter((_, i) => i !== idx);
+                          setFormData({ ...formData, programCourses: updated });
+                        }}
+                        className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition cursor-pointer"
+                        title="Remove Course"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+
+                      <div className="sm:col-span-2">
+                        <label className="text-[9px] font-bold text-gray-400 block mb-0.5">Semester/Year</label>
+                        <input
+                          type="text"
+                          value={course.semester}
+                          placeholder="e.g., 1/2025"
+                          onChange={e => {
+                            const updated = [...(formData.programCourses || [])];
+                            updated[idx].semester = e.target.value;
+                            setFormData({ ...formData, programCourses: updated });
+                          }}
+                          className="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-xs font-semibold"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="text-[9px] font-bold text-gray-400 block mb-0.5">Course Code</label>
+                        <input
+                          type="text"
+                          value={course.code}
+                          placeholder="e.g., NS802"
+                          onChange={e => {
+                            const updated = [...(formData.programCourses || [])];
+                            updated[idx].code = e.target.value;
+                            setFormData({ ...formData, programCourses: updated });
+                          }}
+                          className="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-xs font-mono font-bold"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-5">
+                        <label className="text-[9px] font-bold text-gray-400 block mb-0.5">Course Title (ชื่อวิชาภาษาอังกฤษ)</label>
+                        <input
+                          type="text"
+                          value={course.title}
+                          placeholder="e.g., Advanced Gerontology"
+                          onChange={e => {
+                            const updated = [...(formData.programCourses || [])];
+                            updated[idx].title = e.target.value;
+                            setFormData({ ...formData, programCourses: updated });
+                          }}
+                          className="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-xs"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-1">
+                        <label className="text-[9px] font-bold text-gray-400 block mb-0.5">Credits</label>
+                        <input
+                          type="text"
+                          value={course.credits}
+                          placeholder="3"
+                          onChange={e => {
+                            const updated = [...(formData.programCourses || [])];
+                            updated[idx].credits = e.target.value;
+                            setFormData({ ...formData, programCourses: updated });
+                          }}
+                          className="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-xs font-semibold text-center font-mono"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="text-[9px] font-bold text-gray-400 block mb-0.5">Status</label>
+                        <select
+                          value={course.status}
+                          onChange={e => {
+                            const updated = [...(formData.programCourses || [])];
+                            updated[idx].status = e.target.value as 'Not Started' | 'In Progress' | 'Completed';
+                            setFormData({ ...formData, programCourses: updated });
+                          }}
+                          className="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-xs font-semibold text-gray-700"
+                        >
+                          <option value="Not Started">Not Started</option>
+                          <option value="In Progress">In Progress</option>
+                          <option value="Completed">Completed</option>
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+
+                  <button
+                    onClick={() => {
+                      const updated = [...(formData.programCourses || []), { semester: '', code: '', title: '', credits: '', status: 'Not Started' as const }];
+                      setFormData({ ...formData, programCourses: updated });
+                    }}
+                    className="flex items-center gap-1 px-3 py-1.5 bg-white border border-dashed border-gray-300 hover:border-tu-red hover:text-tu-red text-gray-500 rounded-lg text-xs font-semibold transition cursor-pointer"
+                  >
+                    <Plus size={12} />
+                    <span>เพิ่มแถววิชาเรียน (Add Course Row)</span>
+                  </button>
+                </div>
+              </div>
+
             </div>
+
+            {/* 2.2 Doctoral Milestones Timeline */}
+            <div className="space-y-4">
+              <div className="border-b border-gray-200 pb-2">
+                <h4 className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+                  <Calendar size={16} className="text-tu-red" />
+                  <span>ข้อ 2.2 Doctoral Milestones Timeline (กรอบเวลาความก้าวหน้าตามเกณฑ์)</span>
+                </h4>
+                <p className="text-[10px] text-gray-400">กรุณาระบุสถานะ แผนการดำเนินการ และวันที่จริงของเกณฑ์โครงสร้างหลักสูตรพยาบาลศาสตรดุษฎีบัณฑิต</p>
+              </div>
+              
+              <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100 flex items-start gap-2.5 text-xs text-amber-800 leading-relaxed mb-4">
+                <Sparkles size={16} className="shrink-0 mt-0.5 text-tu-gold" />
+                <span>
+                  ทำเครื่องหมายสถานะเป็น <strong>Completed</strong> เมื่อคุณบรรลุเงื่อนไขนั้นๆ เพื่อให้ระบบประมวลผลความก้าวหน้าบนแดชบอร์ดอย่างถูกต้อง
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {formData.milestones.map((milestone, idx) => (
+                  <div key={milestone.key} className="p-3.5 bg-gray-50 rounded-xl border border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[10px] font-mono font-bold text-tu-red block">MILESTONE {idx + 1}</span>
+                      <h4 className="text-sm font-semibold text-gray-800">{milestone.label}</h4>
+                    </div>
+                    
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="w-40">
+                        <label className="text-[9px] font-bold text-gray-400 block mb-0.5">Planned/Actual Date</label>
+                        <DatePickerField
+                          value={milestone.actualDate || milestone.plannedDate}
+                          onChange={val => {
+                            const updated = [...formData.milestones];
+                            if (milestone.status === 'Completed') {
+                              updated[idx].actualDate = val;
+                            } else {
+                              updated[idx].plannedDate = val;
+                            }
+                            setFormData({ ...formData, milestones: updated });
+                          }}
+                          className="!py-1 !px-2 text-xs !rounded-lg"
+                        />
+                      </div>
+
+                      <div className="w-28">
+                        <label className="text-[9px] font-bold text-gray-400 block mb-0.5">Status</label>
+                        <select
+                          value={milestone.status}
+                          onChange={e => {
+                            const updated = [...formData.milestones];
+                            updated[idx].status = e.target.value as 'Not Started' | 'In Progress' | 'Completed';
+                            setFormData({ ...formData, milestones: updated });
+                          }}
+                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded text-xs font-semibold text-gray-700"
+                        >
+                          <option value="Not Started">Not Started</option>
+                          <option value="In Progress">In Progress</option>
+                          <option value="Completed">Completed</option>
+                        </select>
+                      </div>
+
+                      <div className="w-36">
+                        <label className="text-[9px] font-bold text-gray-400 block mb-0.5">Remarks</label>
+                        <input
+                          type="text"
+                          placeholder="e.g., Passed first trial"
+                          value={milestone.remarks}
+                          onChange={e => {
+                            const updated = [...formData.milestones];
+                            updated[idx].remarks = e.target.value;
+                            setFormData({ ...formData, milestones: updated });
+                          }}
+                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded text-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 2.3 Personal Learning and Development Plan */}
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-4 mt-6">
+              <div className="border-b border-gray-200 pb-2">
+                <h4 className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+                  <Compass size={16} className="text-tu-red" />
+                  <span>ข้อ 2.3 Personal Learning and Development Plan (แผนพัฒนาศักยภาพส่วนบุคคล)</span>
+                </h4>
+                <p className="text-[10px] text-gray-400">กรุณาระบุเป้าหมายการพัฒนาสมรรถนะการวิจัยและความเป็นนักวิชาการส่วนบุคคล ตลอดแผนการศึกษา</p>
+              </div>
+
+              <div className="space-y-4">
+                {(formData.learningPlans || []).map((plan, idx) => (
+                  <div key={idx} className="p-4 bg-white border border-gray-150 rounded-xl relative space-y-3">
+                    <button
+                      onClick={() => {
+                        const updated = (formData.learningPlans || []).filter((_, i) => i !== idx);
+                        setFormData({ ...formData, learningPlans: updated });
+                      }}
+                      className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition cursor-pointer"
+                      title="Remove Competency Goal"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                      <div className="sm:col-span-5">
+                        <label className="text-[9px] font-bold text-gray-400 block mb-0.5">Competency Area (หัวข้อสมรรถนะ)</label>
+                        <input
+                          type="text"
+                          value={plan.competency}
+                          placeholder="e.g., Advanced research methodology"
+                          onChange={e => {
+                            const updated = [...(formData.learningPlans || [])];
+                            updated[idx].competency = e.target.value;
+                            setFormData({ ...formData, learningPlans: updated });
+                          }}
+                          className="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-xs font-bold text-gray-800"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-3">
+                        <label className="text-[9px] font-bold text-gray-400 block mb-0.5">Target Completion Date (กำหนดการ)</label>
+                        <DatePickerField
+                          value={plan.targetDate}
+                          onChange={val => {
+                            const updated = [...(formData.learningPlans || [])];
+                            updated[idx].targetDate = val;
+                            setFormData({ ...formData, learningPlans: updated });
+                          }}
+                          className="!py-1 !px-2 text-xs !rounded-lg"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-4">
+                        <label className="text-[9px] font-bold text-gray-400 block mb-0.5">Status</label>
+                        <select
+                          value={plan.status}
+                          onChange={e => {
+                            const updated = [...(formData.learningPlans || [])];
+                            updated[idx].status = e.target.value as 'Not Started' | 'In Progress' | 'Completed';
+                            setFormData({ ...formData, learningPlans: updated });
+                          }}
+                          className="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded text-xs font-semibold text-gray-700 font-bold"
+                        >
+                          <option value="Not Started">Not Started</option>
+                          <option value="In Progress">In Progress</option>
+                          <option value="Completed">Completed</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[9px] font-bold text-gray-400 block mb-0.5">Description & Goal (วัตถุประสงค์ / เป้าหมาย)</label>
+                        <textarea
+                          rows={2}
+                          value={plan.description}
+                          placeholder="What is the objective or outcome to achieve..."
+                          onChange={e => {
+                            const updated = [...(formData.learningPlans || [])];
+                            updated[idx].description = e.target.value;
+                            setFormData({ ...formData, learningPlans: updated });
+                          }}
+                          className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[9px] font-bold text-gray-400 block mb-0.5">Planned Activities & Training Details (แผนงานเพื่อบรรลุสมรรถนะ)</label>
+                        <textarea
+                          rows={2}
+                          value={plan.activities}
+                          placeholder="e.g., Attend structural equation modeling workshop, write dissertation methodology section..."
+                          onChange={e => {
+                            const updated = [...(formData.learningPlans || [])];
+                            updated[idx].activities = e.target.value;
+                            setFormData({ ...formData, learningPlans: updated });
+                          }}
+                          className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <button
+                  onClick={() => {
+                    const updated = [...(formData.learningPlans || []), { competency: '', description: '', targetDate: '', status: 'Not Started' as const, activities: '' }];
+                    setFormData({ ...formData, learningPlans: updated });
+                  }}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-white border border-dashed border-gray-300 hover:border-tu-red hover:text-tu-red text-gray-500 rounded-lg text-xs font-semibold transition cursor-pointer"
+                >
+                  <Plus size={12} />
+                  <span>เพิ่มแผนเป้าหมายสมรรถนะใหม่ (Add New Competency Goal)</span>
+                </button>
+              </div>
+            </div>
+
           </div>
         )}
 

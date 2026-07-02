@@ -1203,16 +1203,55 @@ function loadPortfolioFromSheets(studentId) {
     if (s2) {
       var rows = findRowsByStudentID(s2, studentId);
       if (rows.length > 0) {
-        portfolio.milestones = rows.map(function(r) {
-          return {
-            key: r.MilestoneKey || "",
-            label: r.MilestoneLabel || "",
-            plannedDate: formatDate(r.PlannedDate),
-            actualDate: formatDate(r.ActualDate),
-            remarks: r.Remarks || "",
-            status: r.Status || ""
-          };
-        });
+        var standardMilestones = [];
+        var progCourses = [];
+        var lPlans = [];
+        var progName = "ชุด 1";
+
+        for (var i = 0; i < rows.length; i++) {
+          var r = rows[i];
+          var key = r.MilestoneKey || "";
+          
+          if (key === "program_of_study_name") {
+            progName = r.Status || "ชุด 1";
+          } else if (key.indexOf("program_course_") === 0) {
+            progCourses.push({
+              semester: formatDate(r.PlannedDate),
+              code: formatDate(r.ActualDate),
+              title: r.MilestoneLabel || "",
+              credits: r.Remarks || "",
+              status: r.Status || "Not Started"
+            });
+          } else if (key.indexOf("learning_plan_") === 0) {
+            lPlans.push({
+              competency: r.MilestoneLabel || "",
+              description: r.Remarks || "",
+              targetDate: formatDate(r.PlannedDate),
+              status: r.Status || "Not Started",
+              activities: r.ActualDate || ""
+            });
+          } else {
+            standardMilestones.push({
+              key: key,
+              label: r.MilestoneLabel || "",
+              plannedDate: formatDate(r.PlannedDate),
+              actualDate: formatDate(r.ActualDate),
+              remarks: r.Remarks || "",
+              status: r.Status || ""
+            });
+          }
+        }
+
+        if (standardMilestones.length > 0) {
+          portfolio.milestones = standardMilestones;
+        }
+        portfolio.programOfStudyName = progName;
+        if (progCourses.length > 0) {
+          portfolio.programCourses = progCourses;
+        }
+        if (lPlans.length > 0) {
+          portfolio.learningPlans = lPlans;
+        }
       }
     }
 
@@ -1605,11 +1644,36 @@ function savePortfolioToSheets(studentId, portfolio) {
   var s2 = ss.getSheetByName("P2_Milestones");
   if (s2) {
     deleteRow(s2, "StudentID", studentId);
+    
+    // Save standard milestones
     var ms = portfolio.milestones || [];
     for (var i = 0; i < ms.length; i++) {
       var m = ms[i];
       appendObjectAsRow(s2, ["StudentID", "MilestoneKey", "MilestoneLabel", "PlannedDate", "ActualDate", "Remarks", "Status", "LastUpdated"], {
         StudentID: studentId, MilestoneKey: m.key, MilestoneLabel: m.label, PlannedDate: formatDate(m.plannedDate), ActualDate: formatDate(m.actualDate), Remarks: m.remarks, Status: m.status, LastUpdated: nowStr
+      });
+    }
+
+    // Save Program of Study Name
+    appendObjectAsRow(s2, ["StudentID", "MilestoneKey", "MilestoneLabel", "PlannedDate", "ActualDate", "Remarks", "Status", "LastUpdated"], {
+      StudentID: studentId, MilestoneKey: "program_of_study_name", MilestoneLabel: "Program of Study Name", PlannedDate: "", ActualDate: "", Remarks: "", Status: portfolio.programOfStudyName || "ชุด 1", LastUpdated: nowStr
+    });
+
+    // Save Program Courses
+    var pcs = portfolio.programCourses || [];
+    for (var i = 0; i < pcs.length; i++) {
+      var pc = pcs[i];
+      appendObjectAsRow(s2, ["StudentID", "MilestoneKey", "MilestoneLabel", "PlannedDate", "ActualDate", "Remarks", "Status", "LastUpdated"], {
+        StudentID: studentId, MilestoneKey: "program_course_" + i, MilestoneLabel: pc.title, PlannedDate: pc.semester, ActualDate: pc.code, Remarks: pc.credits, Status: pc.status, LastUpdated: nowStr
+      });
+    }
+
+    // Save Learning Plans
+    var lps = portfolio.learningPlans || [];
+    for (var i = 0; i < lps.length; i++) {
+      var lp = lps[i];
+      appendObjectAsRow(s2, ["StudentID", "MilestoneKey", "MilestoneLabel", "PlannedDate", "ActualDate", "Remarks", "Status", "LastUpdated"], {
+        StudentID: studentId, MilestoneKey: "learning_plan_" + i, MilestoneLabel: lp.competency, PlannedDate: lp.targetDate, ActualDate: lp.activities, Remarks: lp.description, Status: lp.status, LastUpdated: nowStr
       });
     }
   }
@@ -1930,6 +1994,24 @@ function getDefaultPortfolio(studentId) {
   return {
     academicBackground: [],
     professionalBackground: [],
+    programOfStudyName: 'ชุด 1',
+    programCourses: [
+      { semester: '1/2025', code: 'NS802', title: 'Advanced Gerontology: Nursing Research and Innovation', credits: '2', status: 'Completed' },
+      { semester: '1/2025', code: 'NS811', title: 'Philosophy and Theory Development in Nursing', credits: '3', status: 'Completed' },
+      { semester: '1/2025', code: 'NS812', title: 'Advanced Research in Nursing', credits: '3', status: 'Completed' },
+      { semester: '1/2025', code: 'NS815', title: 'Seminar in Nursing and Health Issues', credits: '1', status: 'Completed' },
+      { semester: '2/2025', code: 'NS807', title: 'Innovation in Health and Nursing', credits: '2', status: 'Completed' },
+      { semester: '2/2025', code: 'NS813', title: 'Advanced Statistics', credits: '3', status: 'Completed' },
+      { semester: '2/2025', code: 'NS814', title: 'Healthcare Leaders', credits: '3', status: 'Completed' }
+    ],
+    learningPlans: [
+      { competency: 'Advanced research methodology', description: 'Improve knowledge and skills in quantitative and qualitative research design, research ethics, and evidence-based nursing research.', targetDate: '2026-12-15', status: 'In Progress', activities: 'Participate in qualitative workshops and draft methodology chapter.' },
+      { competency: 'Statistics and data analysis', description: 'Develop skills in statistical analysis, data interpretation, and the use of statistical software for healthcare research.', targetDate: '2026-10-30', status: 'In Progress', activities: 'Complete advanced SPSS/AMOS training and practice SEM models.' },
+      { competency: 'Academic writing and publication', description: 'Strengthen academic writing skills for international publication, manuscript preparation, and scientific communication.', targetDate: '2027-03-20', status: 'Not Started', activities: 'Draft first manuscript for peer-reviewed Scopus journal.' },
+      { competency: 'English language skills', description: 'Improve academic English communication, presentation skills, and confidence in international academic settings.', targetDate: '2026-08-15', status: 'Completed', activities: 'Present at the International Nursing Conference.' },
+      { competency: 'Teaching and academic supervision', description: 'Enhance teaching strategies, student supervision, and learning management in nursing education.', targetDate: '2027-05-10', status: 'Not Started', activities: 'Assist advisor with undergraduate lecture series.' },
+      { competency: 'Leadership and project management', description: 'Develop leadership, teamwork, and project management skills for academic and healthcare settings.', targetDate: '2026-11-20', status: 'In Progress', activities: 'Lead community outreach program for caregiver support.' }
+    ],
     milestones: [
       { key: 'coursework', label: 'Coursework completion', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },
       { key: 'english', label: 'Meeting the English language proficiency requirement', plannedDate: '', actualDate: '', remarks: '', status: 'Not Started' },

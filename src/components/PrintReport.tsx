@@ -281,10 +281,55 @@ export default function PrintReport({
         {/* ========================================== */}
         <div className="min-h-[1000px] print-page-break space-y-6 pt-10">
           <span className="text-[10px] uppercase font-bold tracking-wider text-tu-red font-mono">Section 2</span>
-          <h2 className="text-xl font-bold text-gray-900 border-b border-gray-100 pb-2">Program of Study and Academic Milestones</h2>
+          <h2 className="text-xl font-bold text-gray-900 border-b border-gray-100 pb-2 font-sans">Program of Study and Academic Milestones</h2>
 
+          {/* 2.1 Program of Study */}
           <div className="space-y-4">
-            <h3 className="text-sm font-bold text-tu-red">2.2 Doctoral Milestones and Timeline</h3>
+            <div className="flex justify-between items-center">
+              <h3 className="text-sm font-bold text-tu-red font-sans">2.1 Program of Study ({portfolioData.programOfStudyName || 'ชุด 1'})</h3>
+              <span className="text-xs text-gray-400 font-mono">Faculty of Nursing Curriculum Plans</span>
+            </div>
+            <table className="w-full text-left text-xs border border-gray-200">
+              <thead>
+                <tr className="bg-gray-50 font-bold border-b border-gray-200">
+                  <th className="p-2 w-1/6">Semester/Year</th>
+                  <th className="p-2 w-1/6">Course Code</th>
+                  <th className="p-2">Course Title</th>
+                  <th className="p-2 text-center w-12">Credits</th>
+                  <th className="p-2 text-center w-24">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {(portfolioData.programCourses && portfolioData.programCourses.length > 0) ? (
+                  portfolioData.programCourses.map((course, idx) => (
+                    <tr key={idx} className="hover:bg-gray-50/50">
+                      <td className="p-2 font-semibold text-gray-700">{course.semester}</td>
+                      <td className="p-2 font-mono font-bold text-gray-900">{course.code}</td>
+                      <td className="p-2 font-medium text-gray-800">{course.title}</td>
+                      <td className="p-2 text-center font-mono font-semibold">{course.credits}</td>
+                      <td className="p-2 text-center">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          course.status === 'Completed' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                          course.status === 'In Progress' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                          'bg-gray-50 text-gray-500 border border-gray-100'
+                        }`}>
+                          {course.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="p-4 text-center text-gray-400 italic">No course records listed in Program of Study</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* 2.2 Doctoral Milestones Timeline */}
+          <div className="space-y-4 pt-4">
+            <h3 className="text-sm font-bold text-tu-red font-sans">2.2 Doctoral Milestones and Timeline</h3>
             <table className="w-full text-left text-xs border border-gray-200">
               <thead>
                 <tr className="bg-gray-50 font-bold border-b border-gray-200">
@@ -302,11 +347,56 @@ export default function PrintReport({
                     <td className="p-2 text-center font-mono text-gray-500">{milestone.plannedDate || '-'}</td>
                     <td className="p-2 text-center font-mono text-gray-800 font-semibold">{milestone.actualDate || '-'}</td>
                     <td className="p-2 text-gray-500 italic">{milestone.remarks || '-'}</td>
-                    <td className="p-2 text-center font-bold text-[10px]">{milestone.status}</td>
+                    <td className="p-2 text-center">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        milestone.status === 'Completed' ? 'bg-emerald-50 text-emerald-600' :
+                        milestone.status === 'In Progress' ? 'bg-blue-50 text-blue-600' :
+                        'bg-gray-50 text-gray-500'
+                      }`}>
+                        {milestone.status}
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* 2.3 Personal Learning and Development Plan */}
+          <div className="space-y-4 pt-6 border-t border-gray-100">
+            <h3 className="text-sm font-bold text-tu-red font-sans">2.3 Personal Learning and Development Plan</h3>
+            <div className="space-y-3">
+              {(portfolioData.learningPlans && portfolioData.learningPlans.length > 0) ? (
+                portfolioData.learningPlans.map((plan, idx) => (
+                  <div key={idx} className="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wide">{plan.competency}</h4>
+                        {plan.description && <p className="text-[11px] text-gray-500 mt-0.5 leading-normal">{plan.description}</p>}
+                      </div>
+                      <div className="text-right flex items-center gap-2 shrink-0">
+                        <span className="text-[10px] font-mono text-gray-400">Target: {plan.targetDate || 'N/A'}</span>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          plan.status === 'Completed' ? 'bg-emerald-100 text-emerald-800' :
+                          plan.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-500'
+                        }`}>
+                          {plan.status}
+                        </span>
+                      </div>
+                    </div>
+                    {plan.activities && (
+                      <div className="bg-white p-2 rounded border border-gray-100 text-[11px] text-gray-700 leading-relaxed">
+                        <strong className="text-[10px] font-bold text-tu-red uppercase block mb-0.5">Planned Activities & Progress</strong>
+                        {plan.activities}
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-gray-400 italic text-center py-4 bg-gray-50 border border-dashed border-gray-200 rounded-xl">No competency training records listed in Personal Learning Plan</p>
+              )}
+            </div>
           </div>
         </div>
 

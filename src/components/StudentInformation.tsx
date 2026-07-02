@@ -308,7 +308,7 @@ export default function StudentInformation({
       Title: newActForm.title,
       Date: newActForm.date,
       Description: newActForm.description,
-      ImagesURL: actFiles.length > 0 ? actFiles.map(f => f.url) : [
+      ImagesURL: actFiles.length > 0 ? actFiles.map(f => ({ name: f.name, url: f.url })) : [
         'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=600&q=80'
       ],
       Status: 'PENDING'
@@ -982,7 +982,19 @@ export default function StudentInformation({
                       {(() => {
                         let files: { name: string; url: string }[] = [];
                         if (Array.isArray(act.ImagesURL)) {
-                          files = act.ImagesURL.map((u, i) => typeof u === 'string' ? { name: `File ${i + 1}`, url: u } : u);
+                          files = act.ImagesURL.map((u, i) => {
+                            if (typeof u === 'string') {
+                              if (u.trim().startsWith('{')) {
+                                try {
+                                  return JSON.parse(u);
+                                } catch (e) {
+                                  return { name: `File ${i + 1}`, url: u };
+                                }
+                              }
+                              return { name: `File ${i + 1}`, url: u };
+                            }
+                            return u;
+                          });
                         } else if (typeof act.ImagesURL === 'string') {
                           if ((act.ImagesURL as string).trim().startsWith('[')) {
                             try {
@@ -995,8 +1007,18 @@ export default function StudentInformation({
                           }
                         }
 
-                        const imageFiles = files.filter(f => f.url && (/\.(png|jpe?g|gif|webp)$/i.test(f.name) || f.url.includes('images.unsplash.com') || f.url.startsWith('LOCAL_FILE_')));
-                        const otherFiles = files.filter(f => f.url && !(/\.(png|jpe?g|gif|webp)$/i.test(f.name) || f.url.includes('images.unsplash.com') || f.url.startsWith('LOCAL_FILE_')));
+                        const imageFiles = files.filter(f => {
+                          if (!f.url) return false;
+                          const name = f.name || '';
+                          const url = f.url || '';
+                          return /\.(png|jpe?g|gif|webp)$/i.test(name) ||
+                                 /\.(png|jpe?g|gif|webp)$/i.test(url.split('?')[0]) ||
+                                 url.includes('images.unsplash.com') ||
+                                 url.startsWith('LOCAL_FILE_') ||
+                                 url.startsWith('data:image/') ||
+                                 url.includes('lh3.googleusercontent.com');
+                        });
+                        const otherFiles = files.filter(f => !imageFiles.includes(f));
 
                         return (
                           <>

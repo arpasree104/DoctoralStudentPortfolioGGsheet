@@ -302,7 +302,19 @@ export default function AdvisorPanel({
                       .map((act) => {
                         let files: { name: string; url: string }[] = [];
                         if (Array.isArray(act.ImagesURL)) {
-                          files = act.ImagesURL.map((u, i) => typeof u === 'string' ? { name: `File ${i + 1}`, url: u } : u);
+                          files = act.ImagesURL.map((u, i) => {
+                            if (typeof u === 'string') {
+                              if (u.trim().startsWith('{')) {
+                                try {
+                                  return JSON.parse(u);
+                                } catch (e) {
+                                  return { name: `File ${i + 1}`, url: u };
+                                }
+                              }
+                              return { name: `File ${i + 1}`, url: u };
+                            }
+                            return u;
+                          });
                         } else if (typeof act.ImagesURL === 'string') {
                           if ((act.ImagesURL as string).trim().startsWith('[')) {
                             try {
@@ -315,8 +327,18 @@ export default function AdvisorPanel({
                           }
                         }
 
-                        const imageFiles = files.filter(f => f.url && (/\.(png|jpe?g|gif|webp)$/i.test(f.name) || f.url.includes('images.unsplash.com') || f.url.startsWith('LOCAL_FILE_')));
-                        const otherFiles = files.filter(f => f.url && !(/\.(png|jpe?g|gif|webp)$/i.test(f.name) || f.url.includes('images.unsplash.com') || f.url.startsWith('LOCAL_FILE_')));
+                        const imageFiles = files.filter(f => {
+                          if (!f.url) return false;
+                          const name = f.name || '';
+                          const url = f.url || '';
+                          return /\.(png|jpe?g|gif|webp)$/i.test(name) ||
+                                 /\.(png|jpe?g|gif|webp)$/i.test(url.split('?')[0]) ||
+                                 url.includes('images.unsplash.com') ||
+                                 url.startsWith('LOCAL_FILE_') ||
+                                 url.startsWith('data:image/') ||
+                                 url.includes('lh3.googleusercontent.com');
+                        });
+                        const otherFiles = files.filter(f => !imageFiles.includes(f));
 
                         return (
                           <div key={act.ActivityID} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs grid grid-cols-1 md:grid-cols-3 gap-6">

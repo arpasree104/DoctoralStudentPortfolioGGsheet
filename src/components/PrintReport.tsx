@@ -869,9 +869,12 @@ export default function PrintReport({
                   <p className="text-gray-500 text-[11px] leading-relaxed line-clamp-2">{act.Description}</p>
                   
                   <div className="grid grid-cols-3 gap-1">
-                    {act.ImagesURL.map((url, i) => (
-                      <img key={i} src={url} className="h-12 w-full object-cover rounded" alt="Evidence Collage" />
-                    ))}
+                    {act.ImagesURL.map((item, i) => {
+                      const url = typeof item === 'string' ? item : (item as any)?.url || '';
+                      return (
+                        <img key={i} src={url} className="h-12 w-full object-cover rounded" alt="Evidence Collage" />
+                      );
+                    })}
                   </div>
                 </div>
               ))}

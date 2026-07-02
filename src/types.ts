@@ -46,7 +46,7 @@ export interface Activity {
   Title: string;
   Date: string;
   Description: string;
-  ImagesURL: string[]; // Saved as JSON string in Google Sheet
+  ImagesURL: (string | { name: string; url: string })[]; // Saved as JSON string in Google Sheet
   Status: CertStatus;
   ApprovedBy?: string;
   Feedback?: string;

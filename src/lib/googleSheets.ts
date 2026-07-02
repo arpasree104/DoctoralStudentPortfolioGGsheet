@@ -455,17 +455,45 @@ export async function getUsers(): Promise<User[]> {
   }
 
   return rawUsers.map((u: any) => {
-    if (u.AdditionalPhotos) {
-      if (typeof u.AdditionalPhotos === 'string') {
-        try {
-          u.AdditionalPhotos = JSON.parse(u.AdditionalPhotos);
-        } catch (e) {
+    let hasPasswordInPhotos = false;
+    let extractedPassword = '';
+
+    if (u.AdditionalPhotos !== undefined && u.AdditionalPhotos !== null && u.AdditionalPhotos !== '') {
+      if (typeof u.AdditionalPhotos === 'number') {
+        hasPasswordInPhotos = true;
+        extractedPassword = String(u.AdditionalPhotos);
+      } else if (typeof u.AdditionalPhotos === 'string') {
+        const trimmed = u.AdditionalPhotos.trim();
+        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+          try {
+            u.AdditionalPhotos = JSON.parse(trimmed);
+          } catch (e) {
+            u.AdditionalPhotos = [];
+          }
+        } else if (trimmed !== '' && trimmed !== '[]' && !trimmed.startsWith('http')) {
+          hasPasswordInPhotos = true;
+          extractedPassword = trimmed;
+        } else if (trimmed.startsWith('http')) {
+          u.AdditionalPhotos = [trimmed];
+        } else {
           u.AdditionalPhotos = [];
         }
       }
-    } else {
+    }
+
+    if (hasPasswordInPhotos && extractedPassword) {
+      u.Password = extractedPassword;
       u.AdditionalPhotos = [];
     }
+
+    if (!Array.isArray(u.AdditionalPhotos)) {
+      u.AdditionalPhotos = [];
+    }
+
+    if (!u.Password || !String(u.Password).trim()) {
+      u.Password = '1234';
+    }
+
     return u as User;
   });
 }

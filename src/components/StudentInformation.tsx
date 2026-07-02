@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { User as UserIcon, Award, Image as ImageIcon, Plus, Edit2, CheckCircle2, AlertCircle, Trash2, ExternalLink, Calendar, PlusCircle, Check, Loader2, HeartHandshake, Paperclip, X } from 'lucide-react';
 import FileUploader, { AttachedFile } from './FileUploader';
 import DatePickerField from './DatePickerField';
-import { getAppsScriptUrl, uploadFileToDrive, resolvePhotoUrl, resolveFileUrl } from '../lib/googleSheets';
+import { getAppsScriptUrl, uploadFileToDrive, resolvePhotoUrl, resolveFileUrl, formatDisplayDate } from '../lib/googleSheets';
 
 interface StudentInformationProps {
   currentUser: User;
@@ -339,30 +339,34 @@ export default function StudentInformation({
           }`}
         >
           <UserIcon size={16} />
-          Student Demographics
+          {currentUser.Role === 'STUDENT' ? 'Student Demographics' : 'Personal Information'}
         </button>
-        <button
-          onClick={() => setActiveSubTab('certificates')}
-          className={`flex items-center gap-2 px-6 py-3 border-b-2 font-medium text-sm transition-all duration-200 cursor-pointer ${
-            activeSubTab === 'certificates'
-              ? 'border-tu-red text-tu-red'
-              : 'border-transparent text-gray-500 hover:text-gray-800'
-          }`}
-        >
-          <Award size={16} />
-          My Certificates Portfolio
-        </button>
-        <button
-          onClick={() => setActiveSubTab('activities')}
-          className={`flex items-center gap-2 px-6 py-3 border-b-2 font-medium text-sm transition-all duration-200 cursor-pointer ${
-            activeSubTab === 'activities'
-              ? 'border-tu-red text-tu-red'
-              : 'border-transparent text-gray-500 hover:text-gray-800'
-          }`}
-        >
-          <ImageIcon size={16} />
-          Activities Progress (Collage)
-        </button>
+        {currentUser.Role === 'STUDENT' && (
+          <button
+            onClick={() => setActiveSubTab('certificates')}
+            className={`flex items-center gap-2 px-6 py-3 border-b-2 font-medium text-sm transition-all duration-200 cursor-pointer ${
+              activeSubTab === 'certificates'
+                ? 'border-tu-red text-tu-red'
+                : 'border-transparent text-gray-500 hover:text-gray-800'
+            }`}
+          >
+            <Award size={16} />
+            My Certificates Portfolio
+          </button>
+        )}
+        {currentUser.Role === 'STUDENT' && (
+          <button
+            onClick={() => setActiveSubTab('activities')}
+            className={`flex items-center gap-2 px-6 py-3 border-b-2 font-medium text-sm transition-all duration-200 cursor-pointer ${
+              activeSubTab === 'activities'
+                ? 'border-tu-red text-tu-red'
+                : 'border-transparent text-gray-500 hover:text-gray-800'
+            }`}
+          >
+            <ImageIcon size={16} />
+            Activities Progress (Collage)
+          </button>
+        )}
       </div>
 
       <AnimatePresence mode="wait">
@@ -527,16 +531,18 @@ export default function StudentInformation({
 
               <form onSubmit={handleSaveProfile} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">Student ID</label>
-                    <input
-                      type="text"
-                      disabled={!isEditingProfile}
-                      value={profileForm.StudentID || ''}
-                      onChange={e => setProfileForm({ ...profileForm, StudentID: e.target.value })}
-                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm disabled:opacity-75 focus:outline-tu-red font-mono"
-                    />
-                  </div>
+                  {currentUser.Role === 'STUDENT' && (
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 block mb-1">Student ID</label>
+                      <input
+                        type="text"
+                        disabled={!isEditingProfile}
+                        value={profileForm.StudentID || ''}
+                        onChange={e => setProfileForm({ ...profileForm, StudentID: e.target.value })}
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm disabled:opacity-75 focus:outline-tu-red font-mono"
+                      />
+                    </div>
+                  )}
 
                   <div>
                     <label className="text-xs font-semibold text-gray-500 block mb-1">Full Name (including title)</label>
@@ -549,98 +555,102 @@ export default function StudentInformation({
                     />
                   </div>
 
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">Academic Major Program</label>
-                    {isEditingProfile ? (
-                      <select
-                        value={profileForm.Major || ''}
-                        onChange={e => setProfileForm({ ...profileForm, Major: e.target.value })}
-                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-tu-red"
-                      >
-                        <option value="">Select Major Program...</option>
-                        {degreeOptions.length > 0 ? degreeOptions.map(opt => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        )) : (
-                          <>
-                            <option value="Doctor of Philosophy Program in Nursing Science (International Program)">PhD in Nursing Science (International Program)</option>
-                            <option value="Doctor of Philosophy Program in Nursing Science (Thai Program)">PhD in Nursing Science (Thai Program)</option>
-                          </>
+                  {currentUser.Role === 'STUDENT' && (
+                    <>
+                      <div>
+                        <label className="text-xs font-semibold text-gray-500 block mb-1">Academic Major Program</label>
+                        {isEditingProfile ? (
+                          <select
+                            value={profileForm.Major || ''}
+                            onChange={e => setProfileForm({ ...profileForm, Major: e.target.value })}
+                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-tu-red"
+                          >
+                            <option value="">Select Major Program...</option>
+                            {degreeOptions.length > 0 ? degreeOptions.map(opt => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            )) : (
+                              <>
+                                <option value="Doctor of Philosophy Program in Nursing Science (International Program)">PhD in Nursing Science (International Program)</option>
+                                <option value="Doctor of Philosophy Program in Nursing Science (Thai Program)">PhD in Nursing Science (Thai Program)</option>
+                              </>
+                            )}
+                          </select>
+                        ) : (
+                          <div className="px-3 py-2 bg-gray-50 border border-transparent rounded-xl text-sm font-medium text-gray-800">
+                            {profileForm.Major || 'Not specified'}
+                          </div>
                         )}
-                      </select>
-                    ) : (
-                      <div className="px-3 py-2 bg-gray-50 border border-transparent rounded-xl text-sm font-medium text-gray-800">
-                        {profileForm.Major || 'Not specified'}
                       </div>
-                    )}
-                  </div>
 
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">Year of Admission</label>
-                    <input
-                      type="text"
-                      disabled={!isEditingProfile}
-                      value={profileForm.YearOfAdmission || ''}
-                      onChange={e => setProfileForm({ ...profileForm, YearOfAdmission: e.target.value })}
-                      placeholder="e.g., 2025"
-                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm disabled:opacity-75 focus:outline-tu-red"
-                    />
-                  </div>
+                      <div>
+                        <label className="text-xs font-semibold text-gray-500 block mb-1">Year of Admission</label>
+                        <input
+                          type="text"
+                          disabled={!isEditingProfile}
+                          value={profileForm.YearOfAdmission || ''}
+                          onChange={e => setProfileForm({ ...profileForm, YearOfAdmission: e.target.value })}
+                          placeholder="e.g., 2025"
+                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm disabled:opacity-75 focus:outline-tu-red"
+                        />
+                      </div>
 
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">Expected Graduation Year</label>
-                    <input
-                      type="text"
-                      disabled={!isEditingProfile}
-                      value={profileForm.ExpectedGraduationYear || ''}
-                      onChange={e => setProfileForm({ ...profileForm, ExpectedGraduationYear: e.target.value })}
-                      placeholder="e.g., 2029"
-                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm disabled:opacity-75 focus:outline-tu-red"
-                    />
-                  </div>
+                      <div>
+                        <label className="text-xs font-semibold text-gray-500 block mb-1">Expected Graduation Year</label>
+                        <input
+                          type="text"
+                          disabled={!isEditingProfile}
+                          value={profileForm.ExpectedGraduationYear || ''}
+                          onChange={e => setProfileForm({ ...profileForm, ExpectedGraduationYear: e.target.value })}
+                          placeholder="e.g., 2029"
+                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm disabled:opacity-75 focus:outline-tu-red"
+                        />
+                      </div>
 
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">Major Advisor</label>
-                    {isEditingProfile ? (
-                      <select
-                        value={profileForm.Advisor || ''}
-                        onChange={e => setProfileForm({ ...profileForm, Advisor: e.target.value })}
-                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-tu-red"
-                      >
-                        <option value="">Select Advisor...</option>
-                        {advisorOptions.length > 0 ? advisorOptions.map(opt => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        )) : (
-                          <option value="Assoc. Prof. Dr. Nonglak Wisetsilp">Assoc. Prof. Dr. Nonglak Wisetsilp</option>
+                      <div>
+                        <label className="text-xs font-semibold text-gray-500 block mb-1">Major Advisor</label>
+                        {isEditingProfile ? (
+                          <select
+                            value={profileForm.Advisor || ''}
+                            onChange={e => setProfileForm({ ...profileForm, Advisor: e.target.value })}
+                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-tu-red"
+                          >
+                            <option value="">Select Advisor...</option>
+                            {advisorOptions.length > 0 ? advisorOptions.map(opt => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            )) : (
+                              <option value="Assoc. Prof. Dr. Nonglak Wisetsilp">Assoc. Prof. Dr. Nonglak Wisetsilp</option>
+                            )}
+                          </select>
+                        ) : (
+                          <div className="px-3 py-2 bg-gray-50 border border-transparent rounded-xl text-sm font-medium text-gray-800">
+                            {profileForm.Advisor || 'Not specified'}
+                          </div>
                         )}
-                      </select>
-                    ) : (
-                      <div className="px-3 py-2 bg-gray-50 border border-transparent rounded-xl text-sm font-medium text-gray-800">
-                        {profileForm.Advisor || 'Not specified'}
                       </div>
-                    )}
-                  </div>
 
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">Co-Advisor</label>
-                    {isEditingProfile ? (
-                      <select
-                        value={profileForm.CoAdvisor || ''}
-                        onChange={e => setProfileForm({ ...profileForm, CoAdvisor: e.target.value })}
-                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-tu-red"
-                      >
-                        <option value="">Select Co-Advisor...</option>
-                        {coAdvisorOptions.length > 0 ? coAdvisorOptions.map(opt => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        )) : (
-                          <option value="Assoc. Prof. Dr. Wipa Chaichan">Assoc. Prof. Dr. Wipa Chaichan</option>
+                      <div>
+                        <label className="text-xs font-semibold text-gray-500 block mb-1">Co-Advisor</label>
+                        {isEditingProfile ? (
+                          <select
+                            value={profileForm.CoAdvisor || ''}
+                            onChange={e => setProfileForm({ ...profileForm, CoAdvisor: e.target.value })}
+                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-tu-red"
+                          >
+                            <option value="">Select Co-Advisor...</option>
+                            {coAdvisorOptions.length > 0 ? coAdvisorOptions.map(opt => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            )) : (
+                              <option value="Assoc. Prof. Dr. Wipa Chaichan">Assoc. Prof. Dr. Wipa Chaichan</option>
+                            )}
+                          </select>
+                        ) : (
+                          <div className="px-3 py-2 bg-gray-50 border border-transparent rounded-xl text-sm font-medium text-gray-800">
+                            {profileForm.CoAdvisor || 'Not specified'}
+                          </div>
                         )}
-                      </select>
-                    ) : (
-                      <div className="px-3 py-2 bg-gray-50 border border-transparent rounded-xl text-sm font-medium text-gray-800">
-                        {profileForm.CoAdvisor || 'Not specified'}
                       </div>
-                    )}
-                  </div>
+                    </>
+                  )}
 
                   <div>
                     <label className="text-xs font-semibold text-gray-500 block mb-1">Line ID</label>
@@ -653,27 +663,31 @@ export default function StudentInformation({
                     />
                   </div>
 
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500 block mb-1">Date of Submission</label>
-                    <DatePickerField
-                      disabled={!isEditingProfile}
-                      value={profileForm.DateOfSubmission || ''}
-                      onChange={val => setProfileForm({ ...profileForm, DateOfSubmission: val })}
-                      placeholder="e.g., May 16, 2026"
-                    />
-                  </div>
+                  {currentUser.Role === 'STUDENT' && (
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 block mb-1">Date of Submission</label>
+                      <DatePickerField
+                        disabled={!isEditingProfile}
+                        value={profileForm.DateOfSubmission || ''}
+                        onChange={val => setProfileForm({ ...profileForm, DateOfSubmission: val })}
+                        placeholder="e.g., May 16, 2026"
+                      />
+                    </div>
+                  )}
                 </div>
 
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 block mb-1">Thesis Title (Dissertation Draft)</label>
-                  <textarea
-                    disabled={!isEditingProfile}
-                    rows={2}
-                    value={profileForm.ThesisTitle || ''}
-                    onChange={e => setProfileForm({ ...profileForm, ThesisTitle: e.target.value })}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm disabled:opacity-75 focus:outline-tu-red"
-                  />
-                </div>
+                {currentUser.Role === 'STUDENT' && (
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">Thesis Title (Dissertation Draft)</label>
+                    <textarea
+                      disabled={!isEditingProfile}
+                      rows={2}
+                      value={profileForm.ThesisTitle || ''}
+                      onChange={e => setProfileForm({ ...profileForm, ThesisTitle: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm disabled:opacity-75 focus:outline-tu-red"
+                    />
+                  </div>
+                )}
 
                 <div>
                   <label className="text-xs font-semibold text-gray-500 block mb-1">Personal Password / Access Code (รหัสผ่านเข้าสู่ระบบ)</label>
@@ -840,23 +854,23 @@ export default function StudentInformation({
                               </div>
                             </div>
                             
-                            <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-                              <div className="space-y-2">
+                            <div className="p-4 space-y-3 flex-1 flex flex-col justify-between items-center text-center">
+                              <div className="space-y-2 flex flex-col items-center">
                                 <span className="text-[10px] uppercase font-bold text-tu-red block tracking-wider font-mono">
                                   {cert.Category}
                                 </span>
-                                <h4 className="text-sm font-semibold text-gray-800 line-clamp-2 leading-snug">
+                                <h4 className="text-[13px] font-semibold text-gray-800 line-clamp-3 leading-relaxed max-w-[280px]">
                                   {cert.Name}
                                 </h4>
-                                <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                                <div className="flex items-center gap-1.5 text-xs text-gray-400 justify-center">
                                   <Calendar size={12} />
-                                  <span>Received on: {cert.Date}</span>
+                                  <span>Date Received: {formatDisplayDate(cert.Date)}</span>
                                 </div>
                                 
                                 {files.length > 0 && (
-                                  <div className="pt-2 border-t border-gray-100 space-y-1">
+                                  <div className="pt-2 border-t border-gray-100 space-y-1 w-full text-center">
                                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Attachments ({files.length})</span>
-                                    <div className="space-y-1">
+                                    <div className="space-y-1 flex flex-col items-center">
                                       {files.map((file, i) => (
                                         <a
                                           key={i}
@@ -876,7 +890,7 @@ export default function StudentInformation({
                               </div>
                               
                               {cert.Feedback && (
-                                <div className="mt-3 p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-xs text-gray-600 space-y-1">
+                                <div className="mt-3 p-2.5 w-full bg-gray-50 border border-gray-100 rounded-xl text-xs text-gray-600 space-y-1 text-left">
                                   <span className="font-semibold block text-gray-700">Feedback from Advisor ({cert.ApprovedBy || 'Advisor'}):</span>
                                   <p className="italic leading-normal text-[11px]">"{cert.Feedback}"</p>
                                 </div>

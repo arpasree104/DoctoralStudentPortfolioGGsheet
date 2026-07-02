@@ -511,7 +511,7 @@ export default function App() {
               <form onSubmit={handleLogin} className="w-full space-y-5 text-xs">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                    Tu Official Email
+                    Email
                   </label>
                   <input
                     type="email"
@@ -985,32 +985,32 @@ export default function App() {
             Overview Dashboard
           </button>
 
-          {currentUser.Role === 'STUDENT' && (
-            <>
-              <button
-                onClick={() => setActiveTab('info')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                  activeTab === 'info'
-                    ? 'bg-tu-red text-white shadow-sm'
-                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-100'
-                }`}
-              >
-                <Users size={13} />
-                My Profile & Certificates
-              </button>
+          {['STUDENT', 'ADVISOR', 'CO_ADVISOR', 'SUPER_ADVISOR', 'ADMIN'].includes(currentUser.Role) && (
+            <button
+              onClick={() => setActiveTab('info')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                activeTab === 'info'
+                  ? 'bg-tu-red text-white shadow-sm'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-100'
+              }`}
+            >
+              <Users size={13} />
+              {currentUser.Role === 'STUDENT' ? 'My Profile & Certificates' : 'My Profile'}
+            </button>
+          )}
 
-              <button
-                onClick={() => setActiveTab('edit')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                  activeTab === 'edit'
-                    ? 'bg-tu-red text-white shadow-sm'
-                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-100'
-                }`}
-              >
-                <BookOpen size={13} />
-                16-Section Portfolio Record
-              </button>
-            </>
+          {currentUser.Role === 'STUDENT' && (
+            <button
+              onClick={() => setActiveTab('edit')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                activeTab === 'edit'
+                  ? 'bg-tu-red text-white shadow-sm'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-100'
+              }`}
+            >
+              <BookOpen size={13} />
+              16-Section Portfolio Record
+            </button>
           )}
 
           {['ADVISOR', 'CO_ADVISOR', 'SUPER_ADVISOR'].includes(currentUser.Role) && (

@@ -868,6 +868,18 @@ export function resolvePhotoUrl(url: string | null | undefined, defaultUrl: stri
   return url;
 }
 
+export function formatDisplayDate(dateString?: string): string {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+  return new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'Asia/Bangkok'
+  }).format(date);
+}
+
 export function getLogs(): ActivityLog[] {
   initializeDatabase();
   return JSON.parse(localStorage.getItem(KEYS.LOGS) || '[]');

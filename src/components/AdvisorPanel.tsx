@@ -6,8 +6,8 @@
 import React, { useState } from 'react';
 import { User, Certificate, Activity } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { Users, Award, Clock, CheckCircle2, XCircle, MessageSquare, GraduationCap, ChevronRight, FileText, Check, AlertTriangle, Paperclip, ExternalLink } from 'lucide-react';
-import { resolvePhotoUrl, resolveFileUrl } from '../lib/googleSheets';
+import { Users, Award, Clock, CheckCircle2, XCircle, MessageSquare, GraduationCap, ChevronRight, FileText, Check, AlertTriangle, Paperclip, ExternalLink, Calendar } from 'lucide-react';
+import { resolvePhotoUrl, resolveFileUrl, formatDisplayDate } from '../lib/googleSheets';
 
 interface AdvisorPanelProps {
   currentUser: User;
@@ -206,18 +206,21 @@ export default function AdvisorPanel({
                               </div>
                             </div>
 
-                            <div className="p-4 space-y-4">
-                              <div className="space-y-1">
-                                <span className="text-[9px] uppercase font-bold text-tu-red tracking-wider font-mono">
+                            <div className="p-4 space-y-4 flex flex-col items-center text-center">
+                              <div className="space-y-2 flex flex-col items-center">
+                                <span className="text-[10px] uppercase font-bold text-tu-red tracking-wider font-mono">
                                   {cert.Category}
                                 </span>
-                                <h4 className="font-semibold text-xs text-gray-800 leading-snug">{cert.Name}</h4>
-                                <p className="text-[10px] text-gray-400 font-mono">Date Received: {cert.Date}</p>
+                                <h4 className="font-semibold text-[13px] text-gray-800 leading-relaxed max-w-[280px]">{cert.Name}</h4>
+                                <div className="flex items-center gap-1.5 text-[11px] text-gray-400 justify-center">
+                                  <Calendar size={12} />
+                                  <span>Date Received: {formatDisplayDate(cert.Date)}</span>
+                                </div>
 
                                 {files.length > 0 && (
-                                  <div className="pt-2 mt-2 border-t border-gray-100 space-y-1">
-                                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Student Attachments ({files.length})</span>
-                                    <div className="space-y-1">
+                                  <div className="pt-3 mt-3 border-t border-gray-100 space-y-1.5 w-full text-center">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Student Attachments ({files.length})</span>
+                                    <div className="space-y-1.5 flex flex-col items-center">
                                       {files.map((file, i) => (
                                         <a
                                           key={i}

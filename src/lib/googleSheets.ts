@@ -129,6 +129,11 @@ const DEFAULT_STUDENT_PORTFOLIO: StudentPortfolioData = {
   },
   advisorComments: '',
   endorsements: [],
+  englishVerification: {
+    comments: '',
+    name: '',
+    signatureDate: ''
+  },
   supportingFiles: []
 };
 
@@ -172,6 +177,10 @@ export function ensurePortfolioDefaults(data: any): StudentPortfolioData {
   merged.englishTest = {
     ...DEFAULT_STUDENT_PORTFOLIO.englishTest,
     ...merged.englishTest
+  };
+  merged.englishVerification = {
+    ...DEFAULT_STUDENT_PORTFOLIO.englishVerification,
+    ...merged.englishVerification
   };
   merged.dissertationInfo = {
     ...DEFAULT_STUDENT_PORTFOLIO.dissertationInfo,
@@ -1065,7 +1074,7 @@ function getOrCreateSheet(sheetName) {
       "Notifications": ["NotificationID", "SenderID", "SenderName", "ReceiverID", "Title", "MessageText", "Timestamp", "IsRead"],
       "P1_StudentProfile": ["StudentID", "RecordType", "Degree", "Field", "Institution", "Year", "Period", "Role", "Remarks", "LastUpdated"],
       "P2_Milestones": ["StudentID", "MilestoneKey", "MilestoneLabel", "PlannedDate", "ActualDate", "Remarks", "Status", "LastUpdated"],
-      "P3_EnglishLanguage": ["StudentID", "RecordType", "TestName", "DateTaken", "ScoreAchieved", "RequiredScore", "TestStatus", "TestEvidence", "ActivityDate", "ActivityName", "ActivityOrganizer", "ActivityDescription", "ActivityEvidence", "EnglishReflection", "LastUpdated"],
+      "P3_EnglishLanguage": ["StudentID", "RecordType", "TestName", "DateTaken", "ScoreAchieved", "RequiredScore", "TestStatus", "TestEvidence", "ActivityDate", "ActivityName", "ActivityOrganizer", "ActivityDescription", "ActivityEvidence", "EnglishReflection", "VerificationComments", "VerificationName", "VerificationDate", "LastUpdated"],
       "P4_Coursework": ["StudentID", "RecordType", "CourseCode", "CourseTitle", "Semester", "Credits", "Grade", "WorkshopDate", "WorkshopTitle", "WorkshopOrganizer", "WorkshopRole", "WorkshopKeyLearning", "LastUpdated"],
       "P5_Dissertation": ["StudentID", "RecordType", "InfoTitle", "InfoBackground", "InfoProblem", "InfoObjectives", "InfoHypotheses", "InfoConceptualFramework", "InfoMethodology", "ProgressActivity", "ProgressDate", "ProgressDetails", "ProgressEvidence", "MeetingDate", "MeetingPersons", "MeetingIssues", "MeetingActionPoints", "LastUpdated"],
       "P6_ResearchExperience": ["StudentID", "RecordType", "EthicsDateApplied", "EthicsDateApproved", "EthicsApprovalNumber", "EthicsAmendments", "EthicsConfidentiality", "ExperienceDate", "ExperienceActivity", "ExperienceDescription", "ExperienceHours", "ExperienceSupervisor", "ExperienceEvidence", "ResearchReflection", "LastUpdated"],
@@ -1102,7 +1111,7 @@ function setupDatabase() {
     "Notifications": ["NotificationID", "SenderID", "SenderName", "ReceiverID", "Title", "MessageText", "Timestamp", "IsRead"],
     "P1_StudentProfile": ["StudentID", "RecordType", "Degree", "Field", "Institution", "Year", "Period", "Role", "Remarks", "LastUpdated"],
     "P2_Milestones": ["StudentID", "MilestoneKey", "MilestoneLabel", "PlannedDate", "ActualDate", "Remarks", "Status", "LastUpdated"],
-    "P3_EnglishLanguage": ["StudentID", "RecordType", "TestName", "DateTaken", "ScoreAchieved", "RequiredScore", "TestStatus", "TestEvidence", "ActivityDate", "ActivityName", "ActivityOrganizer", "ActivityDescription", "ActivityEvidence", "EnglishReflection", "LastUpdated"],
+    "P3_EnglishLanguage": ["StudentID", "RecordType", "TestName", "DateTaken", "ScoreAchieved", "RequiredScore", "TestStatus", "TestEvidence", "ActivityDate", "ActivityName", "ActivityOrganizer", "ActivityDescription", "ActivityEvidence", "EnglishReflection", "VerificationComments", "VerificationName", "VerificationDate", "LastUpdated"],
     "P4_Coursework": ["StudentID", "RecordType", "CourseCode", "CourseTitle", "Semester", "Credits", "Grade", "WorkshopDate", "WorkshopTitle", "WorkshopOrganizer", "WorkshopRole", "WorkshopKeyLearning", "LastUpdated"],
     "P5_Dissertation": ["StudentID", "RecordType", "InfoTitle", "InfoBackground", "InfoProblem", "InfoObjectives", "InfoHypotheses", "InfoConceptualFramework", "InfoMethodology", "ProgressActivity", "ProgressDate", "ProgressDetails", "ProgressEvidence", "MeetingDate", "MeetingPersons", "MeetingIssues", "MeetingActionPoints", "LastUpdated"],
     "P6_ResearchExperience": ["StudentID", "RecordType", "EthicsDateApplied", "EthicsDateApproved", "EthicsApprovalNumber", "EthicsAmendments", "EthicsConfidentiality", "ExperienceDate", "ExperienceActivity", "ExperienceDescription", "ExperienceHours", "ExperienceSupervisor", "ExperienceEvidence", "ResearchReflection", "LastUpdated"],
@@ -1360,6 +1369,12 @@ function loadPortfolioFromSheets(studentId) {
               description: r.ActivityDescription || "",
               evidence: r.ActivityEvidence || ""
             });
+          } else if (r.RecordType === "VERIFICATION") {
+            portfolio.englishVerification = {
+              comments: r.VerificationComments || "",
+              name: r.VerificationName || "",
+              signatureDate: formatDate(r.VerificationDate)
+            };
           }
         }
       }
@@ -1760,16 +1775,21 @@ function savePortfolioToSheets(studentId, portfolio) {
   if (s3) {
     deleteRow(s3, "StudentID", studentId);
     var et = portfolio.englishTest || {};
-    appendObjectAsRow(s3, ["StudentID", "RecordType", "TestName", "DateTaken", "ScoreAchieved", "RequiredScore", "TestStatus", "TestEvidence", "ActivityDate", "ActivityName", "ActivityOrganizer", "ActivityDescription", "ActivityEvidence", "EnglishReflection", "LastUpdated"], {
+    var sheet3Headers = ["StudentID", "RecordType", "TestName", "DateTaken", "ScoreAchieved", "RequiredScore", "TestStatus", "TestEvidence", "ActivityDate", "ActivityName", "ActivityOrganizer", "ActivityDescription", "ActivityEvidence", "EnglishReflection", "VerificationComments", "VerificationName", "VerificationDate", "LastUpdated"];
+    appendObjectAsRow(s3, sheet3Headers, {
       StudentID: studentId, RecordType: "TEST", TestName: et.testName, DateTaken: formatDate(et.dateTaken), ScoreAchieved: et.scoreAchieved, RequiredScore: et.requiredScore, TestStatus: et.status, TestEvidence: et.evidence, EnglishReflection: portfolio.englishReflection || "", LastUpdated: nowStr
     });
     var acts = portfolio.englishActivities || [];
     for (var i = 0; i < acts.length; i++) {
       var act = acts[i];
-      appendObjectAsRow(s3, ["StudentID", "RecordType", "TestName", "DateTaken", "ScoreAchieved", "RequiredScore", "TestStatus", "TestEvidence", "ActivityDate", "ActivityName", "ActivityOrganizer", "ActivityDescription", "ActivityEvidence", "EnglishReflection", "LastUpdated"], {
+      appendObjectAsRow(s3, sheet3Headers, {
         StudentID: studentId, RecordType: "ACTIVITY", ActivityDate: formatDate(act.date), ActivityName: act.activity, ActivityOrganizer: act.organizer, ActivityDescription: act.description, ActivityEvidence: act.evidence, LastUpdated: nowStr
       });
     }
+    var ev = portfolio.englishVerification || {};
+    appendObjectAsRow(s3, sheet3Headers, {
+      StudentID: studentId, RecordType: "VERIFICATION", VerificationComments: ev.comments || "", VerificationName: ev.name || "", VerificationDate: formatDate(ev.signatureDate), LastUpdated: nowStr
+    });
   }
 
   // 4. Coursework

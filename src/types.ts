@@ -102,6 +102,11 @@ export interface StudentPortfolioData {
   futureCareer: { shortTerm: string; longTerm: string; preparation: string };
   advisorComments: string;
   endorsements: { role: string; name: string; signatureDate: string }[];
+  englishVerification?: {
+    comments: string;
+    name: string;
+    signatureDate: string;
+  };
   supportingFiles?: { name: string; url: string }[];
 }
 

@@ -414,20 +414,36 @@ export default function PrintReport({
           {/* 3.1 Test Score */}
           <div className="space-y-3">
             <h3 className="text-sm font-bold text-tu-red">3.1 Record of English Language Test</h3>
-            <div className="grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100 text-xs">
-              <div>
-                <span className="text-gray-400 block font-medium">Test Name</span>
-                <span className="font-bold text-gray-800">{portfolioData.englishTest.testName}</span>
-              </div>
-              <div>
-                <span className="text-gray-400 block font-medium">Score Achieved</span>
-                <span className="font-bold text-emerald-600 font-mono text-sm">{portfolioData.englishTest.scoreAchieved}</span>
-              </div>
-              <div>
-                <span className="text-gray-400 block font-medium">Required Score</span>
-                <span className="font-mono text-gray-800">{portfolioData.englishTest.requiredScore}</span>
-              </div>
-            </div>
+            <table className="w-full text-left text-xs border border-gray-200">
+              <thead>
+                <tr className="bg-gray-50 font-bold border-b border-gray-200">
+                  <th className="p-2.5">Test Name</th>
+                  <th className="p-2.5">Date Taken</th>
+                  <th className="p-2.5">Score Achieved</th>
+                  <th className="p-2.5">Required Score</th>
+                  <th className="p-2.5">Status</th>
+                  <th className="p-2.5">Evidence</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="p-2.5 font-bold text-gray-800">{portfolioData.englishTest.testName || "-"}</td>
+                  <td className="p-2.5 font-mono text-gray-700">{portfolioData.englishTest.dateTaken || "-"}</td>
+                  <td className="p-2.5 font-bold text-emerald-600 font-mono">{portfolioData.englishTest.scoreAchieved || "-"}</td>
+                  <td className="p-2.5 font-mono text-gray-700">{portfolioData.englishTest.requiredScore || "-"}</td>
+                  <td className="p-2.5">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      portfolioData.englishTest.status === 'Pass' || portfolioData.englishTest.status === 'Completed'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : 'bg-amber-50 text-amber-700 border border-amber-200'
+                    }`}>
+                      {portfolioData.englishTest.status || "Not Started"}
+                    </span>
+                  </td>
+                  <td className="p-2.5 italic text-gray-500 font-mono">{portfolioData.englishTest.evidence || "-"}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
           {/* 3.2 English activities */}
@@ -461,6 +477,29 @@ export default function PrintReport({
             <p className="p-4 bg-gray-50/50 rounded-xl text-xs leading-relaxed italic text-gray-700">
               "{portfolioData.englishReflection}"
             </p>
+          </div>
+
+          {/* 3.4 Verification */}
+          <div className="space-y-3 pt-4 border-t border-gray-100">
+            <h3 className="text-sm font-bold text-tu-red">3.4 Verification</h3>
+            <div className="p-4 bg-gray-50/50 rounded-xl border border-gray-200 space-y-4">
+              <div>
+                <span className="text-[10px] font-bold text-gray-400 block uppercase tracking-wider mb-1">Advisor / Program Coordinator Comments</span>
+                <p className="text-xs leading-relaxed text-gray-700 bg-white p-3 rounded border border-gray-100 min-h-[50px] italic">
+                  {portfolioData.englishVerification?.comments ? `"${portfolioData.englishVerification.comments}"` : "(No comments provided yet)"}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div>
+                  <span className="text-[10px] font-bold text-gray-400 block uppercase tracking-wider mb-0.5">Name</span>
+                  <span className="font-semibold text-gray-800 bg-white px-2.5 py-1.5 rounded border border-gray-100 block">{portfolioData.englishVerification?.name || "-"}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-gray-400 block uppercase tracking-wider mb-0.5">Signature and Date</span>
+                  <span className="font-mono text-gray-800 bg-white px-2.5 py-1.5 rounded border border-gray-100 block">{portfolioData.englishVerification?.signatureDate || "-"}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

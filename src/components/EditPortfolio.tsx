@@ -708,7 +708,7 @@ export default function EditPortfolio({
               </div>
             </div>
 
-            <h3 className="text-sm font-bold text-gray-700">3.1 Standardized English Test Record</h3>
+            <h3 className="text-sm font-bold text-gray-700">3.1 Record of English Language Test</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
               <div>
                 <label className="text-xs font-semibold text-gray-500 block mb-1">Test Examination Name</label>
@@ -751,11 +751,55 @@ export default function EditPortfolio({
                   className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-mono"
                 />
               </div>
+
+              <div>
+                <label className="text-xs font-semibold text-gray-500 block mb-1">Date Taken</label>
+                <DatePickerField
+                  value={formData.englishTest.dateTaken || ''}
+                  onChange={val => setFormData({
+                    ...formData,
+                    englishTest: { ...formData.englishTest, dateTaken: val }
+                  })}
+                  className="!py-1.5"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-gray-500 block mb-1">Status</label>
+                <select
+                  value={formData.englishTest.status || 'Not Started'}
+                  onChange={e => setFormData({
+                    ...formData,
+                    englishTest: { ...formData.englishTest, status: e.target.value }
+                  })}
+                  className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                >
+                  <option value="Not Started">Not Started</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Pass">Pass</option>
+                  <option value="Fail">Fail</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-gray-500 block mb-1">Evidence / Certificate Link</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Certificate ID / Drive URL"
+                  value={formData.englishTest.evidence || ''}
+                  onChange={e => setFormData({
+                    ...formData,
+                    englishTest: { ...formData.englishTest, evidence: e.target.value }
+                  })}
+                  className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                />
+              </div>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between border-t border-gray-100 pt-5">
-                <h3 className="text-sm font-bold text-gray-700">3.2 English Competence Development Activities</h3>
+                <h3 className="text-sm font-bold text-gray-700">3.2 English Development Activities</h3>
                 <button
                   onClick={addEnglishActivity}
                   className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 hover:bg-red-50 hover:text-tu-red text-gray-600 rounded-lg text-xs font-semibold transition cursor-pointer"
@@ -836,7 +880,7 @@ export default function EditPortfolio({
             </div>
 
             <div className="space-y-2 border-t border-gray-100 pt-5">
-              <label className="text-xs font-bold text-gray-700 block">3.3 Reflective Analysis on English Competency</label>
+              <label className="text-xs font-bold text-gray-700 block">3.3 Reflection on English Development</label>
               <textarea
                 rows={3}
                 placeholder="Discuss how your English enhancement activities positively supported your scholarly writing and dissertation work..."
@@ -844,6 +888,60 @@ export default function EditPortfolio({
                 onChange={e => setFormData({ ...formData, englishReflection: e.target.value })}
                 className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs"
               />
+            </div>
+
+            <div className="space-y-4 border-t border-gray-100 pt-5">
+              <h3 className="text-sm font-bold text-gray-700">3.4 Verification</h3>
+              <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 space-y-3">
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 block mb-1">Advisor / Program Coordinator Comments</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Provide evaluation or comments on candidate's English proficiency progress..."
+                    value={formData.englishVerification?.comments || ''}
+                    onChange={e => setFormData({
+                      ...formData,
+                      englishVerification: {
+                        ...(formData.englishVerification || { comments: '', name: '', signatureDate: '' }),
+                        comments: e.target.value
+                      }
+                    })}
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs"
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Assistant Professor Dr. Wongchan Petpichetchian"
+                      value={formData.englishVerification?.name || ''}
+                      onChange={e => setFormData({
+                        ...formData,
+                        englishVerification: {
+                          ...(formData.englishVerification || { comments: '', name: '', signatureDate: '' }),
+                          name: e.target.value
+                        }
+                      })}
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">Signature and Date</label>
+                    <DatePickerField
+                      value={formData.englishVerification?.signatureDate || ''}
+                      onChange={val => setFormData({
+                        ...formData,
+                        englishVerification: {
+                          ...(formData.englishVerification || { comments: '', name: '', signatureDate: '' }),
+                          signatureDate: val
+                        }
+                      })}
+                      className="!py-1.5"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

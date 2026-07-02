@@ -594,6 +594,25 @@ export async function saveCertificate(cert: Certificate): Promise<void> {
   }
 }
 
+export async function deleteCertificate(certId: string): Promise<void> {
+  initializeDatabase();
+  const certs: Certificate[] = JSON.parse(localStorage.getItem(KEYS.CERTIFICATES) || '[]');
+  const updated = certs.filter(c => c.CertID !== certId);
+  localStorage.setItem(KEYS.CERTIFICATES, JSON.stringify(updated));
+
+  const scriptUrl = getAppsScriptUrl();
+  if (scriptUrl) {
+    try {
+      await fetch(scriptUrl, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'deleteCertificate', certId })
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+}
+
 export async function getActivities(): Promise<Activity[]> {
   initializeDatabase();
   const scriptUrl = getAppsScriptUrl();
@@ -634,6 +653,25 @@ export async function saveActivity(act: Activity): Promise<void> {
       await fetch(scriptUrl, {
         method: 'POST',
         body: JSON.stringify({ action: 'saveActivity', activity: act })
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+}
+
+export async function deleteActivity(activityId: string): Promise<void> {
+  initializeDatabase();
+  const acts: Activity[] = JSON.parse(localStorage.getItem(KEYS.ACTIVITIES) || '[]');
+  const updated = acts.filter(a => a.ActivityID !== activityId);
+  localStorage.setItem(KEYS.ACTIVITIES, JSON.stringify(updated));
+
+  const scriptUrl = getAppsScriptUrl();
+  if (scriptUrl) {
+    try {
+      await fetch(scriptUrl, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'deleteActivity', activityId })
       });
     } catch (e) {
       console.error(e);

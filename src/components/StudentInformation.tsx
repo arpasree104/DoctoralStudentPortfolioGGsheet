@@ -19,6 +19,8 @@ interface StudentInformationProps {
   onUpdateProfile: (updatedProfile: User) => Promise<void>;
   onAddCertificate: (cert: Certificate) => Promise<void>;
   onAddActivity: (act: Activity) => Promise<void>;
+  onDeleteCertificate?: (certId: string) => Promise<void>;
+  onDeleteActivity?: (actId: string) => Promise<void>;
 }
 
 // Helper to compress image down to max 800px width/height and JPEG format with 0.75 quality for space saving
@@ -84,7 +86,9 @@ export default function StudentInformation({
   configOptions,
   onUpdateProfile,
   onAddCertificate,
-  onAddActivity
+  onAddActivity,
+  onDeleteCertificate,
+  onDeleteActivity
 }: StudentInformationProps) {
   const [activeSubTab, setActiveSubTab] = useState<'demographics' | 'certificates' | 'activities'>('demographics');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -895,6 +899,20 @@ export default function StudentInformation({
                                   <p className="italic leading-normal text-[11px]">"{cert.Feedback}"</p>
                                 </div>
                               )}
+                              
+                              {cert.Status === 'REJECTED' && onDeleteCertificate && (
+                                <button
+                                  onClick={() => {
+                                    if (confirm('Are you sure you want to delete this rejected certificate?')) {
+                                      onDeleteCertificate(cert.CertID);
+                                    }
+                                  }}
+                                  className="mt-3 w-full py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5"
+                                >
+                                  <Trash2 size={14} />
+                                  Delete Certificate
+                                </button>
+                              )}
                             </div>
                           </>
                         );
@@ -1085,7 +1103,7 @@ export default function StudentInformation({
 
                                 <div className="flex items-center gap-1 text-xs text-gray-400 font-medium">
                                   <Calendar size={12} />
-                                  <span>Activity Date: {act.Date}</span>
+                                  <span>Activity Date: {formatDisplayDate(act.Date)}</span>
                                 </div>
 
                                 <p className="text-sm text-gray-600 leading-relaxed pt-1">{act.Description}</p>
@@ -1121,6 +1139,20 @@ export default function StudentInformation({
                                   </span>
                                   <p className="italic leading-normal">"{act.Feedback}"</p>
                                 </div>
+                              )}
+                              
+                              {act.Status === 'REJECTED' && onDeleteActivity && (
+                                <button
+                                  onClick={() => {
+                                    if (confirm('Are you sure you want to delete this rejected activity?')) {
+                                      onDeleteActivity(act.ActivityID);
+                                    }
+                                  }}
+                                  className="mt-3 w-auto self-start px-4 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5"
+                                >
+                                  <Trash2 size={13} />
+                                  Delete Activity
+                                </button>
                               )}
                             </div>
                           </>

@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { User, StudentPortfolioData, Certificate, Activity } from '../types';
+import { formatDisplayDate } from '../lib/googleSheets';
 import { FileText, Printer, ChevronLeft, MapPin, Sparkles, Star } from 'lucide-react';
 
 interface PrintReportProps {
@@ -609,7 +610,7 @@ export default function PrintReport({
                       )}
                       <div>
                         <h4 className="font-semibold text-gray-800 line-clamp-1">{cert.Name}</h4>
-                        <p className="text-[10px] text-gray-400 mt-0.5">Category: {cert.Category} | Date: {cert.Date}</p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">Category: {cert.Category} | Date: {formatDisplayDate(cert.Date)}</p>
                         <span className={`text-[9px] font-mono font-bold ${
                           cert.Status === 'APPROVED' ? 'text-emerald-600' :
                           cert.Status === 'PENDING' ? 'text-amber-500' : 'text-red-500'

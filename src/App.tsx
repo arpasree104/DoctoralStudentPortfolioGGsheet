@@ -17,7 +17,7 @@ import { User, UserRole, Certificate, Activity, ConfigOption, StudentPortfolioDa
 // Import Database Helper Services
 import {
   initializeDatabase, getUsers, saveUser, deleteUser, getCertificates,
-  saveCertificate, getActivities, saveActivity, getConfigOptions,
+  saveCertificate, deleteCertificate, getActivities, saveActivity, deleteActivity, getConfigOptions,
   saveConfigOption, deleteConfigOption, getStudentPortfolio, saveStudentPortfolio,
   getAppsScriptUrl, setAppsScriptUrl, logActivity, resolvePhotoUrl
 } from './lib/googleSheets';
@@ -284,6 +284,21 @@ export default function App() {
     }
   };
 
+  // Delete Certificate
+  const handleDeleteCertificate = async (certId: string) => {
+    setSaveStatus('saving');
+    try {
+      await deleteCertificate(certId);
+      setCertificates(prev => prev.filter(c => c.CertID !== certId));
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (e) {
+      console.error(e);
+      setSaveStatus('failed');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    }
+  };
+
   // Verify Certificate
   const handleVerifyCertificate = async (certId: string, status: 'APPROVED' | 'REJECTED', feedback: string) => {
     const cert = certificates.find(c => c.CertID === certId);
@@ -321,6 +336,21 @@ export default function App() {
         }
         return [act, ...prev];
       });
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (e) {
+      console.error(e);
+      setSaveStatus('failed');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    }
+  };
+
+  // Delete Activity
+  const handleDeleteActivity = async (actId: string) => {
+    setSaveStatus('saving');
+    try {
+      await deleteActivity(actId);
+      setActivities(prev => prev.filter(a => a.ActivityID !== actId));
       setSaveStatus('success');
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (e) {
@@ -1130,6 +1160,8 @@ export default function App() {
                   onUpdateProfile={handleUpdateProfile}
                   onAddCertificate={handleAddCertificate}
                   onAddActivity={handleAddActivity}
+                  onDeleteCertificate={handleDeleteCertificate}
+                  onDeleteActivity={handleDeleteActivity}
                 />
               </motion.div>
             )}

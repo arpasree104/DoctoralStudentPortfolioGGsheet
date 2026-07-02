@@ -8,7 +8,7 @@ import { StudentPortfolioData, User, ConfigOption, Certificate } from '../types'
 import { motion } from 'motion/react';
 import FileUploader from './FileUploader';
 import DatePickerField from './DatePickerField';
-import { resolveFileUrl } from '../lib/googleSheets';
+import { resolveFileUrl, formatDisplayDate } from '../lib/googleSheets';
 import {
   BookOpen, Award, CheckCircle, Clock, Save, Plus, Trash2, Calendar,
   ChevronRight, Compass, HelpCircle, Star, Heart, FileText, Check, AlertCircle, Sparkles, Info, Paperclip
@@ -1431,7 +1431,7 @@ export default function EditPortfolio({
                           <div className="space-y-1 min-w-0">
                             <h4 className="font-bold text-xs text-gray-800 line-clamp-2">{cert.Name}</h4>
                             <div className="flex flex-wrap items-center gap-2 text-[10px]">
-                              <span className="text-gray-400 font-mono">{cert.Date}</span>
+                              <span className="text-gray-400 font-mono">{formatDisplayDate(cert.Date)}</span>
                               <span className="text-gray-300">•</span>
                               <span className="text-tu-red italic truncate max-w-[150px]">{cert.Category}</span>
                             </div>

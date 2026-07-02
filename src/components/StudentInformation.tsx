@@ -32,6 +32,7 @@ export default function StudentInformation({
   const [activeSubTab, setActiveSubTab] = useState<'demographics' | 'certificates' | 'activities'>('demographics');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   
   // Forms state
   const [profileForm, setProfileForm] = useState<User>({ ...currentUser });
@@ -74,6 +75,7 @@ export default function StudentInformation({
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     setIsUploading(true);
+    setUploadError(null);
     const file = e.target.files[0];
 
     try {
@@ -100,10 +102,21 @@ export default function StudentInformation({
         );
         if (result.success && result.fileUrl) {
           setProfileForm(prev => ({ ...prev, PhotoURL: result.fileUrl }));
+          if (result.fileUrl.startsWith('LOCAL_FILE_')) {
+            setUploadError(
+              '⚠️ อัปโหลดลง Google Drive ล้มเหลว (รูปถูกบันทึกไว้เฉพาะในบราวเซอร์นี้ชั่วคราว) ' +
+              'กรุณาตรวจสอบว่าท่านได้อัปเดตและกดยืนยันสิทธิ์ (Authorize) ใน Google Apps Script เรียบร้อยแล้ว (ดูวิธีด้านล่างที่แถบช่วยเหลือ)'
+            );
+          }
+        } else {
+          setUploadError('⚠️ การอัปโหลดไฟล์ขัดข้อง กรุณาตรวจสอบการเชื่อมต่อ Apps Script');
         }
+      } else {
+        setUploadError('⚠️ ไม่พบ Apps Script URL รูปภาพจะถูกเก็บเฉพาะในอุปกรณ์นี้เท่านั้น');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed uploading profile image:', err);
+      setUploadError(`⚠️ เกิดข้อผิดพลาดในการอัปโหลด: ${err.message || err}`);
     } finally {
       setIsUploading(false);
     }
@@ -232,6 +245,16 @@ export default function StudentInformation({
                   </label>
                 )}
               </div>
+
+              {uploadError && (
+                <div className="w-full text-left bg-amber-50 border border-amber-200 text-amber-800 p-3.5 rounded-xl flex items-start gap-1.5 text-[10px] leading-relaxed">
+                  <AlertCircle size={14} className="shrink-0 text-amber-600 mt-0.5" />
+                  <div>
+                    <span className="font-bold text-amber-900 block mb-0.5">แจ้งเตือนอัปโหลดลง Google Drive</span>
+                    {uploadError}
+                  </div>
+                </div>
+              )}
 
               <div>
                 <h3 className="font-bold text-lg text-gray-900">{currentUser.FullName}</h3>

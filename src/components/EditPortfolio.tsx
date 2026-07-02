@@ -10,7 +10,7 @@ import FileUploader from './FileUploader';
 import DatePickerField from './DatePickerField';
 import {
   BookOpen, Award, CheckCircle, Clock, Save, Plus, Trash2, Calendar,
-  ChevronRight, Compass, HelpCircle, Star, Heart, FileText, Check, AlertCircle, Sparkles
+  ChevronRight, Compass, HelpCircle, Star, Heart, FileText, Check, AlertCircle, Sparkles, Info
 } from 'lucide-react';
 
 interface EditPortfolioProps {
@@ -701,6 +701,13 @@ export default function EditPortfolio({
         {/* ------------------------------------------------------------- */}
         {activeSection === 3 && (
           <div className="space-y-6 text-xs text-gray-700">
+            <div className="flex items-start gap-3 p-4 bg-sky-50 border border-sky-100 rounded-xl text-sky-800">
+              <Info size={16} className="text-sky-600 mt-0.5 shrink-0" />
+              <div className="text-xs leading-normal font-medium">
+                All PhD students are required to meet the English language proficiency requirement of the program and provide evidence of an approved test score or equivalent requirement specified by the program.
+              </div>
+            </div>
+
             <h3 className="text-sm font-bold text-gray-700">3.1 Standardized English Test Record</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
               <div>

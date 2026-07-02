@@ -407,6 +407,10 @@ export default function PrintReport({
           <span className="text-[10px] uppercase font-bold tracking-wider text-tu-red font-mono">Section 3</span>
           <h2 className="text-xl font-bold text-gray-900 border-b border-gray-100 pb-2">English Language Proficiency Requirement</h2>
 
+          <p className="text-xs text-gray-600 leading-relaxed font-medium bg-gray-50/50 p-3 rounded-lg border border-gray-100">
+            All PhD students are required to meet the English language proficiency requirement of the program and provide evidence of an approved test score or equivalent requirement specified by the program.
+          </p>
+
           {/* 3.1 Test Score */}
           <div className="space-y-3">
             <h3 className="text-sm font-bold text-tu-red">3.1 Record of English Language Test</h3>

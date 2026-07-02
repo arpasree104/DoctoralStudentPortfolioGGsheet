@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { User, ChatMessage, Notification } from '../types';
-import { getChats, saveChat, getNotifications, saveNotification, logActivity } from '../lib/googleSheets';
+import { getChats, saveChat, getNotifications, saveNotification, logActivity, resolvePhotoUrl } from '../lib/googleSheets';
 import { MessageSquare, Bell, Send, UserCheck, RefreshCw, Clock, AlertTriangle, AlertCircle, CheckCircle, ShieldAlert } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -296,7 +296,7 @@ export default function AdvisoryChat({
               >
                 <div className="relative shrink-0">
                   <img
-                    src={contact.PhotoURL || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80'}
+                    src={resolvePhotoUrl(contact.PhotoURL, 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80')}
                     alt={contact.FullName}
                     className="w-9 h-9 rounded-full object-cover border border-gray-100"
                   />
@@ -339,7 +339,7 @@ export default function AdvisoryChat({
             <div className="p-4 border-b border-gray-100 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <img
-                  src={activeContact.PhotoURL || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80'}
+                  src={resolvePhotoUrl(activeContact.PhotoURL, 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80')}
                   alt={activeContact.FullName}
                   className="w-10 h-10 rounded-xl object-cover border border-gray-100 shrink-0"
                 />

@@ -19,7 +19,7 @@ import {
   initializeDatabase, getUsers, saveUser, deleteUser, getCertificates,
   saveCertificate, getActivities, saveActivity, getConfigOptions,
   saveConfigOption, deleteConfigOption, getStudentPortfolio, saveStudentPortfolio,
-  getAppsScriptUrl, setAppsScriptUrl, logActivity
+  getAppsScriptUrl, setAppsScriptUrl, logActivity, resolvePhotoUrl
 } from './lib/googleSheets';
 
 // Import Modular Components
@@ -841,7 +841,7 @@ export default function App() {
             {/* Logged in User Card */}
             <div className="flex items-center gap-2.5 pl-3 border-l border-gray-100">
               <img
-                src={currentUser.PhotoURL || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80'}
+                src={resolvePhotoUrl(currentUser.PhotoURL, 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80')}
                 alt={currentUser.FullName}
                 className="w-8 h-8 rounded-full object-cover ring-2 ring-red-50"
               />

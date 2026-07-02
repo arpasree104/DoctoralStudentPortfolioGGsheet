@@ -48,6 +48,8 @@ export default function AdminPanel({
   // Config Manager State
   const [newConfigType, setNewConfigType] = useState<OptionType>('ADVISOR');
   const [newConfigValue, setNewConfigValue] = useState('');
+  const [courseCode, setCourseCode] = useState('');
+  const [courseTitle, setCourseTitle] = useState('');
 
   // Fetch log history on mount or tab change
   useEffect(() => {
@@ -94,16 +96,24 @@ export default function AdminPanel({
 
   const handleAddConfigSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newConfigValue.trim()) return;
+    let valToSave = newConfigValue.trim();
+    if (newConfigType === 'COURSE') {
+      if (!courseCode.trim() || !courseTitle.trim()) return;
+      valToSave = `${courseCode.trim()}: ${courseTitle.trim()}`;
+    } else {
+      if (!valToSave) return;
+    }
 
     const newOpt: ConfigOption = {
       id: `cfg-${Date.now()}`,
       OptionType: newConfigType,
-      OptionValue: newConfigValue.trim()
+      OptionValue: valToSave
     };
 
     await onAddConfigOption(newOpt);
     setNewConfigValue('');
+    setCourseCode('');
+    setCourseTitle('');
   };
 
   return (
@@ -519,27 +529,58 @@ export default function AdminPanel({
                   <label className="font-semibold text-gray-500 block mb-1">Option Parameter Type</label>
                   <select
                     value={newConfigType}
-                    onChange={e => setNewConfigType(e.target.value as OptionType)}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
+                    onChange={e => {
+                      const val = e.target.value as OptionType;
+                      setNewConfigType(val);
+                    }}
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl font-bold"
                   >
                     <option value="ADVISOR">Major Advisor (ADVISOR)</option>
                     <option value="CO_ADVISOR">Co-Advisor (CO_ADVISOR)</option>
                     <option value="CERT_CATEGORY">Certificate Category (CERT_CATEGORY)</option>
                     <option value="DEGREE">Degree Major Program (DEGREE)</option>
+                    <option value="COURSE">Standard Courses (COURSE)</option>
                   </select>
                 </div>
 
-                <div>
-                  <label className="font-semibold text-gray-500 block mb-1">Option Value Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g., Assoc. Prof. Dr. Helen Carter"
-                    value={newConfigValue}
-                    onChange={e => setNewConfigValue(e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
-                  />
-                </div>
+                {newConfigType === 'COURSE' ? (
+                  <>
+                    <div>
+                      <label className="font-semibold text-gray-500 block mb-1">Course Code</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g., NS802"
+                        value={courseCode}
+                        onChange={e => setCourseCode(e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl font-mono font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-semibold text-gray-500 block mb-1">Course Title</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g., Advanced Gerontology"
+                        value={courseTitle}
+                        onChange={e => setCourseTitle(e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <label className="font-semibold text-gray-500 block mb-1">Option Value Name</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g., Assoc. Prof. Dr. Helen Carter"
+                      value={newConfigValue}
+                      onChange={e => setNewConfigValue(e.target.value)}
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
+                    />
+                  </div>
+                )}
 
                 <button
                   type="submit"
@@ -555,7 +596,7 @@ export default function AdminPanel({
               <h3 className="text-sm font-bold text-gray-800">Current System Dropdown Parameters</h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {['ADVISOR', 'CO_ADVISOR', 'CERT_CATEGORY', 'DEGREE'].map((type) => (
+                {['ADVISOR', 'CO_ADVISOR', 'CERT_CATEGORY', 'DEGREE', 'COURSE'].map((type) => (
                   <div key={type} className="border border-gray-100 p-3.5 rounded-xl bg-gray-50/50 space-y-2 max-h-60 overflow-y-auto">
                     <span className="text-[10px] font-mono font-bold text-tu-red tracking-wider uppercase block border-b border-gray-100 pb-1">
                       {type}

@@ -1101,7 +1101,7 @@ export default function App() {
                     academicBackground: [], professionalBackground: [], milestones: [],
                     englishTest: { testName: '', dateTaken: '', scoreAchieved: '', requiredScore: '', status: '', evidence: '' },
                     englishActivities: [], englishReflection: '', completedCourses: [], keyLearnings: [], workshops: [],
-                    dissertationInfo: { title: '', background: '', problem: '', objectives: '', hypotheses: '', conceptualFramework: '', methodology: '' },
+                    dissertationInfo: { title: '', background: '', problem: '', objectives: '', hypotheses: '', conceptualFramework: '', methodology: '', researchTopic: '' },
                     dissertationProgress: [], advisorMeetings: [], ethicsGovernance: { dateApplied: '', dateApproved: '', approvalNumber: '', amendments: '', confidentiality: '' },
                     researchExperience: [], researchReflection: '', conferencePresentations: [], publications: [], manuscripts: [], grants: [], awards: [],
                     teachingExperiences: [], supervisions: [], academicServices: [], leaderships: [], competencySelfAssessment: [],
@@ -1146,6 +1146,8 @@ export default function App() {
                   currentUser={currentUser}
                   portfolioData={studentPortfolio}
                   onSavePortfolio={handleSavePortfolio}
+                  configOptions={configOptions}
+                  certificates={certificates}
                 />
               </motion.div>
             )}

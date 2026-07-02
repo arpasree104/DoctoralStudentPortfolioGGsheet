@@ -510,6 +510,7 @@ export default function PrintReport({
           <span className="text-[10px] uppercase font-bold tracking-wider text-tu-red font-mono">Section 4</span>
           <h2 className="text-xl font-bold text-gray-900 border-b border-gray-100 pb-2">Coursework and Academic Development</h2>
 
+          {/* 4.1 Courses Completed */}
           <div className="space-y-4">
             <h3 className="text-sm font-bold text-tu-red">4.1 Courses Completed</h3>
             <table className="w-full text-left text-xs border border-gray-200">
@@ -527,28 +528,100 @@ export default function PrintReport({
                     <td className="p-2.5 font-mono font-bold text-tu-red">{course.code}</td>
                     <td className="p-2.5 font-medium">{course.title}</td>
                     <td className="p-2.5 text-center font-mono">{course.semester}</td>
-                    <td className="p-2.5 text-center font-bold text-emerald-600">{course.credits}</td>
+                    <td className="p-2.5 text-center font-bold text-emerald-600">{course.grade || course.credits}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
 
-          {/* Approved academic certificates display */}
-          <div className="space-y-3 pt-6">
+          {/* 4.2 Key Learning from Coursework */}
+          <div className="space-y-4 pt-4">
+            <h3 className="text-sm font-bold text-tu-red">4.2 Key Learning from Coursework</h3>
+            {portfolioData.keyLearnings && portfolioData.keyLearnings.length > 0 ? (
+              <table className="w-full text-left text-xs border border-gray-200">
+                <thead>
+                  <tr className="bg-gray-50 font-bold border-b border-gray-200">
+                    <th className="p-2.5 w-1/4">Course / Activity</th>
+                    <th className="p-2.5 w-3/8">Key Learning</th>
+                    <th className="p-2.5 w-3/8">Application to Research / Practice</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {portfolioData.keyLearnings.map((kl, i) => (
+                    <tr key={i} className="align-top">
+                      <td className="p-2.5 font-bold text-gray-800">{kl.course}</td>
+                      <td className="p-2.5 text-gray-600 leading-relaxed whitespace-pre-wrap">{kl.keyLearning}</td>
+                      <td className="p-2.5 text-gray-600 leading-relaxed whitespace-pre-wrap">{kl.application}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-xs text-gray-400 italic">No coursework key learning logs recorded.</p>
+            )}
+          </div>
+
+          {/* 4.3 Workshops, Training, and Short Courses */}
+          <div className="space-y-4 pt-4">
+            <h3 className="text-sm font-bold text-tu-red">4.3 Workshops, Training, and Short Courses</h3>
+            {portfolioData.workshops && portfolioData.workshops.length > 0 ? (
+              <table className="w-full text-left text-xs border border-gray-200">
+                <thead>
+                  <tr className="bg-gray-50 font-bold border-b border-gray-200">
+                    <th className="p-2.5">Date</th>
+                    <th className="p-2.5">Workshop / Course Title</th>
+                    <th className="p-2.5">Organizer</th>
+                    <th className="p-2.5">Key Learning / Role</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {portfolioData.workshops.map((ws, i) => (
+                    <tr key={i} className="align-top">
+                      <td className="p-2.5 font-mono text-gray-600">{ws.date}</td>
+                      <td className="p-2.5 font-bold text-gray-800">{ws.title}</td>
+                      <td className="p-2.5 text-gray-600">{ws.organizer}</td>
+                      <td className="p-2.5 text-gray-600">{ws.keyLearning}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-xs text-gray-400 italic">No external workshops or short courses logged.</p>
+            )}
+          </div>
+
+          {/* 4.4 Certifications & Verified Evidences */}
+          <div className="space-y-3 pt-4">
             <h3 className="text-sm font-bold text-tu-red">4.4 Certifications & Verified Evidences</h3>
-            <div className="grid grid-cols-2 gap-4">
-              {approvedCerts.map((cert) => (
-                <div key={cert.CertID} className="p-3 border border-gray-100 rounded-xl bg-gray-50 text-xs flex gap-3">
-                  <img src={cert.ImageURL} className="w-12 h-12 object-cover rounded" alt="Evidence" />
-                  <div>
-                    <h4 className="font-semibold text-gray-800 line-clamp-1">{cert.Name}</h4>
-                    <p className="text-[10px] text-gray-400 mt-0.5">Approved on: {cert.Date}</p>
-                    <span className="text-[9px] font-mono font-bold text-emerald-600">VERIFIED / APPROVED</span>
-                  </div>
+            {(() => {
+              const studentCerts = certificates.filter(c => c.StudentID === currentUser.StudentID);
+              if (studentCerts.length === 0) {
+                return <p className="text-xs text-gray-400 italic">No certificates recorded in the "Certificates" worksheet.</p>;
+              }
+
+              return (
+                <div className="grid grid-cols-2 gap-4">
+                  {studentCerts.map((cert) => (
+                    <div key={cert.CertID} className="p-3 border border-gray-100 rounded-xl bg-gray-50 text-xs flex gap-3">
+                      {cert.ImageURL && (
+                        <img src={cert.ImageURL} className="w-12 h-12 object-cover rounded bg-gray-100" alt="Evidence" />
+                      )}
+                      <div>
+                        <h4 className="font-semibold text-gray-800 line-clamp-1">{cert.Name}</h4>
+                        <p className="text-[10px] text-gray-400 mt-0.5">Category: {cert.Category} | Date: {cert.Date}</p>
+                        <span className={`text-[9px] font-mono font-bold ${
+                          cert.Status === 'APPROVED' ? 'text-emerald-600' :
+                          cert.Status === 'PENDING' ? 'text-amber-500' : 'text-red-500'
+                        }`}>
+                          STATUS: {cert.Status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              );
+            })()}
           </div>
         </div>
 
@@ -559,34 +632,151 @@ export default function PrintReport({
           <span className="text-[10px] uppercase font-bold tracking-wider text-tu-red font-mono">Section 5</span>
           <h2 className="text-xl font-bold text-gray-900 border-b border-gray-100 pb-2">Research Development and Dissertation Progress</h2>
 
-          <div className="bg-red-50/25 border border-red-100 p-5 rounded-2xl space-y-4 text-xs">
-            <div>
-              <span className="text-tu-red font-bold block uppercase mb-1">5.2 Dissertation Title</span>
-              <p className="text-gray-900 font-bold leading-normal">
-                "{portfolioData.dissertationInfo.title}"
-              </p>
+          {/* 5.1 Development of Research Topic */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-bold text-tu-red">5.1 Development of Research Topic</h3>
+            <div className="p-4 bg-gray-50/50 rounded-xl text-xs leading-relaxed text-gray-700 border border-gray-100">
+              {portfolioData.dissertationInfo.researchTopic || <span className="text-gray-400 italic">No topic development details logged yet.</span>}
+            </div>
+          </div>
+
+          {/* 5.2 Dissertation Scope & Proposal */}
+          <div className="space-y-4 pt-4">
+            <h3 className="text-sm font-bold text-tu-red">5.2 Dissertation Scope & Proposal</h3>
+            <div className="bg-red-50/25 border border-red-100 p-5 rounded-2xl space-y-4 text-xs">
+              <div>
+                <span className="text-tu-red font-bold block uppercase mb-1">Working Dissertation Title</span>
+                <p className="text-gray-900 font-bold text-sm leading-normal">
+                  "{portfolioData.dissertationInfo.title || 'Untitled Dissertation'}"
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div>
+                  <span className="text-gray-500 font-bold block mb-1">Background and Significance</span>
+                  <p className="text-gray-700 leading-relaxed text-[11px]">{portfolioData.dissertationInfo.background || '-'}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500 font-bold block mb-1">Research Problem Statement</span>
+                  <p className="text-gray-700 leading-relaxed text-[11px]">{portfolioData.dissertationInfo.problem || '-'}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div>
+                  <span className="text-gray-500 font-bold block mb-1">Research Objectives</span>
+                  <p className="text-gray-700 leading-relaxed text-[11px]">{portfolioData.dissertationInfo.objectives || '-'}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500 font-bold block mb-1">Research Questions / Hypotheses</span>
+                  <p className="text-gray-700 leading-relaxed text-[11px]">{portfolioData.dissertationInfo.hypotheses || '-'}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div>
+                  <span className="text-gray-500 font-bold block mb-1">Conceptual Framework / Theoretical Model</span>
+                  <p className="text-gray-700 leading-relaxed text-[11px]">{portfolioData.dissertationInfo.conceptualFramework || '-'}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500 font-bold block mb-1">Methodology Overview</span>
+                  <p className="text-gray-700 leading-relaxed text-[11px]">{portfolioData.dissertationInfo.methodology || '-'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 5.3 Dissertation Progress Record */}
+          <div className="space-y-4 pt-4">
+            <h3 className="text-sm font-bold text-tu-red">5.3 Dissertation Progress Record</h3>
+            {portfolioData.dissertationProgress && portfolioData.dissertationProgress.length > 0 ? (
+              <table className="w-full text-left text-xs border border-gray-200">
+                <thead>
+                  <tr className="bg-gray-50 font-bold border-b border-gray-200">
+                    <th className="p-2.5">Planned Activity / Milestone</th>
+                    <th className="p-2.5">Target Date</th>
+                    <th className="p-2.5">Progress Outcome</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {portfolioData.dissertationProgress.map((prog, i) => (
+                    <tr key={i} className="align-top">
+                      <td className="p-2.5 font-bold text-gray-800">{prog.activity}</td>
+                      <td className="p-2.5 font-mono text-gray-600">{prog.date}</td>
+                      <td className="p-2.5 text-gray-600">{prog.progress}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-xs text-gray-400 italic">No progress rows recorded.</p>
+            )}
+          </div>
+
+          {/* 5.4 Meetings with Advisor / Committee */}
+          <div className="space-y-4 pt-4">
+            <h3 className="text-sm font-bold text-tu-red">5.4 Doctoral Advisory Committee Meetings</h3>
+            {portfolioData.advisorMeetings && portfolioData.advisorMeetings.length > 0 ? (
+              <table className="w-full text-left text-xs border border-gray-200">
+                <thead>
+                  <tr className="bg-gray-50 font-bold border-b border-gray-200">
+                    <th className="p-2.5">Date</th>
+                    <th className="p-2.5">Advisors Attending</th>
+                    <th className="p-2.5">Key Issues Discussed</th>
+                    <th className="p-2.5">Action Points / Next Steps</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {portfolioData.advisorMeetings.map((meet, i) => (
+                    <tr key={i} className="align-top">
+                      <td className="p-2.5 font-mono text-gray-600">{meet.date}</td>
+                      <td className="p-2.5 font-semibold text-gray-800">{meet.persons}</td>
+                      <td className="p-2.5 text-gray-600">{meet.issues}</td>
+                      <td className="p-2.5 text-gray-600 font-medium text-tu-red">{meet.actionPoints}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-xs text-gray-400 italic">No advisory meetings recorded.</p>
+            )}
+          </div>
+
+          {/* 5.5 Ethics and Research Governance */}
+          <div className="space-y-4 pt-4">
+            <h3 className="text-sm font-bold text-tu-red">5.5 Ethics and Research Governance</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+              <div>
+                <span className="text-[10px] font-bold text-gray-400 block mb-0.5">PROTOCOL SUBMISSION DATE</span>
+                <span className="text-xs font-semibold text-gray-800">{portfolioData.ethicsGovernance?.dateApplied || 'Not Submitted'}</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-gray-400 block mb-0.5">APPROVAL DATE</span>
+                <span className="text-xs font-semibold text-gray-800">{portfolioData.ethicsGovernance?.dateApproved || 'Pending'}</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-gray-400 block mb-0.5">COA APPROVAL NUMBER</span>
+                <span className="text-xs font-mono font-bold text-tu-red">{portfolioData.ethicsGovernance?.approvalNumber || '-'}</span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-              <div>
-                <span className="text-gray-500 font-bold block mb-1">Background and Significance</span>
-                <p className="text-gray-700 leading-relaxed text-[11px]">{portfolioData.dissertationInfo.background}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-3 bg-gray-50/25 border border-gray-100 rounded-lg">
+                <span className="text-[10px] font-bold text-gray-400 block mb-1">PROTOCOL AMENDMENTS / UPDATES</span>
+                <p className="text-xs text-gray-700 leading-relaxed">{portfolioData.ethicsGovernance?.amendments || 'None'}</p>
               </div>
-              <div>
-                <span className="text-gray-500 font-bold block mb-1">Research Problem</span>
-                <p className="text-gray-700 leading-relaxed text-[11px]">{portfolioData.dissertationInfo.problem}</p>
+              <div className="p-3 bg-gray-50/25 border border-gray-100 rounded-lg">
+                <span className="text-[10px] font-bold text-gray-400 block mb-1">DATA MANAGEMENT & CONFIDENTIALITY</span>
+                <p className="text-xs text-gray-700 leading-relaxed">{portfolioData.ethicsGovernance?.confidentiality || 'None'}</p>
               </div>
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-              <div>
-                <span className="text-gray-500 font-bold block mb-1">Objectives</span>
-                <p className="text-gray-700 leading-relaxed text-[11px]">{portfolioData.dissertationInfo.objectives}</p>
-              </div>
-              <div>
-                <span className="text-gray-500 font-bold block mb-1">Methodology Overview</span>
-                <p className="text-gray-700 leading-relaxed text-[11px]">{portfolioData.dissertationInfo.methodology}</p>
-              </div>
+          {/* 5.6 Challenges Encountered and Solutions */}
+          <div className="space-y-2 pt-4">
+            <h3 className="text-sm font-bold text-tu-red">5.6 Challenges Encountered and Solutions</h3>
+            <div className="p-4 bg-gray-50/50 rounded-xl text-xs leading-relaxed text-gray-700 border border-gray-100 italic">
+              "{portfolioData.researchReflection || 'No reflection logged.'}"
             </div>
           </div>
         </div>

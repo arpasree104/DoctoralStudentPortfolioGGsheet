@@ -52,7 +52,7 @@ export interface Activity {
   Feedback?: string;
 }
 
-export type OptionType = 'ADVISOR' | 'CO_ADVISOR' | 'CERT_CATEGORY' | 'DEGREE';
+export type OptionType = 'ADVISOR' | 'CO_ADVISOR' | 'CERT_CATEGORY' | 'DEGREE' | 'COURSE';
 
 export interface ConfigOption {
   id: string;
@@ -82,7 +82,7 @@ export interface StudentPortfolioData {
   completedCourses: { code: string; title: string; semester: string; credits: string; grade: string }[];
   keyLearnings: { course: string; keyLearning: string; application: string }[];
   workshops: { date: string; title: string; organizer: string; role: string; keyLearning: string }[];
-  dissertationInfo: { title: string; background: string; problem: string; objectives: string; hypotheses: string; conceptualFramework: string; methodology: string };
+  dissertationInfo: { title: string; background: string; problem: string; objectives: string; hypotheses: string; conceptualFramework: string; methodology: string; researchTopic?: string };
   dissertationProgress: { activity: string; date: string; progress: string; evidence: string }[];
   advisorMeetings: { date: string; persons: string; issues: string; actionPoints: string }[];
   ethicsGovernance: { dateApplied: string; dateApproved: string; approvalNumber: string; amendments: string; confidentiality: string };
